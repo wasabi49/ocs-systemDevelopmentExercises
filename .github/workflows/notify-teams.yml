@@ -17,7 +17,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         curl -H 'Content-Type: application/json' \
-        --header 'Authorization: Bearer $GITHUB_TOKEN' \
+        -H "Authorization: token $GITHUB_TOKEN" \
         -d '{
           "type": "message",
           "attachments": [
