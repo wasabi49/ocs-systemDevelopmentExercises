@@ -34,3 +34,28 @@ jobs:
                     "weight": "Bolder",
                     "size": "Medium"
                   },
+                  {
+                    "type": "TextBlock",
+                    "text": "Issue: #${{ github.event.issue.number }} - ${{ github.event.issue.title }}",
+                    "wrap": true
+                  },
+                  {
+                    "type": "TextBlock",
+                    "text": "Comment by: ${{ github.actor }}",
+                    "wrap": true
+                  },
+                  {
+                    "type": "TextBlock",
+                    "text": "Mentioned assignees: ${{ github.event.issue.assignee.login }}",
+                    "wrap": true
+                  },
+                  {
+                    "type": "TextBlock",
+                    "text": "[View Comment](${{ github.event.comment.html_url }})",
+                    "wrap": true
+                  }
+                ]
+              }
+            }
+          ]
+        }' ${{ secrets.TEAMS_WEBHOOK_URL }}
