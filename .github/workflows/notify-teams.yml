@@ -54,7 +54,7 @@ jobs:
                   },
                   {
                     "type": "TextBlock",
-                    "text": "Mentioned assignees: ${{ steps.issue.outputs.assignees }}",
+                    "text": "Mentioned assignees: ${{  github.event.issue.assignees.login }}",
                     "wrap": true
                   },
                   {
