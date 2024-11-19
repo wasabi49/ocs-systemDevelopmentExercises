@@ -14,18 +14,15 @@ jobs:
 
     - name: Get issue assignees
       id: get_assignees
-      run: |
-        node -e "
-          const github = require('@actions/github');
-          const context = github.context;
-          const issue = context.payload.issue;
-          if (issue && issue.assignees) {
-            console.log(JSON.stringify({ assignees: issue.assignees.map(assignee => assignee.login).join(', ') }));
-          } else {
-            console.error('Issue data is undefined or does not have assignees');
-            console.log(JSON.stringify({ assignees: '' }));
-          }
-        "
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const issue = await github.issues.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number
+          });
+          return { assignees: issue.data.assignees.map(assignee => assignee.login).join(', ') };
 
     - name: Send notification to Teams
       run: |
