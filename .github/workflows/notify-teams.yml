@@ -13,10 +13,9 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Send notification to Teams
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        curl -H 'Content-Type: application/json' -d '{
+        curl -H 'Content-Type: application/json'
+        --header 'authorization: ${{ secrets.GITHUB_TOKEN }}'  -d '{
           "type": "message",
           "attachments": [
             {
