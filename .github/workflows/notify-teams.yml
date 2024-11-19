@@ -14,8 +14,10 @@ jobs:
 
     - name: Send notification to Teams
       run: |
+        env:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
         curl -H 'Content-Type: application/json' \
-        --header 'authorization: Bearer ${{ github.token }}' \
+        --header 'authorization: Bearer ${ github-token }' \
         -d '{
           "type": "message",
           "attachments": [
