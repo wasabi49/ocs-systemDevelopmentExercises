@@ -1,38 +1,69 @@
-name: Mention Assignee on Issue Comment
+name: Notify Teams on Issue Comment
 
 on:
   issue_comment:
     types: [created]
 
 jobs:
-  mention_assignee:
+  notify:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Get Issue Details
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Get issue details
       id: issue
       uses: actions/github-script@v6
       with:
         script: |
-          const issue = await github.rest.issues.get({
+          const issue = await github.issues.get({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            issue_number: context.issue.number,
+            issue_number: context.issue.number
           });
-          return issue.data;
-    - name: Comment mentioning assignee
-      uses: actions/github-script@v6
-      with:
-        script: |
-          const assignees = "${{ steps.issue.outputs.assignees }}".map(assignee => `@${assignee.login}`).join(' ');
-          const comment = `Issue has been updated. ${assignees}`;
-          await github.rest.issues.createComment({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            issue_number: context.issue.number,
-            body: comment,
-          });
+          return { assignees: issue.data.assignees.map(assignee => assignee.login).join(', ') };
+
     - name: Send notification to Teams
       run: |
         curl -H 'Content-Type: application/json' -d '{
-          "text": "New comment on issue #${{ github.event.issue.number }} by ${{ github.actor }}: ${{ github.event.comment.html_url }}. Mentioned assignees: ${{ steps.mention_assignee.outputs.assignees }}"
+          "type": "message",
+          "attachments": [
+            {
+              "contentType": "application/vnd.microsoft.card.adaptive",
+              "content": {
+                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                "type": "AdaptiveCard",
+                "version": "1.2",
+                "body": [
+                  {
+                    "type": "TextBlock",
+                    "text": "New comment on issue",
+                    "weight": "Bolder",
+                    "size": "Medium"
+                  },
+                  {
+                    "type": "TextBlock",
+                    "text": "Issue: #${{ github.event.issue.number }} - ${{ github.event.issue.title }}",
+                    "wrap": true
+                  },
+                  {
+                    "type": "TextBlock",
+                    "text": "Comment by: ${{ github.actor }}",
+                    "wrap": true
+                  },
+                  {
+                    "type": "TextBlock",
+                    "text": "Mentioned assignees: ${{ steps.issue.outputs.assignees }}",
+                    "wrap": true
+                  },
+                  {
+                    "type": "TextBlock",
+                    "text": "[View Comment](${{ github.event.comment.html_url }})",
+                    "wrap": true
+                  }
+                ]
+              }
+            }
+          ]
         }' ${{ secrets.TEAMS_WEBHOOK_URL }}
