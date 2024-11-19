@@ -14,11 +14,10 @@ jobs:
 
     - name: Send notification to Teams
       env:
-        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
       run: |
-        curl -H 'Content-Type: application/json' \
-        -H "Authorization: basic $GITHUB_TOKEN" \
-        -d '{
+        PAYLOAD=$(cat <<EOF
+        {
           "type": "message",
           "attachments": [
             {
@@ -46,11 +45,6 @@ jobs:
                   },
                   {
                     "type": "TextBlock",
-                    "text": "Mentioned assignees: ${{ github.event.issue.assignee.login }}",
-                    "wrap": true
-                  },
-                  {
-                    "type": "TextBlock",
                     "text": "[View Comment](${{ github.event.comment.html_url }})",
                     "wrap": true
                   }
@@ -58,4 +52,7 @@ jobs:
               }
             }
           ]
-        }' ${{ secrets.TEAMS_WEBHOOK_URL }}
+        }
+        EOF
+        )
+        curl -H 'Content-Type: application/json' -d "$PAYLOAD" $TEAMS_WEBHOOK_URL
