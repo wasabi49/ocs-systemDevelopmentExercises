@@ -15,7 +15,7 @@ jobs:
     - name: Send notification to Teams
       run: |
         curl -H 'Content-Type: application/json'
-        --header "authorization": 'token ${{ secrets.GITHUB_TOKEN }}'  -d '{
+        -H 'Authorization: token ${{ secrets.GITHUB_TOKEN }}'  -d '{
           "type": "message",
           "attachments": [
             {
@@ -43,7 +43,7 @@ jobs:
                   },
                   {
                     "type": "TextBlock",
-                    "text": "Mentioned assignees: ${{  github.event.issue.assignees.login }}",
+                    "text": "Mentioned assignees: ${{  github.event.issue.assignee.login }}",
                     "wrap": true
                   },
                   {
