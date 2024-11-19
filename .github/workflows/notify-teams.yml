@@ -12,18 +12,6 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Get issue assignees
-      id: get_assignees
-      uses: actions/github-script@v6
-      with:
-        script: |
-          const issue = await github.issues.get({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            issue_number: context.issue.number
-          });
-          return { assignees: issue.data.assignees.map(assignee => assignee.login).join(', ') };
-
     - name: Send notification to Teams
       run: |
         curl -H 'Content-Type: application/json' -d '{
