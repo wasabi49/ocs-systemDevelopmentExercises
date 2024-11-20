@@ -27,12 +27,20 @@ jobs:
       run: |
         PAYLOAD=$(cat <<EOF
         {
-          "text": "New comment on issue",
-          "issue_number": "${{ github.event.issue.number }}",
-          "issue_title": "${{ github.event.issue.title }}",
-          "comment_by": "${{ github.actor }}",
-          "comment_url": "${{ github.event.comment.html_url }}",
-          "assignees": ${{ steps.fetch_issue.outputs.assignees }}
+          "type": "message",
+          attachments:[
+            {
+              "contentType": "application/vnd.microsoft.card.adaptive",
+              "content": {
+                "text": "New comment on issue",
+                "issue_number": "${{ github.event.issue.number }}",
+                "issue_title": "${{ github.event.issue.title }}",
+                "comment_by": "${{ github.actor }}",
+                "comment_url": "${{ github.event.comment.html_url }}",
+                "assignees": ${{ steps.fetch_issue.outputs.assignees }}
+              }
+            }
+          ]
         }
         EOF
         )
