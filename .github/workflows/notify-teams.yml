@@ -12,47 +12,28 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
+    - name: fetch issue
+      id: fetch_issue
+      run: |
+        response=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+        -H "Accept: application/vnd.github.v3+json" \
+        https://api.github.com/repos/${{ github.repository }}/assignees)
+        logins=$(echo $response | jq -r '[.[] | .login]')
+        echo "::set-output name=assignees::$logins"
+
     - name: Send notification to Teams
       env:
         TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
       run: |
         PAYLOAD=$(cat <<EOF
         {
-          "type": "message",
-          "attachments": [
-            {
-              "contentType": "application/vnd.microsoft.card.adaptive",
-              "content": {
-                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-                "type": "AdaptiveCard",
-                "version": "1.2",
-                "body": [
-                  {
-                    "type": "TextBlock",
-                    "text": "New comment on issue",
-                    "weight": "Bolder",
-                    "size": "Medium"
-                  },
-                  {
-                    "type": "TextBlock",
-                    "text": "Issue: #${{ github.event.issue.number }} - ${{ github.event.issue.title }}",
-                    "wrap": true
-                  },
-                  {
-                    "type": "TextBlock",
-                    "text": "Comment by: ${{ github.actor }}",
-                    "wrap": true
-                  },
-                  {
-                    "type": "TextBlock",
-                    "text": "[View Comment](${{ github.event.comment.html_url }})",
-                    "wrap": true
-                  }
-                ]
-              }
-            }
-          ]
+          "text": "New comment on issue",
+          "issue_number": "${{ github.event.issue.number }}",
+          "issue_title": "${{ github.event.issue.title }}",
+          "comment_by": "${{ github.actor }}",
+          "comment_url": "${{ github.event.comment.html_url }}",
+          "assignees": ${{ steps.fetch_issue.outputs.assignees }}
         }
         EOF
         )
-        curl -H 'Content-Type: application/json' -d "$PAYLOAD" $TEAMS_WEBHOOK_URL
+        curl -H "Content-Type: application/json" -d "$PAYLOAD" $TEAMS_WEBHOOK_URL
