@@ -19,7 +19,7 @@ jobs:
         -H "Accept: application/vnd.github.v3+json" \
         https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }})
         echo "Response: $response"
-        logins=$(echo $response | jq -r '[.assignees[] | .login]')
+        logins=$(echo $response | jq -r '[.assignees[] | .login | tostring]' | jq -c '.')
         echo "::set-output name=assignees::$logins"
 
     - name: Send notification to Teams
@@ -28,20 +28,12 @@ jobs:
       run: |
         PAYLOAD=$(cat <<EOF
         {
-          "type": "message",
-          attachments:[
-            {
-              "contentType": "application/vnd.microsoft.card.adaptive",
-              "content": {
-                "text": "New comment on issue",
-                "issue_number": "${{ github.event.issue.number }}",
-                "issue_title": "${{ github.event.issue.title }}",
-                "comment_by": "${{ github.actor }}",
-                "comment_url": "${{ github.event.comment.html_url }}",
-                "assignees": ${{ steps.fetch_issue.outputs.assignees }}
-              }
-            }
-          ]
+          "text": "New comment on issue",
+          "issue_number": "${{ github.event.issue.number }}",
+          "issue_title": "${{ github.event.issue.title }}",
+          "comment_by": "${{ github.actor }}",
+          "comment_url": "${{ github.event.comment.html_url }}",
+          "assignees": ${{ steps.fetch_issue.outputs.assignees }}
         }
         EOF
         )
