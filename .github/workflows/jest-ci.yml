@@ -22,9 +22,11 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+        working-directory: ./mbs
 
       - name: Run tests
-        run: npm test -- --coverage --coverageReporters=text-lcov | tee coverage.lcov
+        run: npm test
+        working-directory: ./mbs
 
       - name: Publish coverage to PR
         uses: actions/github-script@v6
@@ -61,7 +63,7 @@ jobs:
             const prTitle = context.payload.pull_request.title.replace(/[^a-zA-Z0-9]/g, '_');
             const date = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }).replace(/[^0-9]/g, '').slice(0, 8);
             const fileName = `${prTitle}_${date}.json`;
-            const filePat結果は = path.join('mbs/test-result', fileName);
+            const filePath = path.join('mbs/test-result', fileName);
 
             testResults.timestamp = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }) + ' JST';
             fs.writeFileSync(filePath, JSON.stringify(testResults, null, 2));
