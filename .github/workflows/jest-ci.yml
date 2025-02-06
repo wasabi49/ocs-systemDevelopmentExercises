@@ -22,18 +22,18 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-        working-directory: ./ocs-systemDevelopmentExercises/mbs
+        working-directory: ./mbs
 
       - name: Run tests
         run: npm test
-        working-directory: ./ocs-systemDevelopmentExercises/mbs
+        working-directory: ./mbs
 
       - name: Comment test results
         uses: actions/github-script@v6
         with:
           script: |
             const { execSync } = require('child_process');
-            const result = execSync('npm test -- --json', { encoding: 'utf-8', cwd: './ocs-systemDevelopmentExercises/mbs' });
+            const result = execSync('npm test -- --json', { encoding: 'utf-8', cwd: './mbs' });
             const testResults = JSON.parse(result);
 
             const comment = `
