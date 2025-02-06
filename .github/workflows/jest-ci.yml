@@ -44,6 +44,7 @@ jobs:
               **Timestamp (JST):** ${new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}
             `;
 
+            const github = require('@actions/github');
             const { context } = github;
             const issue_number = context.payload.pull_request.number;
 
