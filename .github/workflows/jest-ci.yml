@@ -1,0 +1,69 @@
+name: Jest CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+      - dev
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test -- --coverage --coverageReporters=text-lcov | tee coverage.lcov
+
+      - name: Publish coverage to PR
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const coverage = fs.readFileSync('coverage.lcov', 'utf8');
+            const { execSync } = require('child_process');
+            const result = execSync('npm test -- --json --outputFile=test-results.json');
+            const testResults = JSON.parse(fs.readFileSync('test-results.json', 'utf8'));
+
+            const comment = `
+              ## Jest Test Results
+              **Total Tests:** ${testResults.numTotalTests}
+              **Passed Tests:** ${testResults.numPassedTests}
+              **Failed Tests:** ${testResults.numFailedTests}
+              **Coverage Report:**
+              \`\`\`
+              ${coverage}
+              \`\`\`
+              **Timestamp (JST):** ${new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}
+            `;
+
+            const { context } = github;
+            const issue_number = context.payload.pull_request.number;
+
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number,
+              body: comment
+            });
+
+            const prTitle = context.payload.pull_request.title.replace(/[^a-zA-Z0-9]/g, '_');
+            const date = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }).replace(/[^0-9]/g, '').slice(0, 8);
+            const fileName = `${prTitle}_${date}.json`;
+            const filePat結果は = path.join('mbs/test-result', fileName);
+
+            testResults.timestamp = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }) + ' JST';
+            fs.writeFileSync(filePath, JSON.stringify(testResults, null, 2));
+
+
