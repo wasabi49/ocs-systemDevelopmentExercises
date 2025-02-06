@@ -45,11 +45,10 @@ jobs:
             `;
 
             const github = require('@actions/github');
-            const { context } = github;
-            const issue_number = context.payload.pull_request.number;
+            const issue_number = github.context.payload.pull_request.number;
 
             await github.rest.issues.createComment({
-              ...context.repo,
+              ...github.context.repo,
               issue_number,
               body: comment
             });
