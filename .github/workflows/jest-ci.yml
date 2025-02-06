@@ -33,8 +33,9 @@ jobs:
         with:
           script: |
             const { execSync } = require('child_process');
-            const result = execSync('npm test -- --json', { encoding: 'utf-8', cwd: './mbs' });
-            const testResults = JSON.parse(result);
+            const result = execSync('npm test -- --json --outputFile=results.json', { encoding: 'utf-8', cwd: './mbs' });
+            const fs = require('fs');
+            const testResults = JSON.parse(fs.readFileSync('./mbs/results.json', 'utf-8'));
 
             const comment = `
               ## Jest Test Results
