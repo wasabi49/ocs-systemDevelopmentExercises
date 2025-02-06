@@ -33,7 +33,7 @@ jobs:
         with:
           script: |
             const { execSync } = require('child_process');
-            const github = require('@actions/github');
+            const gh = require('@actions/github');
             const result = execSync('npm test -- --json --outputFile=results.json', { encoding: 'utf-8', cwd: './mbs' });
             const fs = require('fs');
             const testResults = JSON.parse(fs.readFileSync('./mbs/results.json', 'utf-8'));
@@ -46,9 +46,9 @@ jobs:
               **Timestamp (JST):** ${new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}
             `;
 
-            github.rest.issues.createComment({
-              ...github.context.repo,
-              issue_number: github.context.issue.number,
+            gh.rest.issues.createComment({
+              ...gh.context.repo,
+              issue_number: gh.context.issue.number,
               body: comment
             });
 
