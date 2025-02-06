@@ -25,33 +25,30 @@ jobs:
         working-directory: ./mbs
 
       - name: Run tests
-        run: npm test
+        run: npm test -- --json --outputFile=results.json
         working-directory: ./mbs
 
       - name: Comment test results
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const { execSync } = require('child_process');
-            const result = execSync('npm test -- --json --outputFile=results.json', { encoding: 'utf-8', cwd: './mbs' });
-            const fs = require('fs');
-            const testResults = JSON.parse(fs.readFileSync('./mbs/results.json', 'utf-8'));
+        run: |
+          result=$(cat ./mbs/results.json)
+          totalTests=$(echo $result | jq '.numTotalTests')
+          passedTests=$(echo $result | jq '.numPassedTests')
+          failedTests=$(echo $result | jq '.numFailedTests')
+          timestamp=$(date +"%Y-%m-%d %H:%M:%S %Z")
 
-            const comment = `
-              ## Jest Test Results
-              **Total Tests:** ${testResults.numTotalTests}
-              **Passed Tests:** ${testResults.numPassedTests}
-              **Failed Tests:** ${testResults.numFailedTests}
-              **Timestamp (JST):** ${new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}
-            `;
+          comment=$(cat <<EOF
+          ## Jest Test Results
+          **Total Tests:** $totalTests
+          **Passed Tests:** $passedTests
+          **Failed Tests:** $failedTests
+          **Timestamp (JST):** $timestamp
+          EOF
+          )
 
-            const github = require('@actions/github');
-            const context = github.context;
-
-            github.rest.issues.createComment({
-              ...context.repo,
-              issue_number: context.issue.number,
-              body: comment
-            });
+          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/json" \
+            -d "{\"body\": \"$comment\"}" \
+            "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
