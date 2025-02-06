@@ -21,12 +21,12 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install
         working-directory: ./mbs
+        run: npm install
 
       - name: Run tests
-        run: npm test
         working-directory: ./mbs
+        run: npm test
 
       - name: Comment test results
         uses: actions/github-script@v6
