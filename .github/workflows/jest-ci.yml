@@ -22,11 +22,11 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-        working-directory: ./mbs
+        working-directory: ./ocs-systemDevelopmentExercises/mbs
 
       - name: Run tests
         run: npm test
-        working-directory: ./mbs
+        working-directory: ./ocs-systemDevelopmentExercises/mbs
 
       - name: Comment test results
         uses: actions/github-script@v6
