@@ -45,9 +45,12 @@ jobs:
               **Timestamp (JST):** ${new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}
             `;
 
+            const github = require('@actions/github');
+            const context = github.context;
+
             github.rest.issues.createComment({
-              ...github.context.repo,
-              issue_number: github.context.issue.number,
+              ...context.repo,
+              issue_number: context.issue.number,
               body: comment
             });
 
