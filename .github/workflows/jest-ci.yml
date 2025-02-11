@@ -39,8 +39,11 @@ jobs:
           failedTests=$(echo $result | jq '.numFailedTests')
           timestamp=$(TZ=Asia/Tokyo date +"%Y-%m-%d %H:%M:%S %Z")
 
-          # 失敗したテストの詳細を取得
-          failedTestDetails=$(echo $result | jq -r '.testResults[] | select(.status == "failed") | .assertionResults[] | select(.status == "failed") | "- " + .ancestorTitles[-1] + ": " + .title' 2>/dev/null || echo "")
+          # 失敗したテストがある場合のみ、詳細を取得
+          failedTestDetails=""
+          if [ "$failedTests" -gt 0 ]; then
+            failedTestDetails=$(echo $result | jq -r '.testResults[] | select(.status == "failed") | .assertionResults[] | select(.status == "failed") | "- " + .ancestorTitles[-1] + ": " + .title' 2>/dev/null || echo "")
+          fi
 
           comment=$(cat <<EOF
           ## Jest Test Results
@@ -48,11 +51,13 @@ jobs:
           **Passed Tests:** $passedTests
           **Failed Tests:** $failedTests
           **Timestamp:** $timestamp
-
-          ${failedTests:+### Failed Tests:
-          $failedTestDetails}
           EOF
           )
+
+          # 失敗したテストがある場合のみ、Failed Testsセクションを追加
+          if [ "$failedTests" -gt 0 ]; then
+            comment+=$'\n\n### Failed Tests:\n'"$failedTestDetails"
+          fi
 
           owner=$(echo "${{ github.repository }}" | cut -d'/' -f1)
           repo=$(echo "${{ github.repository }}" | cut -d'/' -f2)
