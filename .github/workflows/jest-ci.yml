@@ -18,17 +18,20 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Install dependencies
         run: npm install
         working-directory: ./mbs
 
       - name: Run tests
-        run: npm test -- --json --outputFile=results.json
+        id: run_tests
+        run: |
+          npm test -- --json --outputFile=results.json || echo "::set-output name=tests_failed::true"
         working-directory: ./mbs
 
       - name: Comment test results
+        if: always()
         run: |
           result=$(cat ./mbs/results.json)
           totalTests=$(echo $result | jq '.numTotalTests')
@@ -36,12 +39,18 @@ jobs:
           failedTests=$(echo $result | jq '.numFailedTests')
           timestamp=$(TZ=Asia/Tokyo date +"%Y-%m-%d %H:%M:%S %Z")
 
+          # 失敗したテストの詳細を取得
+          failedTestDetails=$(echo $result | jq -r '.testResults[] | select(.status == "failed") | .assertionResults[] | select(.status == "failed") | "- " + .ancestorTitles[-1] + ": " + .title' 2>/dev/null || echo "")
+
           comment=$(cat <<EOF
           ## Jest Test Results
           **Total Tests:** $totalTests
           **Passed Tests:** $passedTests
           **Failed Tests:** $failedTests
-          **Timestamp :** $timestamp
+          **Timestamp:** $timestamp
+
+          ${failedTests:+### Failed Tests:
+          $failedTestDetails}
           EOF
           )
 
@@ -59,4 +68,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-
+      - name: Check test results
+        if: steps.run_tests.outputs.tests_failed == 'true'
+        run: exit 1
