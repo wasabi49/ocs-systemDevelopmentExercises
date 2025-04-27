@@ -1,6 +1,7 @@
+"use client";
+
 import React, { useState } from 'react';
 
-// 注文データ型定義
 type Order = {
   id: string;
   date: string;
@@ -9,25 +10,24 @@ type Order = {
   status: '完了' | '未完了';
 };
 
-// ダミーデータ
+// ダミーデータ（OスタートID）
 const dummyOrders: Order[] = [
   { id: 'O12345', date: '2004/4/7', customerName: '大阪情報専門学校', note: '', status: '完了' },
   { id: 'O12457', date: '2004/4/8', customerName: '森ノ宮病院', note: '', status: '未完了' },
 ];
 
-const OrderList: React.FC = () => {
-  const [orders, setOrders] = useState<Order[]>(dummyOrders);
+export default function OrderListPage() {
   const [searchField, setSearchField] = useState<'すべて' | '注文ID' | '注文日' | '顧客名' | '備考' | '状態'>('すべて');
   const [searchKeyword, setSearchKeyword] = useState('');
-
-  const handleAddOrder = () => {
-    // 遷移処理は別途親コンポーネントやルーティングで実装してください
-    alert('注文追加画面に遷移します（仮）');
-  };
+  const [orders, setOrders] = useState<Order[]>(dummyOrders);
 
   const handleSort = (field: keyof Order) => {
     const sorted = [...orders].sort((a, b) => (a[field] > b[field] ? 1 : -1));
     setOrders(sorted);
+  };
+
+  const handleSearch = () => {
+    console.log('検索確定：', searchKeyword);
   };
 
   const filteredOrders = orders.filter(order => {
@@ -43,11 +43,25 @@ const OrderList: React.FC = () => {
     return order[searchField as keyof Order].includes(searchKeyword);
   });
 
+  // 15行確保
+  const displayedOrders = [...filteredOrders];
+  while (displayedOrders.length < 15) {
+    displayedOrders.push({ id: '', date: '', customerName: '', note: '', status: '完了' });
+  }
+
   return (
-    <div style={{ padding: '20px' }}>
-      <div style={{ marginBottom: '10px' }}>
-        <button onClick={handleAddOrder} style={{ marginRight: '10px', backgroundColor: 'yellow' }}>注文追加</button>
-        <select value={searchField} onChange={e => setSearchField(e.target.value as any)}>
+    <div className="p-4 max-w-screen-lg mx-auto">
+      {/* 注文追加ボタン＋検索 */}
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
+        <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded">
+          注文追加
+        </button>
+
+        <select
+          value={searchField}
+          onChange={e => setSearchField(e.target.value as any)}
+          className="border rounded p-2"
+        >
           <option value="すべて">すべて検索</option>
           <option value="注文ID">注文ID</option>
           <option value="注文日">注文日</option>
@@ -55,44 +69,63 @@ const OrderList: React.FC = () => {
           <option value="備考">備考</option>
           <option value="状態">状態</option>
         </select>
+
         <input
           type="text"
           placeholder="例：注文ID"
           value={searchKeyword}
           onChange={e => setSearchKeyword(e.target.value)}
-          style={{ marginLeft: '10px' }}
+          className="border rounded p-2 w-64"
         />
+
+        <button
+          onClick={handleSearch}
+          className="bg-white hover:bg-gray-100 text-black font-bold py-2 px-4 border rounded"
+        >
+          🔍
+        </button>
       </div>
 
-      <table border={1} cellPadding={5} style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr>
-            <th><button onClick={() => handleSort('id')}>注文ID</button></th>
-            <th><button onClick={() => handleSort('date')}>注文日</button></th>
-            <th>顧客名</th>
-            <th>備考</th>
-            <th><button onClick={() => handleSort('status')}>状態</button></th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredOrders.map((order, index) => (
-            <tr key={index}>
-              <td>{order.id}</td>
-              <td>{order.date}</td>
-              <td>{order.customerName}</td>
-              <td>{order.note}</td>
-              <td style={{ color: order.status === '完了' ? 'black' : 'red' }}>{order.status}</td>
+      {/* テーブル */}
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-center text-sm">
+          <thead className="bg-blue-300">
+            <tr>
+              <th className="border px-2 py-1 cursor-pointer" onClick={() => handleSort('id')}>注文ID</th>
+              <th className="border px-2 py-1 cursor-pointer" onClick={() => handleSort('date')}>注文日</th>
+              <th className="border px-2 py-1">顧客名</th>
+              <th className="border px-2 py-1">備考</th>
+              <th className="border px-2 py-1 cursor-pointer" onClick={() => handleSort('status')}>状態</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {displayedOrders.map((order, index) => (
+              <tr key={index} className={`${index % 2 === 0 ? 'bg-blue-100' : 'bg-white'} h-8`}>
+                <td className="border px-2 py-1">{order.id}</td>
+                <td className="border px-2 py-1">{order.date}</td>
+                <td className="border px-2 py-1">{order.customerName}</td>
+                <td className="border px-2 py-1">{order.note}</td>
+                <td className="border px-2 py-1">
+                  <span className={order.status === '未完了' ? 'text-red-500' : ''}>
+                    {order.status}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-      {/* ページネーション（ダミー） */}
-      <div style={{ marginTop: '10px', textAlign: 'center' }}>
-        {'<<'} <span style={{ margin: '0 5px' }}>1</span> <span style={{ margin: '0 5px', textDecoration: 'underline' }}>2</span> <span style={{ margin: '0 5px' }}>3</span> {'>>'}
+      {/* ページネーション */}
+      <div className="mt-2 text-center text-sm">
+        <span className="mx-1 cursor-pointer">&lt;&lt;</span>
+        <span className="mx-1 cursor-pointer font-bold">1</span>
+        <span className="mx-1 cursor-pointer">2</span>
+        <span className="mx-1 cursor-pointer">3</span>
+        <span className="mx-1 cursor-pointer">4</span>
+        <span className="mx-1 cursor-pointer">5</span>
+        <span className="mx-1 cursor-pointer">&gt;&gt;</span>
       </div>
     </div>
   );
-};
-
-export default OrderList;
+}
