@@ -9,7 +9,7 @@ const Header = () => {
       <nav>
         <ul className="flex space-x-16">
           <li className="cursor-pointer hover:underline">
-            <Link href="/customers">顧客</Link>
+            <Link href="/Home/CustomerList">顧客</Link>
           </li>
           <li className="cursor-pointer hover:underline">
             <Link href="/orders">注文</Link>
