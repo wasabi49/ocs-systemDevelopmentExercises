@@ -1,7 +1,8 @@
+"use client";
+
 import DynamicTable from "./DynamicTable"
 import SearchMultiSelectBox from "./SearchMultiSelectBox"
-
-
+import DeliveryButton from "./DeliveryButton"
 
 const DeliveryList = () => {
   const headers = [
@@ -20,6 +21,7 @@ const DeliveryList = () => {
     <div>
     <SearchMultiSelectBox/>
     <DynamicTable headers={headers} data={data} />
+    <DeliveryButton styleType="primary">納品追加</DeliveryButton>
     </div>
   );
 }
