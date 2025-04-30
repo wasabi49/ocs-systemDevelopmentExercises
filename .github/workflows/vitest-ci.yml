@@ -1,0 +1,38 @@
+name: vitest-ci
+on:
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./mbs
+    steps:
+      # リポジトリをチェックアウト
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # Node.js をセットアップ
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      # 依存関係をインストール
+      - name: Install dependencies
+        run: npm install
+
+      # Vitest テストを実行
+      - name: Run Vitest tests
+        run: npm run test -- --reporter=verbose --outputFile=vitest-results.json
+
+      # テスト結果をアップロード
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-results
+          path: vitest-results.json
