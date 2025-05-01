@@ -1,23 +1,22 @@
 "use client";
 
+import Link from 'next/link';
 import React, { useState } from 'react';
 
 type Order = {
   id: string;
-  date: string;
   customerName: string;
-  note: string;
-  status: '完了' | '未完了';
+  managerName: string;
 };
 
 // ダミーデータ（OスタートID）
 const dummyOrders: Order[] = [
-  { id: 'O12345', date: '2004/4/7', customerName: '大阪情報専門学校', note: '', status: '完了' },
-  { id: 'O12457', date: '2004/4/8', customerName: '森ノ宮病院', note: '', status: '未完了' },
+  { id: 'O12345', customerName: '田中　太郎', managerName: ''},
+  { id: 'O12457', customerName: '株式会社SCC', managerName: '鈴木　太郎'},
 ];
 
-export default function OrderListPage() {
-  const [searchField, setSearchField] = useState<'すべて' | '注文ID' | '注文日' | '顧客名' | '備考' | '状態'>('すべて');
+export default function CustormerListPage() {
+  const [searchField, setSearchField] = useState<'すべて' | '顧客ID' | '顧客名' | '担当者名'>('すべて');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [orders, setOrders] = useState<Order[]>(dummyOrders);
 
@@ -34,10 +33,8 @@ export default function OrderListPage() {
     if (searchField === 'すべて') {
       return (
         order.id.includes(searchKeyword) ||
-        order.date.includes(searchKeyword) ||
         order.customerName.includes(searchKeyword) ||
-        order.note.includes(searchKeyword) ||
-        order.status.includes(searchKeyword)
+        order.managerName.includes(searchKeyword)
       );
     }
     return order[searchField as keyof Order].includes(searchKeyword);
@@ -46,7 +43,7 @@ export default function OrderListPage() {
   // 15行確保
   const displayedOrders = [...filteredOrders];
   while (displayedOrders.length < 15) {
-    displayedOrders.push({ id: '', date: '', customerName: '', note: '', status: '完了' });
+    displayedOrders.push({ id: '', customerName: '', managerName: ''});
   }
 
   return (
@@ -54,7 +51,7 @@ export default function OrderListPage() {
       {/* 注文追加ボタン＋検索 */}
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
         <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded">
-          注文追加
+          <Link href="CustomerList/CsvImport">CSVインポート</Link>
         </button>
 
         <select
@@ -63,16 +60,14 @@ export default function OrderListPage() {
           className="border rounded p-2"
         >
           <option value="すべて">すべて検索</option>
-          <option value="注文ID">注文ID</option>
-          <option value="注文日">注文日</option>
+          <option value="顧客ID">顧客ID</option>
           <option value="顧客名">顧客名</option>
-          <option value="備考">備考</option>
-          <option value="状態">状態</option>
+          <option value="担当者">担当者</option>
         </select>
 
         <input
           type="text"
-          placeholder="例：注文ID"
+          placeholder="例：I-12345"
           value={searchKeyword}
           onChange={e => setSearchKeyword(e.target.value)}
           className="border rounded p-2 w-64"
@@ -91,25 +86,17 @@ export default function OrderListPage() {
         <table className="w-full border-collapse text-center text-sm">
           <thead className="bg-blue-300">
             <tr>
-              <th className="border px-2 py-1 cursor-pointer" onClick={() => handleSort('id')}>注文ID</th>
-              <th className="border px-2 py-1 cursor-pointer" onClick={() => handleSort('date')}>注文日</th>
-              <th className="border px-2 py-1">顧客名</th>
-              <th className="border px-2 py-1">備考</th>
-              <th className="border px-2 py-1 cursor-pointer" onClick={() => handleSort('status')}>状態</th>
+              <th className="border px-2 py-1 cursor-pointer" onClick={() => handleSort('id')}>顧客ID</th>
+              <th className="border px-2 py-1 cursor-pointer" onClick={() => handleSort('customerName')}>顧客名</th>
+              <th className="border px-2 py-1 cursor-pointer" onClick={() => handleSort('managerName')}>担当者</th>
             </tr>
           </thead>
           <tbody>
             {displayedOrders.map((order, index) => (
               <tr key={index} className={`${index % 2 === 0 ? 'bg-blue-100' : 'bg-white'} h-8`}>
                 <td className="border px-2 py-1">{order.id}</td>
-                <td className="border px-2 py-1">{order.date}</td>
                 <td className="border px-2 py-1">{order.customerName}</td>
-                <td className="border px-2 py-1">{order.note}</td>
-                <td className="border px-2 py-1">
-                  <span className={order.status === '未完了' ? 'text-red-500' : ''}>
-                    {order.status}
-                  </span>
-                </td>
+                <td className="border px-2 py-1">{order.managerName}</td>
               </tr>
             ))}
           </tbody>
