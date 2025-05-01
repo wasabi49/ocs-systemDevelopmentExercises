@@ -1,7 +1,7 @@
 "use client";
 
-import Link from 'next/link';
 import React, { useState } from 'react';
+import MessageDialog from './components/Modal';
 
 type Order = {
   id: string;
@@ -19,6 +19,7 @@ export default function CustormerListPage() {
   const [searchField, setSearchField] = useState<'すべて' | '顧客ID' | '顧客名' | '担当者'>('すべて');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [orders, setOrders] = useState<Order[]>(dummyOrders);
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleSort = (field: keyof Order) => {
     const sorted = [...orders].sort((a, b) => (a[field] > b[field] ? 1 : -1));
@@ -47,11 +48,13 @@ export default function CustormerListPage() {
   }
 
   return (
+    <>
+    <MessageDialog open={isOpen} onCancel={() => setIsOpen(false)} onOk={() => setIsOpen(false)} />
     <div className="p-4 max-w-screen-lg mx-auto">
       {/* 注文追加ボタン＋検索 */}
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
-        <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded">
-          <Link href="CustomerList/CsvImport">CSVインポート</Link>
+        <button onClick={() => setIsOpen(true)} className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded">
+          CSVインポート
         </button>
 
         <select
@@ -114,5 +117,6 @@ export default function CustormerListPage() {
         <span className="mx-1 cursor-pointer">&gt;&gt;</span>
       </div>
     </div>
+    </>
   );
 }
