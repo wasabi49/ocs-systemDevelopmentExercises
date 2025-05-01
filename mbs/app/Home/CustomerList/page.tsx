@@ -11,12 +11,12 @@ type Order = {
 
 // ダミーデータ（OスタートID）
 const dummyOrders: Order[] = [
-  { id: 'O12345', customerName: '田中　太郎', managerName: ''},
-  { id: 'O12457', customerName: '株式会社SCC', managerName: '鈴木　太郎'},
+  { id: 'I-00001', customerName: '田中　太郎', managerName: ''},
+  { id: 'C-00001', customerName: '株式会社SCC', managerName: '鈴木　太郎'},
 ];
 
 export default function CustormerListPage() {
-  const [searchField, setSearchField] = useState<'すべて' | '顧客ID' | '顧客名' | '担当者名'>('すべて');
+  const [searchField, setSearchField] = useState<'すべて' | '顧客ID' | '顧客名' | '担当者'>('すべて');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [orders, setOrders] = useState<Order[]>(dummyOrders);
 
@@ -86,7 +86,7 @@ export default function CustormerListPage() {
         <table className="w-full border-collapse text-center text-sm">
           <thead className="bg-blue-300">
             <tr>
-              <th className="border px-2 py-1 cursor-pointer" onClick={() => handleSort('id')}>顧客ID</th>
+              <th className="border px-2 py-1 cursor-pointer" onClick={() => handleSort('id')}>顧客ID<br></br>(I:個人 C:法人)</th>
               <th className="border px-2 py-1 cursor-pointer" onClick={() => handleSort('customerName')}>顧客名</th>
               <th className="border px-2 py-1 cursor-pointer" onClick={() => handleSort('managerName')}>担当者</th>
             </tr>
