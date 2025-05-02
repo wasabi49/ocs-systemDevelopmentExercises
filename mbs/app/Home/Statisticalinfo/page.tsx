@@ -1,9 +1,8 @@
-// components/LargeVerticalButtons.tsx
 'use client';
 
 import React from 'react';
 
-const LargeVerticalButtons = () => {
+const Statisticalinfo = () => {
   const CustomerAveragetime = () => {
     // 関数の内容
   };
@@ -18,21 +17,20 @@ const LargeVerticalButtons = () => {
         onClick={CustomerAveragetime}
         className="
           w-full max-w-[90%] sm:max-w-[400px] md:max-w-[600px]
-           border-2 border-black px-10 py-6 text-2xl text-black text-center tracking-widest
+          border-2 border-black px-6 py-6 text-center tracking-widest
+          text-black text-sm sm:text-base md:text-lg lg:text-xl
         "
       >
-        {/* モバイル用（表示） */}
-          <span className="block sm:hidden">平均リードタイム</span>
-  
-        {/* スマホ以上用（非表示 → 表示） */}
-          <span className="hidden sm:block">顧客別平均リードタイム</span>
+        <span className="block sm:hidden">平均リードタイム</span>
+        <span className="hidden sm:block">顧客別平均リードタイム</span>
       </button>
 
       <button 
         onClick={CustomerSales}
         className="
           w-full max-w-[90%] sm:max-w-[400px] md:max-w-[600px]
-           border-2 border-black px-10 py-6 text-2xl text-black text-center tracking-widest
+          border-2 border-black px-6 py-6 text-center tracking-widest
+          text-black text-sm sm:text-base md:text-lg lg:text-xl
         "
       >
         顧客別売上額
@@ -41,4 +39,4 @@ const LargeVerticalButtons = () => {
   );
 };
 
-export default LargeVerticalButtons;
+export default Statisticalinfo;
