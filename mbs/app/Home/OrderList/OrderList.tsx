@@ -21,10 +21,22 @@ export default function OrderListPage() {
   const [searchKeyword, setSearchKeyword] = useState('');
   const [statusFilter, setStatusFilter] = useState<'完了' | '未完了' | ''>('');
   const [orders, setOrders] = useState<Order[]>(dummyOrders);
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Order; direction: 'asc' | 'desc' } | null>({ key: 'id', direction: 'asc' });
 
   const handleSort = (field: keyof Order) => {
-    const sorted = [...orders].sort((a, b) => (a[field] > b[field] ? 1 : -1));
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === field && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    const sorted = [...orders].sort((a, b) => {
+      const aValue = a[field];
+      const bValue = b[field];
+      if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+      if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+      return 0;
+    });
     setOrders(sorted);
+    setSortConfig({ key: field, direction });
   };
 
   const handleSearch = () => {
@@ -42,18 +54,28 @@ export default function OrderListPage() {
     displayedOrders.push({ id: '', date: '', customerName: '', note: '', status: '' });
   }
 
+  const renderSortIcon = (field: keyof Order) => {
+    const isActive = sortConfig?.key === field;
+    const direction = sortConfig?.direction;
+    return (
+      <span className="ml-1">
+        <span className={`inline-block text-xs ${isActive && direction === 'asc' ? 'text-black' : 'text-gray-400'}`}>▲</span>
+        <span className={`inline-block text-xs ml-0.5 ${isActive && direction === 'desc' ? 'text-black' : 'text-gray-400'}`}>▼</span>
+      </span>
+    );
+  };
+
   return (
-    <div className="p-4 max-w-screen-lg mx-auto">
-      {/* 検索エリア：横並びでぴったり配置 */}
-      <div className="flex flex-row items-center gap-0 mb-4 w-full">
-        <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold h-[60px] w-[80px] border border-black text-sm whitespace-pre-line">
+    <div className="p-4 max-w-screen-lg mx-auto flex flex-col items-center">
+      <div className="flex flex-nowrap mb-4 w-full max-w-full overflow-x-auto justify-center gap-2 sm:gap-4">
+        <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold h-[48px] w-[80px] border border-black rounded-md text-sm">
           注文追加
         </button>
 
         <select
           value={searchField}
           onChange={(e) => setSearchField(e.target.value as any)}
-          className="border border-black px-2 py-2 h-[60px] text-sm"
+          className="border border-black px-2 py-2 h-[48px] text-sm rounded-md w-[120px]"
         >
           <option value="すべて">すべて検索</option>
           <option value="注文ID">注文ID</option>
@@ -67,27 +89,30 @@ export default function OrderListPage() {
           placeholder="例：注文日"
           value={searchKeyword}
           onChange={(e) => setSearchKeyword(e.target.value)}
-          className="border border-black px-2 py-2 h-[60px] w-full text-sm"
+          className="border border-black px-2 py-2 h-[48px] text-sm rounded-md w-[150px] sm:w-[250px]"
         />
 
         <button
           onClick={handleSearch}
-          className="bg-white hover:bg-gray-100 text-black font-bold px-4 py-2 border border-black h-[60px] w-[60px] flex items-center justify-center"
+          className="bg-white hover:bg-gray-100 text-black font-bold px-4 py-2 border border-black h-[48px] w-[48px] flex items-center justify-center rounded-md"
         >
           🔍
         </button>
       </div>
 
-      {/* テーブル表示 */}
       <div className="overflow-x-auto w-full">
-        <table className="table-fixed w-full max-w-full border-collapse text-center text-sm">
+        <table className="table-fixed w-full min-w-[600px] border-collapse text-center text-sm rounded-md">
           <thead className="bg-blue-300">
             <tr>
-              <th className="border px-1 py-1 w-20 truncate cursor-pointer" onClick={() => handleSort('id')}>注文ID ⬍</th>
-              <th className="border px-1 py-1 w-24 truncate cursor-pointer" onClick={() => handleSort('date')}>注文日 ⬍</th>
-              <th className="border px-1 py-1 w-48 truncate">顧客名</th>
-              <th className="border px-1 py-1 w-64 truncate">備考</th>
-              <th className="border px-1 py-1 w-20 truncate">
+              <th className="border px-1 py-1 w-24 truncate cursor-pointer" onClick={() => handleSort('id')}>
+                注文ID{renderSortIcon('id')}
+              </th>
+              <th className="border px-1 py-1 w-28 truncate cursor-pointer" onClick={() => handleSort('date')}>
+                注文日{renderSortIcon('date')}
+              </th>
+              <th className="border px-1 py-1 w-72 truncate">顧客名</th>
+              <th className="border px-1 py-1 w-120 truncate">備考</th>
+              <th className="border px-1 py-1 w-16 truncate">
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value as '完了' | '未完了' | '')}
@@ -126,7 +151,6 @@ export default function OrderListPage() {
         </table>
       </div>
 
-      {/* ページネーション */}
       <div className="mt-2 text-center text-sm">
         <span className="mx-1 cursor-pointer">&lt;&lt;</span>
         <span className="mx-1 cursor-pointer font-bold">1</span>
