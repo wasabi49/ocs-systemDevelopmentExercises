@@ -67,7 +67,7 @@ const Modal = ({ open, onCancel, onOk }: ModalProps) => {
           </button>
         </div>
       </div>
-      <div className="fixed bg-black bg-opacity-50 w-full h-full z-10" onClick={onCancel}></div>
+      <div className="fixed inset-0 bg-black/50 bg-opacity-25 w-full h-full z-10" onClick={onCancel}></div>
     </>
   ) : null;
 };

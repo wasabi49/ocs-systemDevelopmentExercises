@@ -73,9 +73,9 @@ export default function CustormerListPage() {
   return (
     <>
       <MessageDialog open={isOpen} onCancel={() => setIsOpen(false)} onOk={handleImport} />
-      <div className="p-4 max-w-screen-lg mx-auto">
-        {/* CSVインポートボタン＋検索 */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
+      <div className="flex flex-col items-center justify-center gap-2 sm:gap-4 mb-4">
+        <div className="flex flex-wrap items-center justify-start gap-4 mt-6">
+        {/* 一行目 */}
           <button onClick={() => setIsOpen(true)} className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded">
             CSVインポート
           </button>
@@ -90,7 +90,10 @@ export default function CustormerListPage() {
             <option value="顧客名">顧客名</option>
             <option value="担当者">担当者</option>
           </select>
+        </div>
 
+        {/* 二行目 */}
+        <div className="flex flex-wrap items-center justify-start gap-4">
           <input
             type="text"
             placeholder="例：I-12345"
@@ -131,22 +134,24 @@ export default function CustormerListPage() {
         </div>
 
         {/* ページネーションボタン */}
-        <div className="flex justify-between mt-4">
-          <button
-            onClick={handlePreviousPage}
-            disabled={currentPage === 0}
-            className="bg-gray-500 text-white px-4 py-2 rounded disabled:opacity-50"
-          >
-            前のページ
-          </button>
+        <div className="max-w-screen-lg mx-auto">
+          <div className="flex justify-between w-full mt-4">
+            <button
+              onClick={handlePreviousPage}
+              disabled={currentPage === 0}
+              className="bg-gray-500 text-white px-4 py-2 rounded disabled:opacity-50"
+            >
+              前のページ
+            </button>
 
-          <button
-            onClick={handleNextPage}
-            disabled={currentPage === chunkedOrders.length - 1}
-            className="bg-gray-500 text-white px-4 py-2 rounded disabled:opacity-50"
-          >
-            次のページ
-          </button>
+            <button
+              onClick={handleNextPage}
+              disabled={currentPage === chunkedOrders.length - 1}
+              className="bg-gray-500 text-white px-4 py-2 rounded disabled:opacity-50"
+            >
+              次のページ
+            </button>
+          </div>
         </div>
       </div>
     </>
