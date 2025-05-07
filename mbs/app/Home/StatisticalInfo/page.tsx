@@ -2,19 +2,19 @@
 
 import React from 'react';
 
-const Statisticalinfo = () => {
-  const CustomerAveragetime = () => {
+const StatisticalInfo = () => {
+  const LeadTime = () => {
     // 関数の内容
   };
 
-  const CustomerSales = () => {
+  const Sales = () => {
     // 関数の内容
   };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-10 bg-white">
       <button 
-        onClick={CustomerAveragetime}
+        onClick={LeadTime}
         className="
           w-full max-w-[90%] sm:max-w-[400px] md:max-w-[600px]
           border-2 border-black px-6 py-6 text-center tracking-widest
@@ -26,7 +26,7 @@ const Statisticalinfo = () => {
       </button>
 
       <button 
-        onClick={CustomerSales}
+        onClick={Sales}
         className="
           w-full max-w-[90%] sm:max-w-[400px] md:max-w-[600px]
           border-2 border-black px-6 py-6 text-center tracking-widest
@@ -39,4 +39,4 @@ const Statisticalinfo = () => {
   );
 };
 
-export default Statisticalinfo;
+export default StatisticalInfo;
