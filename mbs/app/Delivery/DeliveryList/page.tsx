@@ -68,12 +68,12 @@ export default function DeliveryListPage() {
   }
  
   return (
-    <div className="p-4 max-w-screen-lg mx-auto">
+    <div className="flex flex-col items-center justify-center gap-2 sm:gap-4 mb-4">
       {/* 納品追加ボタン＋検索 */}
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
-        <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded">
-          納品追加
-        </button>
+      <div className="flex flex-wrap items-center justify-start gap-4 mt-6">
+      <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded">
+        納品追加
+      </button>
  
         <select
           value={searchField}
@@ -86,7 +86,8 @@ export default function DeliveryListPage() {
           <option value="顧客名">顧客名</option>
           <option value="備考">備考</option>
         </select>
- 
+        </div>
+        <div className="flex flex-wrap items-center justify-start gap-4">
         <input
           type="text"
           placeholder="例：納品ID"
