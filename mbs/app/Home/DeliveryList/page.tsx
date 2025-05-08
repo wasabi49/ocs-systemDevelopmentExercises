@@ -1,14 +1,7 @@
 "use client";
  
+import DeliveryTable, { Delivery } from './DeliveryTable'; 
 import React, { useState } from 'react';
-import Link from 'next/link';
- 
-type Delivery = {
-  id: string;
-  date: string;
-  customerName: string;
-  note: string;
-};
  
 // ダミーデータ（DスタートID）
 const dummyDeliverys: Delivery[] = [
@@ -104,31 +97,15 @@ export default function DeliveryListPage() {
         </button>
       </div>
  
-      {/* テーブル */}
-      <div className="max-w-screen-lg mx-auto w-full overflow-x-auto">
-        <div className="min-w-[640px]">
-      <table className="w-full border-collapse text-xs table-auto">
-          <thead className="bg-blue-300">
-            <tr>
-              <th className="border px-1 py-1 cursor-pointer whitespace-nowrap w-24" onClick={() => handleSort('id')}>納品ID{renderSortIcons('id')}{sortField === 'id' && (sortOrder === 'asc' ? '' : '')}</th>
-              <th className="border px-1 py-1 cursor-pointer whitespace-nowrap w-24" onClick={() => handleSort('date')}>納品日{renderSortIcons('date')}{sortField === 'date' && (sortOrder === 'asc' ? '' : '')}</th>
-              <th className="border px-1 py-1 whitespace-nowrap">顧客名</th>
-              <th className="border px-1 py-1 whitespace-normal break-words">備考</th>
-            </tr>
-          </thead>
-          <tbody>
-            {displayedDeliverys.map((delivery, index) => (
-              <tr key={index} className={`${index % 2 === 0 ? 'bg-blue-100' : 'bg-white'} h-8`}>
-                <td className="border px-2 py-1 text-sm w-24"><Link href={`/delivery/${delivery.id}`} className="text-blue-600 underline decoration-blue-600">{delivery.id}</Link></td>
-                <td className="border px-2 py-1 text-sm w-24">{delivery.date}</td>
-                <td className="border px-2 py-1 text-sm whitespace-nowrap">{delivery.customerName}</td>
-                <td className="border px-2 py-1 text-sm whitespace-nowrap">{delivery.note}</td>
-              </tr>
-            ))}
-          </tbody>
-      </table>
-        </div>
-      </div>
+      {/* テーブル */} 
+<DeliveryTable
+  deliveries={displayedDeliverys}
+  onSort={handleSort}
+  renderSortIcons={renderSortIcons}
+  sortField={sortField}
+  sortOrder={sortOrder}
+/>
+
  
       {/* ページネーション */}
       <div className="mt-2 text-center text-sm">
