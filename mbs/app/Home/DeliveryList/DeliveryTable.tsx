@@ -21,11 +21,9 @@ export default function DeliveryTable({
   deliveries,
   onSort,
   renderSortIcons,
-  sortField,
-  sortOrder,
 }: Props) {
   return (
-    <div className="max-w-screen-lg mx-auto w-full overflow-x-auto">
+    <div className="max-w-screen-lg mx-auto w-full overflow-x-auto px-4">
       <div className="min-w-[640px]">
         <table className="w-full border-collapse text-xs table-auto">
           <thead className="bg-blue-300">

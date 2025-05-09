@@ -4,7 +4,7 @@ import DeliveryTable, { Delivery } from './DeliveryTable';
 import React, { useState } from 'react';
  
 // ダミーデータ（DスタートID）
-const dummyDeliverys: Delivery[] = [
+const dummyDeliveries: Delivery[] = [
   { id: 'D123456', date: '2004/4/7', customerName: '大阪情報専門学校', note: '(⌒∇⌒)ヤッホー',},
   { id: 'D123457', date: '2004/4/11', customerName: '株式会社スマートソリューションズ', note: '納品が約1ヶ月の遅れ',},
   { id: 'D223458', date: '2003/8/21', customerName: '株式会社SCC', note: '納品を約2ヶ月早めたい',},
@@ -12,9 +12,9 @@ const dummyDeliverys: Delivery[] = [
 ];
  
 export default function DeliveryListPage() {
-  const [searchField, setSearchField] = useState<'すべて' | '納品ID' | '納品日' | '顧客名' | '備考'>('すべて');
+  const [searchField, setSearchField] = useState<'すべて' | '納品ID' | '納品日' | '顧客名' | '備考' | '商品名'>('すべて');
   const [searchKeyword, setSearchKeyword] = useState('');
-  const [deliverys, setDeliverys] = useState<Delivery[]>(dummyDeliverys);
+  const [deliveries, setDeliveries] = useState<Delivery[]>(dummyDeliveries);
   const [sortField, setSortField] = useState<keyof Delivery | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   
@@ -29,20 +29,20 @@ export default function DeliveryListPage() {
  
   const handleSort = (field: keyof Delivery) => {
     const order = field === sortField && sortOrder === 'asc' ? 'desc' : 'asc';
-    const sorted = [...deliverys].sort((a, b) => {
+    const sorted = [...deliveries].sort((a, b) => {
       if (a[field] === b[field]) return 0;
       return order === 'asc' ? (a[field] > b[field] ? 1 : -1) : (a[field] < b[field] ? 1 : -1);
     });
     setSortField(field);
     setSortOrder(order);
-    setDeliverys(sorted);
+    setDeliveries(sorted);
   };
  
   const handleSearch = () => {
     console.log('検索確定：', searchKeyword);
   };
  
-  const filteredDeliverys = deliverys.filter(delivery => {
+  const filteredDeliveries = deliveries.filter(delivery => {
     if (searchField === 'すべて') {
       return (
         delivery.id.includes(searchKeyword) ||
@@ -55,13 +55,13 @@ export default function DeliveryListPage() {
   });
  
   // 15行確保
-  const displayedDeliverys = [...filteredDeliverys];
-  while (displayedDeliverys.length < 15) {
-    displayedDeliverys.push({ id: '', date: '', customerName: '', note: '',});
+  const displayedDeliveries = [...filteredDeliveries];
+  while (displayedDeliveries.length < 15) {
+    displayedDeliveries.push({ id: '', date: '', customerName: '', note: '',});
   }
  
   return (
-    <div className="flex flex-col items-center justify-center gap-2 sm:gap-4 mb-4">
+    <div className="flex flex-col items-center justify-center gap-2 md:gap-4 mb-4">
       {/* 納品追加ボタン＋検索 */}
       <div className="flex flex-wrap items-center justify-start gap-4 mt-6">
       <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded">
@@ -70,7 +70,7 @@ export default function DeliveryListPage() {
  
         <select
           value={searchField}
-          onChange={e => setSearchField(e.target.value as any)}
+          onChange={e => setSearchField(e.target.value as 'すべて' | '納品ID'  | '納品日' | '顧客名' | '備考' | '商品名')}
           className="border rounded p-2"
         >
           <option value="すべて">すべて検索</option>
@@ -98,13 +98,16 @@ export default function DeliveryListPage() {
       </div>
  
       {/* テーブル */} 
-<DeliveryTable
-  deliveries={displayedDeliverys}
-  onSort={handleSort}
-  renderSortIcons={renderSortIcons}
-  sortField={sortField}
-  sortOrder={sortOrder}
-/>
+      <div className="w-full  max-w-full px-4 md:px-8 overflow-x-auto">
+        <DeliveryTable
+          deliveries={displayedDeliveries}
+          onSort={handleSort}
+          renderSortIcons={renderSortIcons}
+          sortField={sortField}
+          sortOrder={sortOrder}
+        />
+      </div>
+
 
  
       {/* ページネーション */}
