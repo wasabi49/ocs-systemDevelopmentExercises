@@ -39,10 +39,6 @@ export default function OrderListPage() {
     setSortConfig({ key: field, direction });
   };
 
-  const handleSearch = () => {
-    console.log('検索確定：', searchKeyword);
-  };
-
   const filteredOrders = orders.filter(order => {
     const matchField = searchField === 'すべて' || order[searchField as keyof Order]?.includes(searchKeyword);
     const matchStatus = statusFilter === '' || order.status === statusFilter;
@@ -86,22 +82,15 @@ export default function OrderListPage() {
 
         <input
           type="text"
-          placeholder="例：注文日"
+          placeholder="🔍 例：注文日"
           value={searchKeyword}
           onChange={(e) => setSearchKeyword(e.target.value)}
           className="border border-black px-2 py-2 h-[48px] text-sm rounded-md w-[150px] sm:w-[250px]"
         />
-
-        <button
-          onClick={handleSearch}
-          className="bg-white hover:bg-gray-100 text-black font-bold px-4 py-2 border border-black h-[48px] w-[48px] flex items-center justify-center rounded-md"
-        >
-          🔍
-        </button>
       </div>
 
-      <div className="overflow-x-auto w-full">
-        <table className="table-fixed w-full min-w-[600px] border-collapse text-center text-sm rounded-md">
+      <div className="w-full overflow-x-auto">
+        <table className="w-full border-collapse text-center text-sm table-fixed sm:table-auto">
           <thead className="bg-blue-300">
             <tr>
               <th className="border px-1 py-1 w-24 truncate cursor-pointer" onClick={() => handleSort('id')}>
