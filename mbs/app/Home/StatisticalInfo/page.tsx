@@ -115,7 +115,7 @@ while (displayedOrders.length < 15) {
           placeholder="例：顧客ID"
           value={searchKeyword}
           onChange={e => setSearchKeyword(e.target.value)}
-          className="border rounded p-2 w-full text-black"
+          className="border rounded p-2 w-40 text-black"
         />
       </div>
 
