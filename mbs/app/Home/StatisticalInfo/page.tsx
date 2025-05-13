@@ -83,7 +83,7 @@ const exportToCSV = () => {
 // 15行確保
 const displayedOrders = [...filteredOrders];
 while (displayedOrders.length < 15) {
-  displayedOrders.push({ customerId: '', customerName: '', leadTime: 0 ,sales: 0});
+  displayedOrders.push({ customerId: '', customerName: '', leadTime: 0,sales: 0});
 }
   return (
     <div className="p-4  mx-auto text-black bg-white">
@@ -139,8 +139,8 @@ while (displayedOrders.length < 15) {
               <tr key={index} className={`${index % 2 === 0 ? 'bg-blue-100' : 'bg-white'} h-8`}>
                 <td className="border px-2 py-1">{order.customerId}</td>
                 <td className="border px-2 py-1">{order.customerName}</td>
-                <td className="border px-2 py-1">{order.leadTime}</td>
-                <td className="border px-2 py-1">{order.sales}</td>
+                <td className="border px-2 py-1">{order.customerId === '' ? '' : order.leadTime}</td>
+                <td className="border px-2 py-1">{order.customerId === '' ? '' : order.sales}</td>
               </tr>
             ))}
           </tbody>
