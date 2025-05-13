@@ -49,6 +49,37 @@ const filteredOrders = orders.filter(list => {
   return fieldValue.toString().includes(searchKeyword);
 });
 
+// csv生成・ダウンロード処理の関数を追加
+
+const exportToCSV = () => {
+  const headers = ['顧客ID', '顧客名', '平均リードタイム（日）', '累計売上額'];
+  const rows = filteredOrders.map(order => [
+    order.customerId,
+    order.customerName,
+    order.leadTime.toString(),
+    order.sales.toString()
+  ]);
+  
+  // ★ 日本語対応：BOM付きCSVにする
+
+  const csvContent = '\uFEFF' + [
+    headers.join(','),
+    ...rows.map(row => row.map(value => `"${value}"`).join(','))
+  ].join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', '顧客情報.csv');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  
+};
+
 // 15行確保
 const displayedOrders = [...filteredOrders];
 while (displayedOrders.length < 15) {
@@ -60,7 +91,9 @@ while (displayedOrders.length < 15) {
       <div className="flex flex-row sm:flex-row sm:items-center sm:justify-center gap-4 mb-4 w-full max-w-md mx-auto">
         {/* CSVエクスポートボタン（PCのみ表示） */}
         <div className="hidden sm:block justify-center ">
-          <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-2 rounded border border-black text-center leading-tight">
+          <button 
+            onClick={exportToCSV}
+            className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-2 rounded border border-black text-center leading-tight">
             <span className="text-sm">CSV</span>
             <span className="text-sm min-w-[120px] inline-block text-center">エクスポート</span>
           </button>
@@ -116,7 +149,9 @@ while (displayedOrders.length < 15) {
 
       {/* CSVエクスポートボタン（スマホ専用） */}
       <div className="block sm:hidden mb-4 text-center">
-        <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded border border-black">
+        <button 
+        onClick={exportToCSV}
+        className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded border border-black">
           CSVエクスポート
         </button>
       </div>
