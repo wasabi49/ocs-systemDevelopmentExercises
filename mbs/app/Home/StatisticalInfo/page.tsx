@@ -120,7 +120,7 @@ while (displayedOrders.length < 15) {
       </div>
 
       {/* テーブル */}
-      <div className="overflow-x-auto mb-4">
+      <div className="max-w-screen-lg mx-auto w-full overflow-x-auto px-4 mb-4">
         <table className=
                         //表の伸縮性、コメントアウト//
                         "min-w-[600px] w-full border-collapse text-center text-sm text-black">
