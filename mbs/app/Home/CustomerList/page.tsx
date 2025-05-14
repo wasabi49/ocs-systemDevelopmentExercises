@@ -2,13 +2,16 @@
 
 import React, { useState } from 'react';
 import MessageDialog from './components/Modal';
+import SearchFilter from '../../components/Search';
+import { useFilteredOrders } from '../../hooks/Filtere';
 
 type Order = {
+  id: string;
   customerName: string;
   managerName: string;
 };
 
-// CSVファイルインポート後のデータ整形
+// データをページごとに分割
 const chunkOrders = (orders: Order[], chunkSize = 15): Order[][] => {
   const chunks: Order[][] = [];
   for (let i = 0; i < orders.length; i += chunkSize) {
@@ -18,26 +21,29 @@ const chunkOrders = (orders: Order[], chunkSize = 15): Order[][] => {
 };
 
 export default function CustormerListPage() {
-  const [searchKeyword, setSearchKeyword] = useState('');
   const [orders, setOrders] = useState<Order[]>([]);
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [searchField, setSearchField] = useState('all');
   const [isOpen, setIsOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(0); // 現在のページ番号
+  const [currentPage, setCurrentPage] = useState(0);
 
   const handleImport = (data: string[][]) => {
+    const dataRows = data.slice(1); // ヘッダー除外
 
-    const dataRows = data.slice(1); // ヘッダー行を除外
-    
-    const mappedOrders: Order[] = dataRows.map((row,i) => ({
-      id: `${i + 1}`,
-      customerName: row[0] ?? '', // 1列目の顧客名(空白行を除外せず)
-      managerName: row[1] ?? '', // 2列目の担当者名(空白行を除外せず)
+    const mappedOrders: Order[] = dataRows.map((row, i) => ({
+      id: (i + 1).toString(),
+      customerName: row[0] ?? '',
+      managerName: row[1] ?? '',
     }));
 
     setOrders(mappedOrders);
+    setCurrentPage(0);
     setIsOpen(false);
   };
 
-  const chunkedOrders = chunkOrders(orders);
+  // 検索ロジック（カスタムフック）
+  const filteredOrders = useFilteredOrders(orders, searchKeyword, searchField);
+  const chunkedOrders = chunkOrders(filteredOrders);
   const currentOrders = chunkedOrders[currentPage] || [];
 
   const handleNextPage = () => {
@@ -55,6 +61,7 @@ export default function CustormerListPage() {
   return (
     <>
       <MessageDialog open={isOpen} onCancel={() => setIsOpen(false)} onOk={handleImport} />
+
       <div className="flex flex-col items-center justify-center gap-2 sm:gap-4 mb-4">
         <div className="flex flex-wrap items-center justify-start gap-4 mt-6">
           {/* CSVインポートボタン */}
@@ -64,33 +71,15 @@ export default function CustormerListPage() {
           >
             CSVインポート
           </button>
-
-          <select
-            className="border rounded p-2"
-          >
-            <option value="すべて">すべて検索</option>
-            <option value="顧客ID">顧客ID</option>
-            <option value="顧客名">顧客名</option>
-            <option value="担当者">担当者</option>
-          </select>
         </div>
 
-        {/* テキストボックス */}
-        <div className="flex flex-wrap items-center justify-start gap-4">
-          <input
-            type="text"
-            placeholder="例：I-12345"
-            value={searchKeyword}
-            onChange={e => setSearchKeyword(e.target.value)}
-            className="border rounded p-2 w-64"
-          />
-
-          <button
-            className="bg-white hover:bg-gray-100 text-black font-bold py-2 px-4 border rounded"
-          >
-            検索
-          </button>
-        </div>
+        {/* 検索フィルター */}
+        <SearchFilter
+          keyword={searchKeyword}
+          onKeywordChange={setSearchKeyword}
+          searchField={searchField}
+          onSearchFieldChange={setSearchField}
+        />
 
         {/* 顧客リスト表示 */}
         <div className="mb-6">
@@ -107,10 +96,8 @@ export default function CustormerListPage() {
             </thead>
             <tbody>
               {currentOrders.map((order, rowIndex) => (
-                <tr key={rowIndex} className={`${rowIndex % 2 === 0 ? 'bg-blue-100' : 'bg-white'} h-8`}>
-                  <td className="border px-2 py-1">
-                    {currentPage * 15 + rowIndex + 1} {/* 顧客IDを連番として設定 */}
-                  </td>
+                <tr key={order.id} className={`${rowIndex % 2 === 0 ? 'bg-blue-100' : 'bg-white'} h-8`}>
+                  <td className="border px-2 py-1">{order.id}</td>
                   <td className="border px-2 py-1">{order.customerName}</td>
                   <td className="border px-2 py-1">{order.managerName}</td>
                 </tr>
@@ -119,7 +106,7 @@ export default function CustormerListPage() {
           </table>
         </div>
 
-        {/* ページネーションボタン（中央寄り） */}
+        {/* ページネーション */}
         <div className="w-full mt-4">
           <div className="flex justify-between max-w-2xl mx-auto px-4">
             <button
@@ -129,10 +116,9 @@ export default function CustormerListPage() {
             >
               前のページ
             </button>
-
             <button
               onClick={handleNextPage}
-              disabled={currentPage === chunkedOrders.length - 1}
+              disabled={currentPage >= chunkedOrders.length - 1}
               className="bg-gray-500 text-white px-4 py-2 rounded disabled:opacity-50"
             >
               次のページ
