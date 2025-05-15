@@ -28,7 +28,7 @@ jobs:
 
       # Vitest テストを実行
       - name: Run Vitest tests
-        run: npm run test -- --reporter=verbose --outputFile=vitest-results.json
+        run: npm run test:json
 
       # テスト結果をアップロード
       - name: Upload test results
