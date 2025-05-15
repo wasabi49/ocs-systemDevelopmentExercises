@@ -20,7 +20,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '18'
+          node-version: "18"
 
       # 依存関係をインストール
       - name: Install dependencies
@@ -28,11 +28,12 @@ jobs:
 
       # Vitest テストを実行
       - name: Run Vitest tests
-        run: npm run test -- --reporter=verbose --outputFile=vitest-results.json
+        run: npm run test:json
 
       # テスト結果をアップロード
       - name: Upload test results
         uses: actions/upload-artifact@v4
         with:
           name: vitest-results
-          path: vitest-results.json
+          path: ./mbs/vitest-results.json
+          if-no-files-found: warn
