@@ -13,14 +13,14 @@ type Order = {
 
 const dummyOrders: Order[] = [
   {
-    id: "O12345",
+    id: "O123456",
     date: "2004/4/7",
     customerName: "大阪情報専門学校",
     note: "",
     status: "完了",
   },
   {
-    id: "O12457",
+    id: "O123457",
     date: "2004/4/8",
     customerName: "森ノ宮病院",
     note: "",
