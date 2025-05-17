@@ -40,27 +40,27 @@ type OrderData = {
 // 注文データの定義（注文IDごとにデータを用意）
 const orderDataMap: Record<string, OrderData> = {
   // 大阪情報専門学校の注文データ
-  'O12345': {
+  'O123456': {
     orderDetails: [
       { 
-        orderDetailId: "O12345-01", 
+        orderDetailId: "O123456-01", 
         productName: "転写型汎用ソフト5版", 
         unitPrice: 13500, 
         quantity: 5, 
-        deliveryDetailId: "D12345-01", 
+        deliveryDetailId: "D123456-01", 
         description: "" 
       },
       { 
-        orderDetailId: "O12345-02", 
+        orderDetailId: "O123456-02", 
         productName: "CADデータによるドリル", 
         unitPrice: 2135, 
         quantity: 10, 
-        deliveryDetailId: "D12345-02", 
+        deliveryDetailId: "D123456-02", 
         description: "" 
       }
     ],
     orderInfo: {
-      orderId: "O12345",
+      orderId: "O123456",
       orderDate: "2004/4/7",
       status: "完了",
       remarks: ""
@@ -74,27 +74,27 @@ const orderDataMap: Record<string, OrderData> = {
     }
   },
   // 森ノ宮病院の注文データ
-  'O12457': {
+  'O123457': {
     orderDetails: [
       { 
-        orderDetailId: "O12457-01", 
+        orderDetailId: "O123457-01", 
         productName: "医療用記録システム", 
         unitPrice: 45000, 
         quantity: 1, 
-        deliveryDetailId: "D12457-01", 
+        deliveryDetailId: "D123457-01", 
         description: "緊急" 
       },
       { 
-        orderDetailId: "O12457-02", 
+        orderDetailId: "O123457-02", 
         productName: "患者管理ソフト", 
         unitPrice: 35000, 
         quantity: 1, 
-        deliveryDetailId: "D12457-02", 
+        deliveryDetailId: "D123457-02", 
         description: "" 
       }
     ],
     orderInfo: {
-      orderId: "O12457",
+      orderId: "O123457",
       orderDate: "2004/4/8",
       status: "未完了",
       remarks: "早期納品希望"
@@ -157,11 +157,6 @@ const OrderDetailPage: FC = () => {
     }))
   ];
 
-  // 注文一覧に戻る
-  const handleBackToList = () => {
-    router.push('/Home/OrderList');
-  };
-
   // 編集ボタンのハンドラー
   const handleEdit = () => {
     alert('注文を編集します（デモのため実際の編集は行われていません）');
@@ -179,46 +174,45 @@ const OrderDetailPage: FC = () => {
     alert('PDFを出力しています（デモのため実際の出力は行われていません）');
   };
 
-
   return (
-    <div className="container mx-auto px-4 py-6">
-      {/* タイトルと戻るボタンと編集ボタン */}
-      <div className="flex items-center justify-between mb-6">
+    <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
+      {/* 編集ボタン */}
+      <div className="flex justify-end mb-4 sm:mb-6">
         <button
           onClick={handleEdit}
-          className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-1 px-4 rounded"
+          className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-1 px-3 sm:py-1 sm:px-4 rounded text-sm sm:text-base"
         >
           編集
         </button>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
         {/* 注文明細テーブル（左側） */}
         <div className="w-full lg:w-2/3 overflow-x-auto">
-          <table className="w-full min-w-[600px] border-collapse">
+          <table className="w-full min-w-[320px] sm:min-w-[600px] border-collapse text-xs sm:text-sm">
             <thead>
               <tr className="bg-sky-500 text-white">
-                <th className="p-2 border border-gray-300">注文明細ID</th>
-                <th className="p-2 border border-gray-300">商品名</th>
-                <th className="p-2 border border-gray-300">単価</th>
-                <th className="p-2 border border-gray-300">数量</th>
-                <th className="p-2 border border-gray-300">納品明細ID</th>
-                <th className="p-2 border border-gray-300">摘要</th>
+                <th className="p-1 sm:p-2 border border-gray-300 w-[12%] sm:w-[15%]">注文明細ID</th>
+                <th className="p-1 sm:p-2 border border-gray-300 w-[20%] sm:w-[25%]">商品名</th>
+                <th className="p-1 sm:p-2 border border-gray-300 w-[10%] sm:w-[12%]">単価</th>
+                <th className="p-1 sm:p-2 border border-gray-300 w-[6%] sm:w-[8%]">数量</th>
+                <th className="p-1 sm:p-2 border border-gray-300 w-[12%] sm:w-[15%]">納品明細ID</th>
+                <th className="p-1 sm:p-2 border border-gray-300 w-[40%] sm:w-[25%]">摘要</th>
               </tr>
             </thead>
             <tbody>
               {displayOrderDetails.map((item, index) => (
                 <tr key={index} className="bg-white">
-                  <td className="p-2 border border-gray-300 h-10">{item.orderDetailId}</td>
-                  <td className="p-2 border border-gray-300 h-10">{item.productName}</td>
-                  <td className="p-2 border border-gray-300 text-right h-10">
+                  <td className="p-1 sm:p-2 border border-gray-300 h-8 sm:h-10 truncate">{item.orderDetailId}</td>
+                  <td className="p-1 sm:p-2 border border-gray-300 h-8 sm:h-10 truncate">{item.productName}</td>
+                  <td className="p-1 sm:p-2 border border-gray-300 text-right h-8 sm:h-10">
                     {item.unitPrice > 0 ? formatJPY(item.unitPrice) : ""}
                   </td>
-                  <td className="p-2 border border-gray-300 text-right h-10">
+                  <td className="p-1 sm:p-2 border border-gray-300 text-right h-8 sm:h-10">
                     {item.quantity > 0 ? item.quantity : ""}
                   </td>
-                  <td className="p-2 border border-gray-300 h-10">{item.deliveryDetailId}</td>
-                  <td className="p-2 border border-gray-300 h-10">{item.description}</td>
+                  <td className="p-1 sm:p-2 border border-gray-300 h-8 sm:h-10 truncate">{item.deliveryDetailId}</td>
+                  <td className="p-1 sm:p-2 border border-gray-300 h-8 sm:h-10 truncate">{item.description}</td>
                 </tr>
               ))}
             </tbody>
@@ -226,63 +220,67 @@ const OrderDetailPage: FC = () => {
         </div>
 
         {/* 注文情報と顧客情報（右側） */}
-        <div className="w-full lg:w-1/3 flex flex-col gap-6">
+        <div className="w-full lg:w-1/3 flex flex-col gap-4 sm:gap-6">
           {/* 注文情報 */}
           <div className="border border-gray-300 rounded-lg overflow-hidden">
-            <div className="bg-slate-700 text-white p-3">
-              <h2 className="font-semibold">注文情報</h2>
+            <div className="bg-slate-700 text-white p-2 sm:p-3">
+              <h2 className="font-semibold text-sm sm:text-base">注文情報</h2>
             </div>
-            <div className="grid grid-cols-[35%_65%]">
-              <div className="p-3 bg-slate-700 text-white border-t border-gray-300">注文ID</div>
-              <div className="p-3 border-t border-gray-300">{orderData.orderInfo.orderId}</div>
-              
-              <div className="p-3 bg-slate-700 text-white border-t border-gray-300">注文日</div>
-              <div className="p-3 border-t border-gray-300">{orderData.orderInfo.orderDate}</div>
-              
-              <div className="p-3 bg-slate-700 text-white border-t border-gray-300">状態</div>
-              <div className="p-3 border-t border-gray-300">{orderData.orderInfo.status}</div>
-              
-              <div className="p-3 bg-slate-700 text-white border-t border-gray-300">備考</div>
-              <div className="p-3 border-t border-gray-300">{orderData.orderInfo.remarks}</div>
+            <div className="text-xs sm:text-sm">
+              <div className="grid grid-cols-[40%_60%] sm:grid-cols-[35%_65%]">
+                <div className="p-2 sm:p-3 bg-slate-700 text-white border-t border-gray-300">注文ID</div>
+                <div className="p-2 sm:p-3 border-t border-gray-300 break-all">{orderData.orderInfo.orderId}</div>
+                
+                <div className="p-2 sm:p-3 bg-slate-700 text-white border-t border-gray-300">注文日</div>
+                <div className="p-2 sm:p-3 border-t border-gray-300">{orderData.orderInfo.orderDate}</div>
+                
+                <div className="p-2 sm:p-3 bg-slate-700 text-white border-t border-gray-300">状態</div>
+                <div className="p-2 sm:p-3 border-t border-gray-300">{orderData.orderInfo.status}</div>
+                
+                <div className="p-2 sm:p-3 bg-slate-700 text-white border-t border-gray-300">備考</div>
+                <div className="p-2 sm:p-3 border-t border-gray-300 break-all">{orderData.orderInfo.remarks}</div>
+              </div>
             </div>
           </div>
 
           {/* 顧客情報 */}
           <div className="border border-gray-300 rounded-lg overflow-hidden">
-            <div className="bg-slate-700 text-white p-3">
-              <h2 className="font-semibold">顧客情報</h2>
+            <div className="bg-slate-700 text-white p-2 sm:p-3">
+              <h2 className="font-semibold text-sm sm:text-base">顧客情報</h2>
             </div>
-            <div className="grid grid-cols-[35%_65%]">
-              <div className="p-3 bg-slate-700 text-white border-t border-gray-300">名義</div>
-              <div className="p-3 border-t border-gray-300">{orderData.customerInfo.name}</div>
-              
-              <div className="p-3 bg-slate-700 text-white border-t border-gray-300">担当者</div>
-              <div className="p-3 border-t border-gray-300">{orderData.customerInfo.responsiblePerson}</div>
-              
-              <div className="p-3 bg-slate-700 text-white border-t border-gray-300">電話番号</div>
-              <div className="p-3 border-t border-gray-300">{orderData.customerInfo.phoneNumber}</div>
-              
-              <div className="p-3 bg-slate-700 text-white border-t border-gray-300">配達条件</div>
-              <div className="p-3 border-t border-gray-300">{orderData.customerInfo.deliveryCondition}</div>
-              
-              <div className="p-3 bg-slate-700 text-white border-t border-gray-300">住所</div>
-              <div className="p-3 border-t border-gray-300">{orderData.customerInfo.address}</div>
+            <div className="text-xs sm:text-sm">
+              <div className="grid grid-cols-[40%_60%] sm:grid-cols-[35%_65%]">
+                <div className="p-2 sm:p-3 bg-slate-700 text-white border-t border-gray-300">名義</div>
+                <div className="p-2 sm:p-3 border-t border-gray-300 break-all">{orderData.customerInfo.name}</div>
+                
+                <div className="p-2 sm:p-3 bg-slate-700 text-white border-t border-gray-300">担当者</div>
+                <div className="p-2 sm:p-3 border-t border-gray-300 break-all">{orderData.customerInfo.responsiblePerson}</div>
+                
+                <div className="p-2 sm:p-3 bg-slate-700 text-white border-t border-gray-300">電話番号</div>
+                <div className="p-2 sm:p-3 border-t border-gray-300">{orderData.customerInfo.phoneNumber}</div>
+                
+                <div className="p-2 sm:p-3 bg-slate-700 text-white border-t border-gray-300">配達条件</div>
+                <div className="p-2 sm:p-3 border-t border-gray-300 break-all">{orderData.customerInfo.deliveryCondition}</div>
+                
+                <div className="p-2 sm:p-3 bg-slate-700 text-white border-t border-gray-300">住所</div>
+                <div className="p-2 sm:p-3 border-t border-gray-300 break-all">{orderData.customerInfo.address}</div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* アクションボタン */}
-      <div className="flex justify-between mt-8">
+      <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 mt-6 sm:mt-8">
         <button
           onClick={handleDelete}
-          className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded"
+          className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 sm:px-6 rounded order-2 sm:order-1 text-sm sm:text-base"
         >
           削除
         </button>
         <button
           onClick={handlePdfExport}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 sm:px-6 rounded order-1 sm:order-2 text-sm sm:text-base"
         >
           PDF出力
         </button>
