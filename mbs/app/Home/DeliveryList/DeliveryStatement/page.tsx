@@ -83,7 +83,7 @@ function OrderDetails({
             {displayedDeliveries.map((delivery, index) => (
               <tr key={index} className={`${index % 2 === 0 ? 'bg-blue-100' : 'bg-white'} h-8`}>
                 <td className="border px-2 py-1 text-sm text-center">{delivery.id}</td>
-                <td className="border px-2 py-1 text-sm">{delivery.brandName}</td>
+                <td className="border px-2 py-1 text-sm text-center">{delivery.brandName}</td>
                 <td className="border px-2 py-1 text-sm text-center">{delivery.price}</td>
                 <td className="border px-2 py-1 text-sm text-center">{delivery.Num}</td>
               </tr>
