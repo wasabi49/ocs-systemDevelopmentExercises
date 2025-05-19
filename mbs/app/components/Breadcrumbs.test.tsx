@@ -1,43 +1,85 @@
-import { render } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
+import { render, screen } from "@testing-library/react";
+import { describe, test, expect, vi } from "vitest";
 import Breadcrumbs from "./Breadcrumbs";
 
-// モックデータ
-const mockItems = [
-  { label: "", path: "/Home" },
-  { label: "ホーム > 顧客一覧", path: "/Home/CustomerList" },
-  { label: "ホーム > 注文一覧", path: "/Home/OrderList" },
-  {
-    label: "ホーム > 注文一覧 > 注文明細",
-    path: "/Home/OrderList/OrderDetail",
-  },
-  { label: "ホーム > 注文一覧 > 注文追加", path: "/Home/OrderList/AddOrder" },
-  {
-    label: "ホーム > 注文一覧 > 注文明細 > 注文編集",
-    path: "/Home/OrderList/OrderDetail/EditOrder",
-  },
-  { label: "ホーム > 納品一覧", path: "/Home/DeliveryList" },
-  {
-    label: "ホーム > 納品一覧 > 納品明細",
-    path: "/Home/DeliveryList/DeliveryDetail",
-  },
-  {
-    label: "ホーム > 納品一覧 > 納品追加",
-    path: "/Home/DeliveryList/AddDelivery",
-  },
-  {
-    label: "ホーム > 納品一覧 > 納品明細 > 納品編集",
-    path: "/Home/DeliveryList/DeliveryDetail/EditDelivery",
-  },
-  { label: "ホーム > 統計", path: "/Statistics" },
-];
+// Next.jsのuseParamsをモック
+vi.mock("next/navigation", () => ({
+  useParams: () => ({ id: "123" }),
+}));
 
-test("Breadcrumbsコンポーネントのレンダリング", async () => {
-  mockItems.forEach((item) => {
-    const { container } = render(<Breadcrumbs path={item.path} />);
-    expect(container.textContent?.includes(item.label))
+describe("Breadcrumbsコンポーネント", () => {
+  test("ホームパスの表示", () => {
+    render(<Breadcrumbs path="/Home" />);
+    // 空の場合は何も表示されないので、コンテナが存在するかだけ確認
+    expect(document.querySelector("nav")).toBeTruthy();
+  });
+
+  test("顧客一覧パスの表示", () => {
+    render(<Breadcrumbs path="/Home/CustomerList" />);
+    const content = screen.getByRole("navigation").textContent || "";
+    expect(content.replace(/\s+/g, " ").trim()).toBe("ホーム > 顧客一覧");
+  });
+
+  test("注文一覧パスの表示", () => {
+    render(<Breadcrumbs path="/Home/OrderList" />);
+    const content = screen.getByRole("navigation").textContent || "";
+    expect(content.replace(/\s+/g, " ").trim()).toBe("ホーム > 注文一覧");
+  });
+
+  test("注文詳細パスの表示", () => {
+    render(<Breadcrumbs path="/Home/OrderList/123" />);
+    const content = screen.getByRole("navigation").textContent || "";
+    expect(content.replace(/\s+/g, " ").trim()).toBe("ホーム > 注文一覧 > 123");
+  });
+
+  test("注文追加パスの表示", () => {
+    render(<Breadcrumbs path="/Home/OrderList/Add" />);
+    const content = screen.getByRole("navigation").textContent || "";
+    expect(content.replace(/\s+/g, " ").trim()).toBe(
+      "ホーム > 注文一覧 > 追加"
+    );
+  });
+
+  test("注文編集パスの表示", () => {
+    render(<Breadcrumbs path="/Home/OrderList/123/Edit" />);
+    const content = screen.getByRole("navigation").textContent || "";
+    expect(content.replace(/\s+/g, " ").trim()).toBe(
+      "ホーム > 注文一覧 > 123 > 編集"
+    );
+  });
+
+  test("納品一覧パスの表示", () => {
+    render(<Breadcrumbs path="/Home/DeliveryList" />);
+    const content = screen.getByRole("navigation").textContent || "";
+    expect(content.replace(/\s+/g, " ").trim()).toBe("ホーム > 納品一覧");
+  });
+
+  test("納品詳細パスの表示", () => {
+    render(<Breadcrumbs path="/Home/DeliveryList/123" />);
+    const content = screen.getByRole("navigation").textContent || "";
+    expect(content.replace(/\s+/g, " ").trim()).toBe("ホーム > 納品一覧 > 123");
+  });
+
+  test("納品追加パスの表示", () => {
+    render(<Breadcrumbs path="/Home/DeliveryList/Add" />);
+    const content = screen.getByRole("navigation").textContent || "";
+    expect(content.replace(/\s+/g, " ").trim()).toBe(
+      "ホーム > 納品一覧 > 追加"
+    );
+  });
+
+  test("納品編集パスの表示", () => {
+    render(<Breadcrumbs path="/Home/DeliveryList/123/Edit" />);
+    const content = screen.getByRole("navigation").textContent || "";
+    expect(content.replace(/\s+/g, " ").trim()).toBe(
+      "ホーム > 納品一覧 > 123 > 編集"
+    );
+  });
+
+  test("統計情報パスの表示", () => {
+    render(<Breadcrumbs path="/Home/Statistics" />);
+    const content = screen.getByRole("navigation").textContent || "";
+    expect(content.replace(/\s+/g, " ").trim()).toBe("ホーム > 統計情報");
   });
 });
-
-
-
-
