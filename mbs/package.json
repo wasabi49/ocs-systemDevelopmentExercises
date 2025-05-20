@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "format": "prettier --write .",
     "test": "vitest --passWithNoTests --coverage",
     "test:json": "vitest --passWithNoTests --reporter=json --outputFile=vitest-results.json"
   },

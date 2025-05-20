@@ -1,22 +1,22 @@
 'use client';
 
-import Link from "next/link";
-import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import Link from 'next/link';
+import { useState } from 'react';
+import { Menu, X } from 'lucide-react';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <header className="bg-blue-500 text-white p-4 relative">
-      <div className="flex justify-between items-center">
+    <header className="relative bg-blue-500 p-4 text-white">
+      <div className="flex items-center justify-between">
         <div className="text-3xl font-bold">
           <Link href="/Home">MBS</Link>
         </div>
 
         {/* ハンバーガーボタン：モバイル */}
         <button
-          className="md:hidden z-50"
+          className="z-50 md:hidden"
           onClick={() => setIsOpen(!isOpen)}
           aria-label="Toggle menu"
         >
@@ -47,11 +47,11 @@ const Header = () => {
 
       {/* サイドメニュー（右からスライドイン） */}
       <div
-        className={`fixed top-0 right-0 h-full w-64 bg-blue-600 text-white p-6 transition-transform duration-300 ease-in-out z-40 ${
-          isOpen ? "translate-x-0" : "translate-x-full"
+        className={`fixed top-0 right-0 z-40 h-full w-64 bg-blue-600 p-6 text-white transition-transform duration-300 ease-in-out ${
+          isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <ul className="flex flex-col space-y-6 text-lg mt-12">
+        <ul className="mt-12 flex flex-col space-y-6 text-lg">
           <li onClick={() => setIsOpen(false)}>
             <Link href="/Home/CustomerList">顧客</Link>
           </li>
@@ -72,10 +72,7 @@ const Header = () => {
 
       {/* 背景オーバーレイ */}
       {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/30 z-30"
-          onClick={() => setIsOpen(false)}
-        />
+        <div className="fixed inset-0 z-30 bg-black/30" onClick={() => setIsOpen(false)} />
       )}
     </header>
   );

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState } from 'react';
 
@@ -17,7 +17,9 @@ const dummyOrders: Order[] = [
 ];
 
 export default function OrderListPage() {
-  const [searchField, setSearchField] = useState<'すべて' | '注文ID' | '注文日' | '顧客名' | '備考' | '状態'>('すべて');
+  const [searchField, setSearchField] = useState<
+    'すべて' | '注文ID' | '注文日' | '顧客名' | '備考' | '状態'
+  >('すべて');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [orders, setOrders] = useState<Order[]>(dummyOrders);
 
@@ -30,7 +32,7 @@ export default function OrderListPage() {
     console.log('検索確定：', searchKeyword);
   };
 
-  const filteredOrders = orders.filter(order => {
+  const filteredOrders = orders.filter((order) => {
     if (searchField === 'すべて') {
       return (
         order.id.includes(searchKeyword) ||
@@ -50,17 +52,17 @@ export default function OrderListPage() {
   }
 
   return (
-    <div className="p-4 max-w-screen-lg mx-auto">
+    <div className="mx-auto max-w-screen-lg p-4">
       {/* 注文追加ボタン＋検索 */}
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
-        <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded">
+      <div className="mb-4 flex flex-col items-center justify-center gap-4 sm:flex-row">
+        <button className="rounded bg-yellow-400 px-4 py-2 font-bold text-black hover:bg-yellow-500">
           注文追加
         </button>
 
         <select
           value={searchField}
-          onChange={e => setSearchField(e.target.value as any)}
-          className="border rounded p-2"
+          onChange={(e) => setSearchField(e.target.value as any)}
+          className="rounded border p-2"
         >
           <option value="すべて">すべて検索</option>
           <option value="注文ID">注文ID</option>
@@ -74,13 +76,13 @@ export default function OrderListPage() {
           type="text"
           placeholder="例：注文ID"
           value={searchKeyword}
-          onChange={e => setSearchKeyword(e.target.value)}
-          className="border rounded p-2 w-64"
+          onChange={(e) => setSearchKeyword(e.target.value)}
+          className="w-64 rounded border p-2"
         />
 
         <button
           onClick={handleSearch}
-          className="bg-white hover:bg-gray-100 text-black font-bold py-2 px-4 border rounded"
+          className="rounded border bg-white px-4 py-2 font-bold text-black hover:bg-gray-100"
         >
           🔍
         </button>
@@ -91,11 +93,17 @@ export default function OrderListPage() {
         <table className="w-full border-collapse text-center text-sm">
           <thead className="bg-blue-300">
             <tr>
-              <th className="border px-2 py-1 cursor-pointer" onClick={() => handleSort('id')}>注文ID</th>
-              <th className="border px-2 py-1 cursor-pointer" onClick={() => handleSort('date')}>注文日</th>
+              <th className="cursor-pointer border px-2 py-1" onClick={() => handleSort('id')}>
+                注文ID
+              </th>
+              <th className="cursor-pointer border px-2 py-1" onClick={() => handleSort('date')}>
+                注文日
+              </th>
               <th className="border px-2 py-1">顧客名</th>
               <th className="border px-2 py-1">備考</th>
-              <th className="border px-2 py-1 cursor-pointer" onClick={() => handleSort('status')}>状態</th>
+              <th className="cursor-pointer border px-2 py-1" onClick={() => handleSort('status')}>
+                状態
+              </th>
             </tr>
           </thead>
           <tbody>
