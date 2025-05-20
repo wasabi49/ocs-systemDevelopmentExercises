@@ -1,0 +1,16 @@
+{
+  // ファイル保存時に自動的にフォーマットを適用する
+  "editor.formatOnSave": true,
+  // プロジェクト全体のデフォルトフォーマッターとしてPrettierを使用
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  // JavaScriptファイルの設定
+  "[javascript]": {
+    // JavaScriptファイル用のフォーマッターとしてPrettierを指定
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  // TypeScriptファイルの設定
+  "[typescript]": {
+    // TypeScriptファイル用のフォーマッターとしてPrettierを指定
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
+}
