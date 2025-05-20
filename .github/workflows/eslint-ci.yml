@@ -30,7 +30,7 @@ jobs:
       - name: Run ESLint
         run: |
           cd mbs
-          npm run lint -- --format=github
+          npm run lint
 
       # オプション: ESLintの結果をPRにアノテーションとして表示
       - name: Annotate ESLint Results
