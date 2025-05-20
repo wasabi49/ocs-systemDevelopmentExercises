@@ -35,23 +35,27 @@ jobs:
       # Vitest テストを実行
       - name: Run Vitest tests
         id: vitest
-        run: npm run test:json
+        run: |
+          npm run test -- --reporter=verbose --reporter=junit --outputFile=./junit.xml
         continue-on-error: true # テストが失敗しても次のステップを実行
 
-      # テスト結果をPRにレポート
-      - name: Report Vitest Results
+      # テスト失敗をPRにコメントとして表示
+      - name: Report Test Failures
         if: always()
-        uses: davelosert/vitest-coverage-report-action@v2
+        uses: mikepenz/action-junit-report@v3
         with:
-          working-directory: ./mbs
-          vite-config-path: ./vitest.config.ts
-          json-summary-path: ./vitest-results.json
+          report_paths: './mbs/junit.xml'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          fail_on_failure: false
+          include_passed: false
+          check_name: 'Vitest Test Results'
+          detailed_summary: true
 
-      # テスト結果をアップロード
+      # テストが失敗した場合のみ、テスト結果をアップロード
       - name: Upload test results
-        if: always()
+        if: failure() || success()
         uses: actions/upload-artifact@v4
         with:
-          name: vitest-results
-          path: ./mbs/vitest-results.json
+          name: vitest-test-results
+          path: ./mbs/junit.xml
           if-no-files-found: warn
