@@ -13,5 +13,12 @@
     // TypeScriptファイル用のフォーマッターとしてPrettierを指定
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "cSpell.words": ["papaparse", "turbopack"]
+  "cSpell.words": [
+    "kimura",
+    "manato",
+    "papaparse",
+    "reviewdog",
+    "turbopack",
+    "vitest"
+  ]
 }

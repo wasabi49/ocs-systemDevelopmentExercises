@@ -4,6 +4,10 @@ on:
     branches:
       - main
       - dev
+      - kimura
+      - manato
+  # 手動実行用
+  workflow_dispatch:
 
 jobs:
   test:
