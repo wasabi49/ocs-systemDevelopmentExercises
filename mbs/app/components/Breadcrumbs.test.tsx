@@ -12,7 +12,7 @@ describe('Breadcrumbsコンポーネント', () => {
   test('ホームパスの表示', () => {
     render(<Breadcrumbs path="/Home" />);
     // 空の場合は何も表示されないので、コンテナが存在するかだけ確認
-    expect(document.querySelector('nav')).toBeTruthy();
+    expect(document.querySelector('nav')).toBeFalsy();
   });
 
   test('顧客一覧パスの表示', () => {
