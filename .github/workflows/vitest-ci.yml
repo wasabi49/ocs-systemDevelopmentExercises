@@ -39,16 +39,29 @@ jobs:
           npm run test -- --reporter=verbose --reporter=junit --outputFile=./junit.xml
         continue-on-error: true # テストが失敗しても次のステップを実行
 
-      # テスト失敗をPRにコメントとして表示
+      # テスト失敗をPRにコメントとして表示（修正版）
       - name: Report Test Failures
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: "Vitest Test Results"
+          path: "./mbs/junit.xml"
+          reporter: jest-junit # JUnitレポート形式に対応
+          fail-on-error: false
+          only-summary: false # 詳細な結果を表示
+          list-suites: "failed" # 失敗したテストスイートのみ表示
+          list-tests: "failed" # 失敗したテストのみリスト表示
+
+      # オリジナルのレポートもChecksに表示（オプション）
+      - name: Report Test Failures (Checks)
         if: always()
         uses: mikepenz/action-junit-report@v3
         with:
-          report_paths: './mbs/junit.xml'
+          report_paths: "./mbs/junit.xml"
           github_token: ${{ secrets.GITHUB_TOKEN }}
           fail_on_failure: false
           include_passed: false
-          check_name: 'Vitest Test Results'
+          check_name: "Vitest Results (Checks)"
           detailed_summary: true
 
       # テストが失敗した場合のみ、テスト結果をアップロード
