@@ -12,5 +12,6 @@
   "[typescript]": {
     // TypeScriptファイル用のフォーマッターとしてPrettierを指定
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "cSpell.words": ["papaparse", "turbopack"]
 }

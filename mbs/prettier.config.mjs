@@ -1,4 +1,4 @@
-export default config = {
+const config = {
   // Tailwind CSSのクラスを自動的にソートするプラグイン
   plugins: ['prettier-plugin-tailwindcss'],
   // 文末にセミコロンを追加する
@@ -14,3 +14,4 @@ export default config = {
   // 改行コードをLF（Unix/Linux形式）に統一
   endOfLine: 'lf',
 };
+export default config;
