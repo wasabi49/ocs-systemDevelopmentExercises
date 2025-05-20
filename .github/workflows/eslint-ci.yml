@@ -32,13 +32,14 @@ jobs:
           cd mbs
           npm run lint
 
-      # オプション: ESLintの結果をPRにアノテーションとして表示
+      # ESLintの結果をPRにアノテーションとして表示
       - name: Annotate ESLint Results
         if: always()
         uses: reviewdog/action-eslint@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          reporter: github-pr-review
+          reporter: github-pr-check
+          filter_mode: nofilter
           eslint_flags: "."
           fail_level: error
           workdir: mbs
