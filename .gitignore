@@ -1,0 +1,52 @@
+# Docker関連
+db/
+.docker/
+
+# Node.js関連
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.pnpm-debug.log
+.npm/
+.yarn/
+
+# 環境変数と機密情報
+.env
+.env.local
+.env.*.local
+*.pem
+
+# ログファイル
+logs/
+*.log
+
+# OS関連の一時ファイル
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# エディタ設定
+.idea/
+.vscode/
+*.sublime-*
+.history/
+
+# ビルド成果物
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
+
+# キャッシュ
+.cache/
+.eslintcache
+.stylelintcache
+
+# Prisma生成ファイル
+generated/
+**/generated/
+**/app/generated/

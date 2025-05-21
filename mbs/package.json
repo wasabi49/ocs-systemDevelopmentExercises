@@ -10,9 +10,13 @@
     "lint": "next lint",
     "format": "prettier --write .",
     "test": "vitest --passWithNoTests --coverage",
-    "test:ci": "vitest --passWithNoTests"
+    "test:ci": "vitest --passWithNoTests",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio"
   },
   "dependencies": {
+    "@prisma/client": "^6.8.2",
     "@vitejs/plugin-react": "^4.4.1",
     "lucide-react": "^0.510.0",
     "next": "15.3.1",
@@ -43,7 +47,9 @@
     "jsdom": "^26.1.0",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
+    "prisma": "^6.8.2",
     "tailwindcss": "^4",
+    "tsx": "^4.19.4",
     "typescript": "^5",
     "typescript-eslint": "^8.32.1",
     "vite-tsconfig-paths": "^5.1.4",
