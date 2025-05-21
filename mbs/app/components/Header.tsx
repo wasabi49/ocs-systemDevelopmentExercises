@@ -11,7 +11,7 @@ const Header = () => {
     <header className="bg-blue-500 text-white p-4 relative">
       <div className="flex justify-between items-center">
         <div className="text-3xl font-bold">
-          <Link href="/home">MBS</Link>
+          <Link href="/Home">MBS</Link>
         </div>
 
         {/* ハンバーガーボタン：モバイル */}
@@ -30,16 +30,16 @@ const Header = () => {
               <Link href="/Home/CustomerList">顧客</Link>
             </li>
             <li className="cursor-pointer hover:underline">
-              <Link href="/Home">注文</Link>
+              <Link href="/Home/OrderList">注文</Link>
             </li>
             <li className="cursor-pointer hover:underline">
-              <Link href="/Home">納品</Link>
+              <Link href="/Home/DeliveryList">納品</Link>
             </li>
             <li className="cursor-pointer hover:underline">
-              <Link href="/Home">統計</Link>
+              <Link href="/Home/Statisticalinfo">統計</Link>
             </li>
             <li className="cursor-pointer hover:underline">
-              <Link href="/Home">店舗</Link>
+              <Link href="/">店舗</Link>
             </li>
           </ul>
         </nav>
@@ -56,16 +56,16 @@ const Header = () => {
             <Link href="/Home/CustomerList">顧客</Link>
           </li>
           <li onClick={() => setIsOpen(false)}>
-            <Link href="/Home">注文</Link>
+            <Link href="/Home/OrderList">注文</Link>
           </li>
           <li onClick={() => setIsOpen(false)}>
-            <Link href="/Home">納品</Link>
+            <Link href="/Home/DeliveryList">納品</Link>
           </li>
           <li onClick={() => setIsOpen(false)}>
-            <Link href="/Home">統計</Link>
+            <Link href="/Home/Statisticalinfo">統計</Link>
           </li>
           <li onClick={() => setIsOpen(false)}>
-            <Link href="/Home">店舗</Link>
+            <Link href="/Home/Stores">店舗</Link>
           </li>
         </ul>
       </div>

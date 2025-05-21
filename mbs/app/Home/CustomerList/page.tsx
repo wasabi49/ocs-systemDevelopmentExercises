@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import MessageDialog from './components/Modal';
 import SearchFilter from '../../components/Search';
-import { useFilteredOrders } from '../../hooks/Filtere';
+import { useFilteredOrders } from '../../hooks/useFilteredOrders';
 
 type Order = {
   id: string;
