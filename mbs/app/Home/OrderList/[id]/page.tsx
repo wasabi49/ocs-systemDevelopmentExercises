@@ -180,7 +180,7 @@ const OrderDetailPage: FC = () => {
       <div className="flex justify-end mb-4 sm:mb-6">
         <button
           onClick={handleEdit}
-          className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-1 px-3 sm:py-1 sm:px-4 rounded text-sm sm:text-base"
+          className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-1 px-3 sm:py-1 sm:px-4 rounded text-sm sm:text-base border border-black"
         >
           編集
         </button>
@@ -189,30 +189,30 @@ const OrderDetailPage: FC = () => {
       <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
         {/* 注文明細テーブル（左側） */}
         <div className="w-full lg:w-2/3 overflow-x-auto">
-          <table className="w-full min-w-[320px] sm:min-w-[600px] border-collapse text-xs sm:text-sm">
-            <thead>
-              <tr className="bg-sky-500 text-white">
-                <th className="p-1 sm:p-2 border border-gray-300 w-[12%] sm:w-[15%]">注文明細ID</th>
-                <th className="p-1 sm:p-2 border border-gray-300 w-[20%] sm:w-[25%]">商品名</th>
-                <th className="p-1 sm:p-2 border border-gray-300 w-[10%] sm:w-[12%]">単価</th>
-                <th className="p-1 sm:p-2 border border-gray-300 w-[6%] sm:w-[8%]">数量</th>
-                <th className="p-1 sm:p-2 border border-gray-300 w-[12%] sm:w-[15%]">納品明細ID</th>
-                <th className="p-1 sm:p-2 border border-gray-300 w-[40%] sm:w-[25%]">摘要</th>
+          <table className="w-full min-w-[320px] sm:min-w-[600px] border-collapse text-center text-xs sm:text-sm table-fixed sm:table-auto">
+            <thead className="bg-blue-300">
+              <tr>
+                <th className="border px-1 py-1 w-[12%] sm:w-[15%] truncate">注文明細ID</th>
+                <th className="border px-1 py-1 w-[20%] sm:w-[25%] truncate">商品名</th>
+                <th className="border px-1 py-1 w-[10%] sm:w-[12%] truncate">単価</th>
+                <th className="border px-1 py-1 w-[6%] sm:w-[8%] truncate">数量</th>
+                <th className="border px-1 py-1 w-[12%] sm:w-[15%] truncate">納品明細ID</th>
+                <th className="border px-1 py-1 w-[40%] sm:w-[25%] truncate">摘要</th>
               </tr>
             </thead>
             <tbody>
               {displayOrderDetails.map((item, index) => (
-                <tr key={index} className="bg-white">
-                  <td className="p-1 sm:p-2 border border-gray-300 h-8 sm:h-10 truncate">{item.orderDetailId}</td>
-                  <td className="p-1 sm:p-2 border border-gray-300 h-8 sm:h-10 truncate">{item.productName}</td>
-                  <td className="p-1 sm:p-2 border border-gray-300 text-right h-8 sm:h-10">
+                <tr key={index} className={`${index % 2 === 0 ? "bg-blue-100" : "bg-white"} h-8`}>
+                  <td className="border px-1 py-1 h-8 sm:h-10 truncate">{item.orderDetailId}</td>
+                  <td className="border px-1 py-1 h-8 sm:h-10 truncate">{item.productName}</td>
+                  <td className="border px-1 py-1 text-right h-8 sm:h-10">
                     {item.unitPrice > 0 ? formatJPY(item.unitPrice) : ""}
                   </td>
-                  <td className="p-1 sm:p-2 border border-gray-300 text-right h-8 sm:h-10">
+                  <td className="border px-1 py-1 text-right h-8 sm:h-10">
                     {item.quantity > 0 ? item.quantity : ""}
                   </td>
-                  <td className="p-1 sm:p-2 border border-gray-300 h-8 sm:h-10 truncate">{item.deliveryDetailId}</td>
-                  <td className="p-1 sm:p-2 border border-gray-300 h-8 sm:h-10 truncate">{item.description}</td>
+                  <td className="border px-1 py-1 h-8 sm:h-10 truncate">{item.deliveryDetailId}</td>
+                  <td className="border px-1 py-1 h-8 sm:h-10 truncate">{item.description}</td>
                 </tr>
               ))}
             </tbody>
@@ -274,13 +274,13 @@ const OrderDetailPage: FC = () => {
       <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 mt-6 sm:mt-8">
         <button
           onClick={handleDelete}
-          className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 sm:px-6 rounded order-2 sm:order-1 text-sm sm:text-base"
+          className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 sm:px-6 rounded order-2 sm:order-1 text-sm sm:text-base border border-black"
         >
           削除
         </button>
         <button
           onClick={handlePdfExport}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 sm:px-6 rounded order-1 sm:order-2 text-sm sm:text-base"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 sm:px-6 rounded order-1 sm:order-2 text-sm sm:text-base border border-black"
         >
           PDF出力
         </button>
