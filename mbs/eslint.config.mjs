@@ -19,6 +19,9 @@ const eslintConfig = [
     'plugin:import/warnings',
   ),
   eslintConfigPrettier,
+  {
+    ignores: ['**/generated/**', '**/app/generated/**', '**/prisma/generated/**'],
+  },
 ];
 
 export default eslintConfig;
