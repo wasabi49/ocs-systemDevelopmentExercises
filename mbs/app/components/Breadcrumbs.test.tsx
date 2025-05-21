@@ -2,7 +2,6 @@ import '@testing-library/jest-dom/vitest';
 import { render, screen } from '@testing-library/react';
 import { describe, test, expect, vi } from 'vitest';
 import Breadcrumbs from './Breadcrumbs';
-import { usePathname } from 'next/navigation';
 
 // Next.jsのuseParamsをモック
 vi.mock('next/navigation', () => ({
