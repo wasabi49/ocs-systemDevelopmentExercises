@@ -43,7 +43,7 @@ export default function DeliveryTable({
               <tr key={index} className={`${index % 2 === 0 ? 'bg-blue-100' : 'bg-white'} h-8`}>
                 <td className="border px-2 py-1 text-sm w-24">
                   {delivery.id ? (
-                    <Link href={`/delivery/${delivery.id}`} className="text-blue-600 underline decoration-blue-600">
+                    <Link href={`/DeliveryList/DeliveryStatement/${delivery.id}`} className="text-blue-600 underline decoration-blue-600">
                       {delivery.id}
                     </Link>
                   ) : null}

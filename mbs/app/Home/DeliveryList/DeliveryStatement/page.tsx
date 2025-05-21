@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 
+// データ型定義
 type Delivery = {
   id: string;
   brandName: string;
@@ -11,6 +12,22 @@ type Delivery = {
 
 const dummyDeliveries: Delivery[] = [
   { id: 'D1234567-01', brandName: 'はだしのゲン', price: '￥110', Num: '55' },
+];
+
+// 納品情報と顧客情報を配列で定義
+const deliveryInfo = [
+  { label: '納品ID', value: 'D1234567' },
+  { label: '納品日', value: '2025/4/7' },
+  { label: '合計金額', value: '¥7,500' },
+  { label: '備考', value: '納品が遅れる可能性大' },
+];
+
+const customerInfo = [
+  { label: '名義', value: '奥田真那斗' },
+  { label: '電話番号', value: '090-xxxx-xxxx' },
+  { label: '配送先条件', value: '平日不在' },
+  { label: '住所', value: '587-xxxx 大阪府堺市xxxxxxx-xx' },
+  { label: '備考', value: '2025年2月以降廃業予定であります（^_^）' },
 ];
 
 export default function DeliveryListPage() {
@@ -38,7 +55,6 @@ export default function DeliveryListPage() {
               </button>
               <button
                 onClick={() => {
-                  // 削除処理例：全削除（実際は個別IDなどで対応）
                   setDeliveries([]);
                   setShowDeleteModal(false);
                 }}
@@ -67,106 +83,79 @@ function OrderDetails({
   }
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+    <div className="flex flex-col xl:grid xl:grid-cols-2 gap-4">
       {/* 明細表 */}
-      <div className="bg-white rounded-2xl shadow p-4 overflow-auto">
-        <table className="w-full border-collapse text-xs table-auto">
-          <thead className="bg-blue-300">
-            <tr>
-              <th className="border px-1 py-1 w-[120px]">納品明細ID</th>
-              <th className="border px-1 py-1">商品名</th>
-              <th className="border px-1 py-1 text-center w-[60px]">単価</th>
-              <th className="border px-1 py-1 text-center w-[48px]">数量</th>
-            </tr>
-          </thead>
-          <tbody>
-            {displayedDeliveries.map((delivery, index) => (
-              <tr key={index} className={`${index % 2 === 0 ? 'bg-blue-100' : 'bg-white'} h-8`}>
-                <td className="border px-2 py-1 text-sm text-center">{delivery.id}</td>
-                <td className="border px-2 py-1 text-sm text-center">{delivery.brandName}</td>
-                <td className="border px-2 py-1 text-sm text-center">{delivery.price}</td>
-                <td className="border px-2 py-1 text-sm text-center">{delivery.Num}</td>
+      <div className="p-4 overflow-x-auto w-full max-w-full">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-xs table-auto min-w-[360px]">
+            <thead className="bg-blue-300">
+              <tr>
+                <th className="border px-1 py-1 w-[120px]">納品明細ID</th>
+                <th className="border px-1 py-1">商品名</th>
+                <th className="border px-1 py-1 text-center w-[60px]">単価</th>
+                <th className="border px-1 py-1 text-center w-[48px]">数量</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {displayedDeliveries.map((delivery, index) => (
+                <tr key={index} className={`${index % 2 === 0 ? 'bg-blue-100' : 'bg-white'} h-8`}>
+                  <td className="border px-2 py-1 text-sm text-center">{delivery.id}</td>
+                  <td className="border px-2 py-1 text-sm text-center">{delivery.brandName}</td>
+                  <td className="border px-2 py-1 text-sm text-center">{delivery.price}</td>
+                  <td className="border px-2 py-1 text-sm text-center">{delivery.Num}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-        <div className="mt-6 flex justify-center items-center gap-2 ml-4">
+        <div className="mt-6 flex flex-col sm:flex-row justify-center items-center gap-2 ml-4">
           <button
             onClick={onDeleteClick}
-            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-lg w-[220px]"
+            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-lg w-full sm:w-[220px]"
           >
             削除
           </button>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-lg w-[220px]">
+          <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-lg w-full sm:w-[220px]">
             PDF出力
           </button>
         </div>
       </div>
 
       {/* 右側情報表 */}
-      <div className="bg-white rounded-2xl shadow p-6 text-base w-full min-w-[700px]">
+      <div className="p-6 text-base w-full min-w-[360px] xl:min-w-[700px] overflow-x-auto">
         <div className="flex justify-end mb-4">
-          <button className="bg-yellow-500 hover:bg-yellow-600 text-white text-xl px-6 py-2 rounded">
+          <button className="bg-yellow-500 hover:bg-yellow-600 text-black text-xl px-6 py-2 rounded">
             編集
           </button>
         </div>
 
-        <table className="w-full table-fixed border border-black mb-6">
-          <thead>
-            <tr className="bg-blue-900 text-white">
-              <th colSpan={2} className="text-left text-xl px-2 py-1 border border-black">納品情報</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td className="bg-blue-900 text-white text-xl px-2 py-1 w-32 border border-black">納品ID</td>
-              <td className="text-xl px-2 py-1 border border-black">D1234567</td>
-            </tr>
-            <tr>
-              <td className="bg-blue-900 text-white text-xl px-2 py-1 border border-black">納品日</td>
-              <td className="text-xl px-2 py-1 border border-black">2025/4/7</td>
-            </tr>
-            <tr>
-              <td className="bg-blue-900 text-white text-xl px-2 py-1 border border-black">合計金額</td>
-              <td className="text-xl px-2 py-1 border border-black">¥7,500</td>
-            </tr>
-            <tr>
-              <td className="bg-blue-900 text-white text-xl px-2 py-1 border border-black">備考</td>
-              <td className="text-xl px-2 py-1 border border-black">納品が遅れる可能性大</td>
-            </tr>
-          </tbody>
-        </table>
+        <div className="w-[700px] max-w-full overflow-x-auto">
+          <TableSection title="納品情報" rows={deliveryInfo} />
+          <TableSection title="顧客情報" rows={customerInfo} />
+        </div>
+      </div>
+    </div>
+  );
+}
 
-        <table className="w-full table-fixed border border-black">
-          <thead>
-            <tr className="bg-blue-900 text-white">
-              <th colSpan={2} className="text-left text-xl px-2 py-1 border border-black">顧客情報</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td className="bg-blue-900 text-white text-xl px-2 py-1 w-32 border border-black">名義</td>
-              <td className="text-xl px-2 py-1 border border-black">奥田真那斗</td>
-            </tr>
-            <tr>
-              <td className="bg-blue-900 text-white text-xl px-2 py-1 border border-black">電話番号</td>
-              <td className="text-xl px-2 py-1 border border-black">090-xxxx-xxxx</td>
-            </tr>
-            <tr>
-              <td className="bg-blue-900 text-white text-xl px-2 py-1 border border-black">配送先条件</td>
-              <td className="text-xl px-2 py-1 border border-black">平日不在</td>
-            </tr>
-            <tr>
-              <td className="bg-blue-900 text-white text-xl px-2 py-1 border border-black">住所</td>
-              <td className="text-xl px-2 py-1 border border-black">587-xxxx 大阪府堺市xxxxxxx-xx</td>
-            </tr>
-            <tr>
-              <td className="bg-blue-900 text-white text-xl px-2 py-1 border border-black">備考</td>
-              <td className="text-xl px-2 py-1 border border-black">２０２５年２月以降廃業予定</td>
-            </tr>
-          </tbody>
-        </table>
+function TableSection({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: { label: string; value: string }[];
+}) {
+  return (
+    <div className="border border-black mb-6 min-w-[360px]">
+      <div className="bg-blue-900 text-white text-left text-xl px-2 py-1 border-b border-black">{title}</div>
+      <div className="flex flex-col">
+        {rows.map((row, index) => (
+          <div key={index} className="flex border-b border-black">
+            <div className="bg-blue-900 text-white text-xl px-2 py-2 w-32 border-r border-black shrink-0">{row.label}</div>
+            <div className="text-sm px-2 py-2 whitespace-nowrap overflow-x-auto">{row.value}</div>
+          </div>
+        ))}
       </div>
     </div>
   );
