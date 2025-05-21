@@ -10,7 +10,7 @@ sequenceDiagram
     
     User->>UI: ページにアクセス
     UI->>State: 初期状態設定
-    State-->>UI: 初期データ表示 (dummyOrders)
+    State-->>UI: 統計一覧情報の表示 (StatisticalInfoDate)
     
     Note over User,UI: CSVエクスポート
     User->>UI: CSVエクスポートボタンクリック
