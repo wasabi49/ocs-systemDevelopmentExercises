@@ -10,7 +10,7 @@
     "lint": "next lint",
     "format": "prettier --write .",
     "test": "vitest --passWithNoTests --coverage",
-    "test:json": "vitest --passWithNoTests --reporter=json --outputFile=vitest-results.json"
+    "test:ci": "vitest --passWithNoTests"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.4.1",
