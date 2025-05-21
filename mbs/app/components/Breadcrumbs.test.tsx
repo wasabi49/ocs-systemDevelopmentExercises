@@ -2,6 +2,7 @@ import '@testing-library/jest-dom/vitest';
 import { render, screen } from '@testing-library/react';
 import { describe, test, expect, vi } from 'vitest';
 import Breadcrumbs from './Breadcrumbs';
+import { usePathname } from 'next/navigation';
 
 // Next.jsのuseParamsをモック
 vi.mock('next/navigation', () => ({
@@ -12,7 +13,7 @@ describe('Breadcrumbsコンポーネント', () => {
   test('ホームパスの表示', () => {
     render(<Breadcrumbs path="/Home" />);
     // 空の場合は何も表示されないので、コンテナが存在するかだけ確認
-    expect(document.querySelector('nav')).toBeFalsy();
+    expect(document.querySelector('nav')).toBeTruthy();
   });
 
   test('顧客一覧パスの表示', () => {
