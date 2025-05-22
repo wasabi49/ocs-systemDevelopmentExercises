@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState } from 'react';
 import MessageDialog from './components/Modal';
@@ -62,12 +62,12 @@ export default function CustormerListPage() {
     <>
       <MessageDialog open={isOpen} onCancel={() => setIsOpen(false)} onOk={handleImport} />
 
-      <div className="flex flex-col items-center justify-center gap-2 sm:gap-4 mb-4">
-        <div className="flex flex-wrap items-center justify-start gap-4 mt-6">
+      <div className="mb-4 flex flex-col items-center justify-center gap-2 sm:gap-4">
+        <div className="mt-6 flex flex-wrap items-center justify-start gap-4">
           {/* CSVインポートボタン */}
           <button
             onClick={() => setIsOpen(true)}
-            className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded"
+            className="rounded bg-yellow-400 px-4 py-2 font-bold text-black hover:bg-yellow-500"
           >
             CSVインポート
           </button>
@@ -83,7 +83,7 @@ export default function CustormerListPage() {
 
         {/* 顧客リスト表示 */}
         <div className="mb-6">
-          <h2 className="font-bold text-lg mb-2">
+          <h2 className="mb-2 text-lg font-bold">
             顧客リスト（{currentPage * 15 + 1}〜{currentPage * 15 + currentOrders.length}件）
           </h2>
           <table className="w-full border-collapse text-center text-sm">
@@ -96,7 +96,10 @@ export default function CustormerListPage() {
             </thead>
             <tbody>
               {currentOrders.map((order, rowIndex) => (
-                <tr key={order.id} className={`${rowIndex % 2 === 0 ? 'bg-blue-100' : 'bg-white'} h-8`}>
+                <tr
+                  key={order.id}
+                  className={`${rowIndex % 2 === 0 ? 'bg-blue-100' : 'bg-white'} h-8`}
+                >
                   <td className="border px-2 py-1">{order.id}</td>
                   <td className="border px-2 py-1">{order.customerName}</td>
                   <td className="border px-2 py-1">{order.managerName}</td>
@@ -107,19 +110,19 @@ export default function CustormerListPage() {
         </div>
 
         {/* ページネーション */}
-        <div className="w-full mt-4">
-          <div className="flex justify-between max-w-2xl mx-auto px-4">
+        <div className="mt-4 w-full">
+          <div className="mx-auto flex max-w-2xl justify-between px-4">
             <button
               onClick={handlePreviousPage}
               disabled={currentPage === 0}
-              className="bg-gray-500 text-white px-4 py-2 rounded disabled:opacity-50"
+              className="rounded bg-gray-500 px-4 py-2 text-white disabled:opacity-50"
             >
               前のページ
             </button>
             <button
               onClick={handleNextPage}
               disabled={currentPage >= chunkedOrders.length - 1}
-              className="bg-gray-500 text-white px-4 py-2 rounded disabled:opacity-50"
+              className="rounded bg-gray-500 px-4 py-2 text-white disabled:opacity-50"
             >
               次のページ
             </button>
