@@ -107,13 +107,6 @@ export default function DeliveryListPage() {
           onChange={(e) => setSearchKeyword(e.target.value)}
           className="w-64 rounded border p-2"
         />
-
-        <button
-          onClick={handleSearch}
-          className="rounded border bg-white px-4 py-2 font-bold text-black hover:bg-gray-100"
-        >
-          🔍
-        </button>
       </div>
 
       {/* テーブル */}
