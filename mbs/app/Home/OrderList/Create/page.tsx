@@ -531,11 +531,11 @@ export default function OrderCreatePage() {
             {/* 追加ボタン */}
             <div className="mt-2">
               <button 
-                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-4 rounded text-xs sm:text-sm disabled:opacity-50"
+                className="bg-blue-400 hover:bg-blue-500 text-white font-medium py-1 px-3 rounded text-xs border border-blue-500"
                 onClick={handleAddOrderDetail}
                 disabled={orderDetails.length >= MAX_PRODUCTS}
               >
-                追加
+                + 行を追加
               </button>
             </div>
             
@@ -638,14 +638,26 @@ export default function OrderCreatePage() {
         </div>
       </div>
       
-      {/* 追加ボタン */}
+      {/* 注文追加ボタン */}
       <div className="flex justify-center mt-6">
         <button 
-          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-base shadow-lg border-2 border-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleAddOrder}
           disabled={isSubmitting}
         >
-          {isSubmitting ? '処理中...' : '追加'}
+          {isSubmitting ? (
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              処理中...
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              注文を追加
+            </div>
+          )}
         </button>
       </div>
     </div>
