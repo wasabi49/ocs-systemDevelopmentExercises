@@ -6,17 +6,13 @@ type Order = {
   managerName: string;
 };
 
-export function useFilteredOrders(
-  orders: Order[],
-  keyword: string,
-  field: string
-): Order[] {
+export function useFilteredOrders(orders: Order[], keyword: string, field: string): Order[] {
   return useMemo(() => {
     if (!keyword) return orders;
 
     const lowerKeyword = keyword.toLowerCase();
 
-    return orders.filter(order => {
+    return orders.filter((order) => {
       if (field === 'id') {
         return order.id.includes(lowerKeyword);
       }
