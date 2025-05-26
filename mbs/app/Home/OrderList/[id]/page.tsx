@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation'; // useRouterを削除
 
 // 注文明細データの型定義
 type OrderDetailItem = {
@@ -136,7 +136,7 @@ const formatJPY = (amount: number): string => {
 };
 
 const OrderDetailPage: FC = () => {
-  const router = useRouter();
+  // const router = useRouter(); // この行を削除
   const params = useParams();
   const orderId = params?.id as string || '';
   
