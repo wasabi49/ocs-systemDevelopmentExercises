@@ -26,20 +26,23 @@ const Modal = ({ open, onCancel, onOk }: ModalProps) => {
         complete: (result) => {
           setCsvData(result.data as string[][]);
         },
-        encoding: "Shift_JIS", // Shift_JISに対応
+        encoding: 'Shift_JIS', // Shift_JISに対応
       });
     };
-    reader.readAsText(file, "Shift_JIS"); // 明示的にShift_JISで読む
+    reader.readAsText(file, 'Shift_JIS'); // 明示的にShift_JISで読む
   };
 
   return open ? (
     <>
-      <div className="bg-white top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 p-5 flex flex-col absolute z-20">
-        <h1 className="text-xl font-bold mb-2">CSVファイルをインポート</h1>
-        <p className="text-sm mb-2">文字コード: Shift_JIS</p>
+      <div className="absolute top-1/2 left-1/2 z-20 flex w-96 -translate-x-1/2 -translate-y-1/2 transform flex-col bg-white p-5">
+        <h1 className="mb-2 text-xl font-bold">CSVファイルをインポート</h1>
+        <p className="mb-2 text-sm">文字コード: Shift_JIS</p>
 
         <div className="mb-3">
-          <label htmlFor="csv-upload" className="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white text-sm py-2 px-4 rounded inline-block">
+          <label
+            htmlFor="csv-upload"
+            className="inline-block cursor-pointer rounded bg-blue-500 px-4 py-2 text-sm text-white hover:bg-blue-600"
+          >
             ファイルを選択
           </label>
           <input
@@ -53,21 +56,24 @@ const Modal = ({ open, onCancel, onOk }: ModalProps) => {
 
         {/* ファイル名を改行して表示 */}
         {fileNames.length > 0 && (
-          <div className="text-xs text-gray-600 mb-3 whitespace-pre-line">
+          <div className="mb-3 text-xs whitespace-pre-line text-gray-600">
             {fileNames.join('\n')}
           </div>
         )}
 
-        <div className="flex mt-auto w-full">
+        <div className="mt-auto flex w-full">
           <button
-            className="bg-slate-900 hover:bg-slate-700 text-white px-8 py-2 mx-auto"
+            className="mx-auto bg-slate-900 px-8 py-2 text-white hover:bg-slate-700"
             onClick={() => onOk(csvData)}
           >
             インポート
           </button>
         </div>
       </div>
-      <div className="fixed inset-0 bg-black/50 bg-opacity-25 w-full h-full z-10" onClick={onCancel}></div>
+      <div
+        className="bg-opacity-25 fixed inset-0 z-10 h-full w-full bg-black/50"
+        onClick={onCancel}
+      ></div>
     </>
   ) : null;
 };
