@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type Order = {
   id: string;
@@ -29,6 +30,8 @@ const dummyOrders: Order[] = [
 ];
 
 export default function OrderListPage() {
+  const router = useRouter();
+  
   const [searchField, setSearchField] = useState<
     "すべて" | "注文ID" | "注文日" | "顧客名" | "備考" | "商品名"
   >("すべて");
@@ -39,6 +42,11 @@ export default function OrderListPage() {
     key: keyof Order;
     direction: "asc" | "desc";
   } | null>({ key: "id", direction: "asc" });
+
+  // 注文追加ページへ遷移する関数
+  const handleAddOrder = () => {
+    router.push("/Home/OrderList/Create");
+  };
 
   const handleSort = (field: keyof Order) => {
     let direction: "asc" | "desc" = "asc";
@@ -105,7 +113,10 @@ export default function OrderListPage() {
   return (
     <div className="p-4 max-w-screen-lg mx-auto flex flex-col items-center">
       <div className="flex flex-nowrap mb-4 w-full max-w-full overflow-x-auto justify-center gap-2 sm:gap-4">
-        <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold h-[48px] w-12 border border-black rounded-md text-xs md:text-sm">
+        <button 
+          className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold h-[48px] w-12 border border-black rounded-md text-xs md:text-sm"
+          onClick={handleAddOrder}
+        >
           注文追加
         </button>
 
