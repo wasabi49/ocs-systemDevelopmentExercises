@@ -31,18 +31,6 @@ type Customer = {
   deletedAt?: string;
 };
 
-// 注文データの型定義（ERダイアグラムに対応）
-type Order = {
-  id: string; // OXXXXXXX形式
-  customerId: string;
-  orderDate: string;
-  note: string;
-  status: '完了' | '未完了';
-  updatedAt: string;
-  isDeleted: boolean;
-  deletedAt?: string;
-};
-
 // 注文作成時のデータ型定義
 type OrderCreateData = {
   orderDetails: OrderDetail[];
@@ -59,7 +47,6 @@ type ValidationResult = {
 
 // 定数定義
 const MAX_PRODUCTS = 20;
-const REQUIRED_FIELD_ERROR = '必須項目を入力してください';
 const CONFIRMATION_MESSAGE = 'この商品を削除してもよろしいですか？';
 
 // ERダイアグラムに対応したダミーの顧客データ
@@ -320,10 +307,6 @@ const CustomerDropdown = ({
 };
 
 // ID生成ヘルパー関数
-const generateOrderDetailId = (orderId: string, index: number): string => {
-  return `${orderId}-${String(index + 1).padStart(2, '0')}`;
-};
-
 const generateTempOrderDetailId = (index: number): string => {
   return `TEMP-${String(index + 1).padStart(2, '0')}`;
 };
@@ -441,8 +424,8 @@ export default function OrderCreatePage() {
       }
       
       // 実際のAPI呼び出しをここで行う
-      console.log('注文データ:', orderData);
-      console.log('選択された顧客:', selectedCustomer);
+      // console.log('注文データ:', orderData);
+      // console.log('選択された顧客:', selectedCustomer);
       
       // 成功時の処理
       alert('注文を追加しました');
