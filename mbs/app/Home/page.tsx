@@ -5,7 +5,7 @@ export const Home = () => {
     { label: '顧客情報一覧', path: '/Home/CustomerList' },
     { label: '注文一覧', path: '/Home/OrderList' },
     { label: '納品一覧', path: '/Home/DeliveryList' },
-    { label: '統計情報閲覧', path: '/Home/StatisticalInfo' },
+    { label: '統計情報閲覧', path: '/Home/Statisticalinfo' },
   ];
 
   return (
