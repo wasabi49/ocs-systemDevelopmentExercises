@@ -1,22 +1,20 @@
 'use client';
 
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import Header from "./components/Header";
-import Breadcrumbs from "./components/Breadcrumbs";
-import { usePathname } from "next/navigation";
+import { Geist, Geist_Mono } from 'next/font/google';
+import './globals.css';
+import Header from './components/Header';
+import Breadcrumbs from './components/Breadcrumbs';
+import { usePathname } from 'next/navigation';
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
 });
-
-
 
 export default function RootLayout({
   children,
@@ -25,11 +23,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Header />
-        <Breadcrumbs path={usePathname()}/>
+        <Breadcrumbs path={usePathname()} />
         {children}
       </body>
     </html>
