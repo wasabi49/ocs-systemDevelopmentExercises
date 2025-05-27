@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 type SearchFilterProps = {
   keyword: string;
@@ -17,7 +17,7 @@ export default function SearchFilter({
     <div className="flex flex-wrap items-center justify-start gap-4">
       {/* 検索対象のプルダウン */}
       <select
-        className="border rounded p-2"
+        className="rounded border p-2"
         value={searchField}
         onChange={(e) => onSearchFieldChange(e.target.value)}
       >
@@ -29,9 +29,9 @@ export default function SearchFilter({
 
       {/* 検索キーワード入力 */}
       <div className="relative">
-        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
           <svg
-            className="w-4 h-4 text-gray-400"
+            className="h-4 w-4 text-gray-400"
             aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -51,7 +51,7 @@ export default function SearchFilter({
           placeholder="例：I-12345"
           value={keyword}
           onChange={(e) => onKeywordChange(e.target.value)}
-          className="border rounded p-2 pl-10 w-64"
+          className="w-64 rounded border p-2 pl-10"
         />
       </div>
     </div>

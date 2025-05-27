@@ -1,4 +1,5 @@
-"use client";
+'use client';
+
 
 import React, { useState } from "react";
 import Link from "next/link";
@@ -18,17 +19,18 @@ type Customer = {
   isDeleted: boolean;
   deletedAt?: string;
 };
-
+        
 type Order = {
   id: string; // OXXXXXXX形式
   customerId: string;
   orderDate: string;
   note: string;
   status: '完了' | '未完了' | '';
+
   updatedAt: string;
   isDeleted: boolean;
   deletedAt?: string;
-};
+
 
 // 表示用の注文データ型（顧客情報を含む）
 type OrderWithCustomer = Order & {
@@ -73,6 +75,7 @@ const dummyCustomers: Customer[] = [
 // ダミーの注文データ（ERダイアグラム対応）
 const dummyOrders: Order[] = [
   {
+
     id: "O1234567",
     customerId: "C-00001",
     orderDate: "2004/4/7",
@@ -90,6 +93,7 @@ const dummyOrders: Order[] = [
     updatedAt: "2024-12-15T10:00:00Z",
     isDeleted: false
   }
+
 ];
 
 export default function OrderListPage() {
@@ -100,6 +104,7 @@ export default function OrderListPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("");
   const [orders, setOrders] = useState<Order[]>(dummyOrders);
   const [sortConfig, setSortConfig] = useState<{
+
     key: keyof OrderWithCustomer;
     direction: "asc" | "desc";
   } | null>({ key: "id", direction: "asc" });
@@ -136,10 +141,12 @@ export default function OrderListPage() {
       sortConfig.direction === "asc"
     ) {
       direction = "desc";
+
     }
     const sorted = [...ordersWithCustomer].sort((a, b) => {
       const aValue = a[field];
       const bValue = b[field];
+
       
       // 文字列として比較
       const aStr = String(aValue || '');
@@ -147,6 +154,7 @@ export default function OrderListPage() {
       
       if (aStr < bStr) return direction === "asc" ? -1 : 1;
       if (aStr > bStr) return direction === "asc" ? 1 : -1;
+
       return 0;
     });
     
@@ -155,6 +163,7 @@ export default function OrderListPage() {
     setOrders(sortedOrders);
     setSortConfig({ key: field, direction });
   };
+
 
   const filteredOrders = ordersWithCustomer.filter((order) => {
     let matchField = false;
@@ -175,6 +184,7 @@ export default function OrderListPage() {
     }
     
     const matchStatus = statusFilter === "" || order.status === statusFilter;
+      
     return matchField && matchStatus;
   });
 
@@ -188,6 +198,7 @@ export default function OrderListPage() {
   const displayedOrders = [...paginatedOrders];
   while (displayedOrders.length < itemsPerPage) {
     displayedOrders.push({
+
       id: "",
       customerId: "",
       orderDate: "",
@@ -197,6 +208,7 @@ export default function OrderListPage() {
       isDeleted: false,
       customerName: "",
       customerContactPerson: ""
+
     });
   }
 
@@ -242,14 +254,14 @@ export default function OrderListPage() {
       <span className="ml-1">
         <span
           className={`inline-block text-xs ${
-            isActive && direction === "asc" ? "text-black" : "text-gray-400"
+            isActive && direction === 'asc' ? 'text-black' : 'text-gray-400'
           }`}
         >
           ▲
         </span>
         <span
-          className={`inline-block text-xs ml-0.5 ${
-            isActive && direction === "desc" ? "text-black" : "text-gray-400"
+          className={`ml-0.5 inline-block text-xs ${
+            isActive && direction === 'desc' ? 'text-black' : 'text-gray-400'
           }`}
         >
           ▼
@@ -274,6 +286,7 @@ export default function OrderListPage() {
           className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold h-[48px] px-3 sm:px-4 border border-black rounded-md text-xs sm:text-sm whitespace-nowrap flex-shrink-0"
           onClick={handleAddOrder}
         >
+
           注文追加
         </button>
 
@@ -281,6 +294,7 @@ export default function OrderListPage() {
           value={searchField}
           onChange={(e) => handleSearchFieldChange(e.target.value)}
           className="border border-black px-2 py-2 h-[48px] text-xs sm:text-sm rounded-md w-24 sm:w-32 flex-shrink-0"
+
         >
           <option value="すべて">すべて検索</option>
           <option value="注文ID">注文ID</option>
@@ -290,15 +304,19 @@ export default function OrderListPage() {
           <option value="商品名">商品名</option>
         </select>
 
+
         <div className="relative flex items-center flex-1 min-w-0">
           <div className="absolute left-2 text-gray-500 z-10">
+
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth={1.5}
               stroke="currentColor"
+
               className="w-4 h-4 sm:w-5 sm:h-5"
+
             >
               <path
                 strokeLinecap="round"
@@ -312,11 +330,14 @@ export default function OrderListPage() {
             placeholder="例：注文日"
             value={searchKeyword}
             onChange={(e) => setSearchKeyword(e.target.value)}
+
             className="border border-black pl-8 pr-3 py-2 h-[48px] text-xs sm:text-sm rounded-md w-full bg-white focus:border-orange-500 focus:outline-none"
+
             aria-label="検索フィールド"
           />
         </div>
       </div>
+
 
       {/* テーブル エリア */}
       <div className="w-full overflow-x-auto bg-white rounded-lg shadow-sm">
@@ -353,6 +374,7 @@ export default function OrderListPage() {
                   value={statusFilter}
                   onChange={(e) => handleStatusFilterChange(e.target.value)}
                   className="text-xs sm:text-sm bg-transparent hover:bg-blue-200 transition-colors duration-200 border-none outline-none w-full"
+
                 >
                   <option value="">状態</option>
                   <option value="完了">完了</option>
@@ -363,6 +385,7 @@ export default function OrderListPage() {
           </thead>
           <tbody>
             {displayedOrders.map((order, index) => (
+
               <tr
                 key={index}
                 className={`${
@@ -375,12 +398,14 @@ export default function OrderListPage() {
                       href={`/Home/OrderList/${order.id}`}
                       className="text-blue-600 hover:text-blue-800 underline font-medium transition-colors"
                     >
+
                       {order.id}
                     </Link>
                   ) : (
-                    ""
+                    ''
                   )}
                 </td>
+
                 <td className="border px-2 py-1 sm:px-3 sm:py-2 truncate">{order.orderDate}</td>
                 <td className="border px-2 py-1 sm:px-3 sm:py-2 truncate text-left sm:text-center">
                   {order.customerName}
@@ -395,6 +420,7 @@ export default function OrderListPage() {
                     <span className="text-green-600 font-semibold bg-green-50 px-2 py-1 rounded-full text-xs">
                       {order.status}
                     </span>
+
                   ) : (
                     ""
                   )}

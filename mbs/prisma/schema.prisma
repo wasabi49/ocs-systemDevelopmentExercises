@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 店舗モデル
+model Store {
+  id        String     @id @default(uuid())
+  name      String
+  customers Customer[]
+
+  @@map("stores")
+}
+
+// 顧客モデル
+model Customer {
+  id                String      @id // C-XXXXX 形式
+  storeId           String
+  store             Store       @relation(fields: [storeId], references: [id])
+  name              String
+  contactPerson     String?
+  address           String?
+  phone             String?
+  deliveryCondition String?
+  note              String?
+  updatedAt         DateTime    @updatedAt
+  isDeleted         Boolean     @default(false)
+  deletedAt         DateTime?
+  orders            Order[]
+  deliveries        Delivery[]
+  statistics        Statistics?
+
+  @@map("customers")
+}
+
+// 統計モデル
+model Statistics {
+  customerId      String    @id
+  customer        Customer  @relation(fields: [customerId], references: [id])
+  averageLeadTime Float?
+  totalSales      Float?
+  updatedAt       DateTime  @updatedAt
+  isDeleted       Boolean   @default(false)
+  deletedAt       DateTime?
+
+  @@map("statistics")
+}
+
+// 注文モデル
+model Order {
+  id           String        @id // OXXXXXXX 形式
+  customerId   String
+  customer     Customer      @relation(fields: [customerId], references: [id])
+  orderDate    DateTime
+  note         String?
+  status       String        // "完了" or "未完了"
+  updatedAt    DateTime      @updatedAt
+  isDeleted    Boolean       @default(false)
+  deletedAt    DateTime?
+  orderDetails OrderDetail[]
+
+  @@map("orders")
+}
+
+// 注文明細モデル
+model OrderDetail {
+  id                   String               @id // OXXXXXXX-XX 形式
+  orderId              String
+  order                Order                @relation(fields: [orderId], references: [id])
+  productName          String
+  unitPrice            Float
+  quantity             Int
+  description          String?
+  updatedAt            DateTime             @updatedAt
+  isDeleted            Boolean              @default(false)
+  deletedAt            DateTime?
+  deliveryAllocations  DeliveryAllocation[]
+
+  @@map("order_details")
+}
+
+// 納品モデル
+model Delivery {
+  id              String           @id // DXXXXXXX 形式
+  customerId      String
+  customer        Customer         @relation(fields: [customerId], references: [id])
+  deliveryDate    DateTime
+  totalAmount     Float?
+  totalQuantity   Int?
+  note            String?
+  updatedAt       DateTime         @updatedAt
+  isDeleted       Boolean          @default(false)
+  deletedAt       DateTime?
+  deliveryDetails DeliveryDetail[]
+
+  @@map("deliveries")
+}
+
+// 納品明細モデル
+model DeliveryDetail {
+  id                  String               @id // DXXXXXXX-XX 形式
+  deliveryId          String
+  delivery            Delivery             @relation(fields: [deliveryId], references: [id])
+  productName         String
+  unitPrice           Float
+  quantity            Int
+  updatedAt           DateTime             @updatedAt
+  isDeleted           Boolean              @default(false)
+  deletedAt           DateTime?
+  deliveryAllocations DeliveryAllocation[]
+
+  @@map("delivery_details")
+}
+
+// 納品割当モデル（多対多の関連テーブル）
+model DeliveryAllocation {
+  orderDetailId     String
+  orderDetail       OrderDetail    @relation(fields: [orderDetailId], references: [id])
+  deliveryDetailId  String
+  deliveryDetail    DeliveryDetail @relation(fields: [deliveryDetailId], references: [id])
+  allocatedQuantity Int
+  updatedAt         DateTime       @updatedAt
+  isDeleted         Boolean        @default(false)
+  deletedAt         DateTime?
+
+  @@id([orderDetailId, deliveryDetailId])
+  @@map("delivery_allocations")
+}
