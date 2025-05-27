@@ -1,131 +1,204 @@
 'use client';
 
 import { FC } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 
-// 注文明細データの型定義
-type OrderDetailItem = {
-  orderDetailId: string;
+// ERダイアグラムに対応した型定義
+type OrderDetail = {
+  id: string; // OXXXXXXX-XX形式
+  orderId: string;
   productName: string;
   unitPrice: number;
   quantity: number;
-  deliveryDetailId: string;
   description: string;
+  updatedAt: string;
+  isDeleted: boolean;
+  deletedAt?: string;
 };
 
-// 注文情報の型定義
-type OrderInfo = {
-  orderId: string;
+type Order = {
+  id: string; // OXXXXXXX形式
+  customerId: string;
   orderDate: string;
-  status: string;
-  remarks: string;
+  note: string;
+  status: '完了' | '未完了';
+  updatedAt: string;
+  isDeleted: boolean;
+  deletedAt?: string;
 };
 
-// 顧客情報の型定義
-type CustomerInfo = {
+type Customer = {
+  id: string; // C-XXXXX形式
+  storeId: string;
   name: string;
-  responsiblePerson: string;
-  phoneNumber: string;
-  deliveryCondition: string;
+  contactPerson: string;
   address: string;
+  phone: string;
+  deliveryCondition: string;
+  note: string;
+  updatedAt: string;
+  isDeleted: boolean;
+  deletedAt?: string;
 };
 
-// 注文データを格納する型定義
-type OrderData = {
-  orderDetails: OrderDetailItem[];
-  orderInfo: OrderInfo;
-  customerInfo: CustomerInfo;
+type Delivery = {
+  id: string; // DXXXXXXX形式
+  customerId: string;
+  deliveryDate: string;
+  totalAmount: number;
+  totalQuantity: number;
+  note: string;
+  updatedAt: string;
+  isDeleted: boolean;
+  deletedAt?: string;
 };
 
-// 注文データの定義（注文IDごとにデータを用意）
-const orderDataMap: Record<string, OrderData> = {
-  // 大阪情報専門学校の注文データ
-  'O123456': {
-    orderDetails: [
-      { 
-        orderDetailId: "O123456-01", 
-        productName: "転写型汎用ソフト5版", 
-        unitPrice: 13500, 
-        quantity: 5, 
-        deliveryDetailId: "D123456-01", 
-        description: "" 
-      },
-      { 
-        orderDetailId: "O123456-02", 
-        productName: "CADデータによるドリル", 
-        unitPrice: 2135, 
-        quantity: 10, 
-        deliveryDetailId: "D123456-02", 
-        description: "" 
-      }
-    ],
-    orderInfo: {
-      orderId: "O123456",
-      orderDate: "2004/4/7",
-      status: "完了",
-      remarks: ""
-    },
-    customerInfo: {
-      name: "大阪情報専門学校",
-      responsiblePerson: "山田太郎",
-      phoneNumber: "06-1234-5678",
-      deliveryCondition: "平日可",
-      address: "大阪市浪速区..."
-    }
+type DeliveryDetail = {
+  id: string; // DXXXXXXX-XX形式
+  deliveryId: string;
+  productName: string;
+  unitPrice: number;
+  quantity: number;
+  updatedAt: string;
+  isDeleted: boolean;
+  deletedAt?: string;
+};
+
+// 表示用の拡張型
+type OrderDetailWithDelivery = OrderDetail & {
+  deliveryDetailId?: string;
+};
+
+// ダミーデータ
+const dummyCustomers: Customer[] = [
+  {
+    id: 'C-00001',
+    storeId: 'store-001',
+    name: '大阪情報専門学校',
+    contactPerson: '情報太郎',
+    address: '大阪府大阪市東成区中本4-1-8',
+    phone: '06-1234-5678',
+    deliveryCondition: '平日9:00-17:00',
+    note: '教育機関',
+    updatedAt: '2024-12-15T09:00:00Z',
+    isDeleted: false
   },
-  // 森ノ宮病院の注文データ
-  'O123457': {
-    orderDetails: [
-      { 
-        orderDetailId: "O123457-01", 
-        productName: "医療用記録システム", 
-        unitPrice: 45000, 
-        quantity: 1, 
-        deliveryDetailId: "D123457-01", 
-        description: "緊急" 
-      },
-      { 
-        orderDetailId: "O123457-02", 
-        productName: "患者管理ソフト", 
-        unitPrice: 35000, 
-        quantity: 1, 
-        deliveryDetailId: "D123457-02", 
-        description: "" 
-      }
-    ],
-    orderInfo: {
-      orderId: "O123457",
-      orderDate: "2004/4/8",
-      status: "未完了",
-      remarks: "早期納品希望"
-    },
-    customerInfo: {
-      name: "森ノ宮病院",
-      responsiblePerson: "佐藤医師",
-      phoneNumber: "06-9876-5432",
-      deliveryCondition: "24時間対応",
-      address: "大阪市中央区森ノ宮..."
-    }
+  {
+    id: 'C-00002',
+    storeId: 'store-001',
+    name: '森ノ宮病院',
+    contactPerson: '佐藤花子',
+    address: '大阪府大阪市中央区森ノ宮1-2-3',
+    phone: '06-2345-6789',
+    deliveryCondition: '24時間対応可',
+    note: '医療機関',
+    updatedAt: '2024-12-14T14:30:00Z',
+    isDeleted: false
   }
-};
+];
 
-// デフォルトの空データ
-const emptyOrderData: OrderData = {
-  orderDetails: [],
-  orderInfo: {
-    orderId: "",
-    orderDate: "",
-    status: "",
-    remarks: ""
+const dummyOrders: Order[] = [
+  {
+    id: "O1234567",
+    customerId: "C-00001",
+    orderDate: "2004/4/7",
+    note: "",
+    status: "完了",
+    updatedAt: "2024-12-15T09:00:00Z",
+    isDeleted: false
   },
-  customerInfo: {
-    name: "",
-    responsiblePerson: "",
-    phoneNumber: "",
-    deliveryCondition: "",
-    address: ""
+  {
+    id: "O1234568",
+    customerId: "C-00002",
+    orderDate: "2004/4/8",
+    note: "早期納品希望",
+    status: "未完了",
+    updatedAt: "2024-12-15T10:00:00Z",
+    isDeleted: false
   }
-};
+];
+
+const dummyOrderDetails: OrderDetail[] = [
+  {
+    id: "O1234567-01",
+    orderId: "O1234567",
+    productName: "リーダブルコード",
+    unitPrice: 2640,
+    quantity: 29,
+    description: "",
+    updatedAt: "2024-12-15T09:00:00Z",
+    isDeleted: false
+  },
+  {
+    id: "O1234567-02",
+    orderId: "O1234567",
+    productName: "JavaScript 第7版（オライリー）",
+    unitPrice: 4950,
+    quantity: 29,
+    description: "",
+    updatedAt: "2024-12-15T09:05:00Z",
+    isDeleted: false
+  },
+  {
+    id: "O1234568-01",
+    orderId: "O1234568",
+    productName: "医療用記録システム",
+    unitPrice: 45000,
+    quantity: 1,
+    description: "緊急",
+    updatedAt: "2024-12-15T10:00:00Z",
+    isDeleted: false
+  },
+  {
+    id: "O1234568-02",
+    orderId: "O1234568",
+    productName: "患者管理ソフト",
+    unitPrice: 35000,
+    quantity: 1,
+    description: "",
+    updatedAt: "2024-12-15T10:05:00Z",
+    isDeleted: false
+  }
+];
+
+const dummyDeliveryDetails: DeliveryDetail[] = [
+  {
+    id: "D1234567-01",
+    deliveryId: "D1234567",
+    productName: "リーダブルコード",
+    unitPrice: 2640,
+    quantity: 29,
+    updatedAt: "2024-12-15T09:00:00Z",
+    isDeleted: false
+  },
+  {
+    id: "D1234567-02",
+    deliveryId: "D1234567",
+    productName: "JavaScript 第7版（オライリー）",
+    unitPrice: 4950,
+    quantity: 29,
+    updatedAt: "2024-12-15T09:05:00Z",
+    isDeleted: false
+  },
+  {
+    id: "D1234568-01",
+    deliveryId: "D1234568",
+    productName: "医療用記録システム",
+    unitPrice: 45000,
+    quantity: 1,
+    updatedAt: "2024-12-15T10:00:00Z",
+    isDeleted: false
+  },
+  {
+    id: "D1234568-02",
+    deliveryId: "D1234568",
+    productName: "患者管理ソフト",
+    unitPrice: 35000,
+    quantity: 1,
+    updatedAt: "2024-12-15T10:05:00Z",
+    isDeleted: false
+  }
+];
 
 // 日本円のフォーマット関数
 const formatJPY = (amount: number): string => {
@@ -135,135 +208,245 @@ const formatJPY = (amount: number): string => {
   }).format(amount);
 };
 
+// データ取得関数
+const getOrderById = (orderId: string): Order | undefined => {
+  return dummyOrders.find(order => order.id === orderId);
+};
+
+const getCustomerById = (customerId: string): Customer | undefined => {
+  return dummyCustomers.find(customer => customer.id === customerId);
+};
+
+const getOrderDetailsByOrderId = (orderId: string): OrderDetail[] => {
+  return dummyOrderDetails.filter(detail => detail.orderId === orderId);
+};
+
+const getDeliveryDetailIdByOrderDetailId = (orderDetailId: string): string | undefined => {
+  // 注文明細IDから対応する納品明細IDを取得（簡易実装）
+  const mapping: Record<string, string> = {
+    "O1234567-01": "D1234567-01",
+    "O1234567-02": "D1234567-02",
+    "O1234568-01": "D1234568-01",
+    "O1234568-02": "D1234568-02"
+  };
+  return mapping[orderDetailId];
+};
+
 const OrderDetailPage: FC = () => {
-  const router = useRouter();
   const params = useParams();
+  const router = useRouter();
   const orderId = params?.id as string || '';
   
-  // 注文IDに対応するデータを取得（存在しない場合は空データ）
-  const orderData = orderDataMap[orderId] || emptyOrderData;
-  
-  // 表示用に空行を追加
-  const displayOrderDetails = [
-    ...orderData.orderDetails,
-    // 空行を追加（合計10行になるよう調整）
-    ...Array(Math.max(10 - orderData.orderDetails.length, 0)).fill(null).map(() => ({
-      orderDetailId: "",
+  // データ取得
+  const order = getOrderById(orderId);
+  const customer = order ? getCustomerById(order.customerId) : undefined;
+  const orderDetails = getOrderDetailsByOrderId(orderId);
+
+  // 表示用データに納品明細IDを追加
+  const displayOrderDetails: OrderDetailWithDelivery[] = orderDetails.map(detail => ({
+    ...detail,
+    deliveryDetailId: getDeliveryDetailIdByOrderDetailId(detail.id)
+  }));
+
+  // 空行を追加（合計10行になるよう調整）
+  while (displayOrderDetails.length < 10) {
+    displayOrderDetails.push({
+      id: "",
+      orderId: "",
       productName: "",
       unitPrice: 0,
       quantity: 0,
-      deliveryDetailId: "",
-      description: ""
-    }))
-  ];
+      description: "",
+      updatedAt: "",
+      isDeleted: false,
+      deliveryDetailId: ""
+    });
+  }
 
-  // 編集ボタンのハンドラー
+  // 合計金額計算
+  const totalAmount = orderDetails.reduce((sum, detail) => 
+    sum + (detail.unitPrice * detail.quantity), 0
+  );
+
+  // ハンドラー関数
   const handleEdit = () => {
-    alert('注文を編集します（デモのため実際の編集は行われていません）');
+    router.push(`/Home/OrderList/${orderId}/Edit`);
   };
 
-  // 削除ボタンのハンドラー
   const handleDelete = () => {
     if (confirm('この注文を削除してもよろしいですか？')) {
       alert('注文を削除しました（デモのため実際の削除は行われていません）');
     }
   };
 
-  // PDF出力ボタンのハンドラー
   const handlePdfExport = () => {
     alert('PDFを出力しています（デモのため実際の出力は行われていません）');
   };
 
   return (
-    <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
-      {/* 編集ボタン */}
-      <div className="flex justify-end mb-4 sm:mb-6">
+    <div className="container mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6 max-w-7xl">
+      {/* ヘッダー */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
+        <div>
+          <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">
+            注文明細 - {order?.id || 'ID不明'}
+          </h1>
+          {order && (
+            <p className="text-sm text-gray-600 mt-1">
+              注文日: {order.orderDate} | 状態: 
+              <span className={`ml-1 px-2 py-1 rounded-full text-xs font-semibold ${
+                order.status === '完了' 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-red-100 text-red-800'
+              }`}>
+                {order.status}
+              </span>
+            </p>
+          )}
+        </div>
         <button
           onClick={handleEdit}
-          className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-1 px-3 sm:py-1 sm:px-4 rounded text-sm sm:text-base border border-black"
+          className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded-lg text-sm sm:text-base border border-yellow-600 transition-colors shadow-sm"
         >
           編集
         </button>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
-        {/* 注文明細テーブル（左側） */}
-        <div className="w-full lg:w-2/3 overflow-x-auto">
-          <table className="w-full min-w-[320px] sm:min-w-[600px] border-collapse text-center text-xs sm:text-sm table-fixed sm:table-auto">
-            <thead className="bg-blue-300">
-              <tr>
-                <th className="border px-1 py-1 w-[12%] sm:w-[15%] truncate">注文明細ID</th>
-                <th className="border px-1 py-1 w-[20%] sm:w-[25%] truncate">商品名</th>
-                <th className="border px-1 py-1 w-[10%] sm:w-[12%] truncate">単価</th>
-                <th className="border px-1 py-1 w-[6%] sm:w-[8%] truncate">数量</th>
-                <th className="border px-1 py-1 w-[12%] sm:w-[15%] truncate">納品明細ID</th>
-                <th className="border px-1 py-1 w-[40%] sm:w-[25%] truncate">摘要</th>
-              </tr>
-            </thead>
-            <tbody>
-              {displayOrderDetails.map((item, index) => (
-                <tr key={index} className={`${index % 2 === 0 ? "bg-blue-100" : "bg-white"} h-8`}>
-                  <td className="border px-1 py-1 h-8 sm:h-10 truncate">{item.orderDetailId}</td>
-                  <td className="border px-1 py-1 h-8 sm:h-10 truncate">{item.productName}</td>
-                  <td className="border px-1 py-1 text-right h-8 sm:h-10">
-                    {item.unitPrice > 0 ? formatJPY(item.unitPrice) : ""}
-                  </td>
-                  <td className="border px-1 py-1 text-right h-8 sm:h-10">
-                    {item.quantity > 0 ? item.quantity : ""}
-                  </td>
-                  <td className="border px-1 py-1 h-8 sm:h-10 truncate">{item.deliveryDetailId}</td>
-                  <td className="border px-1 py-1 h-8 sm:h-10 truncate">{item.description}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="flex flex-col xl:flex-row gap-6">
+        {/* 注文明細テーブル（左側・メイン） */}
+        <div className="w-full xl:w-2/3">
+          <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+            <div className="bg-blue-500 text-white p-3">
+              <h2 className="font-semibold text-base sm:text-lg">注文明細一覧</h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-center text-xs sm:text-sm min-w-[700px]">
+                <thead className="bg-blue-300">
+                  <tr>
+                    <th className="border border-gray-400 px-2 py-2 sm:px-3 sm:py-3 w-[15%] font-semibold">注文明細ID</th>
+                    <th className="border border-gray-400 px-2 py-2 sm:px-3 sm:py-3 w-[25%] font-semibold">商品名</th>
+                    <th className="border border-gray-400 px-2 py-2 sm:px-3 sm:py-3 w-[12%] font-semibold">単価</th>
+                    <th className="border border-gray-400 px-2 py-2 sm:px-3 sm:py-3 w-[8%] font-semibold">数量</th>
+                    <th className="border border-gray-400 px-2 py-2 sm:px-3 sm:py-3 w-[15%] font-semibold">納品明細ID</th>
+                    <th className="border border-gray-400 px-2 py-2 sm:px-3 sm:py-3 w-[25%] font-semibold">摘要</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {displayOrderDetails.map((item, index) => (
+                    <tr 
+                      key={index} 
+                      className={`${
+                        index % 2 === 0 ? "bg-blue-50" : "bg-white"
+                      } h-10 sm:h-12 hover:bg-blue-100 transition-colors`}
+                    >
+                      <td className="border border-gray-400 px-2 py-1 sm:px-3 sm:py-2 truncate font-mono text-xs">
+                        {item.id}
+                      </td>
+                      <td className="border border-gray-400 px-2 py-1 sm:px-3 sm:py-2 truncate text-left">
+                        {item.productName}
+                      </td>
+                      <td className="border border-gray-400 px-2 py-1 sm:px-3 sm:py-2 text-right font-medium">
+                        {item.unitPrice > 0 ? formatJPY(item.unitPrice) : ""}
+                      </td>
+                      <td className="border border-gray-400 px-2 py-1 sm:px-3 sm:py-2 text-right font-medium">
+                        {item.quantity > 0 ? item.quantity.toLocaleString() : ""}
+                      </td>
+                      <td className="border border-gray-400 px-2 py-1 sm:px-3 sm:py-2 truncate font-mono text-xs">
+                        {item.deliveryDetailId}
+                      </td>
+                      <td className="border border-gray-400 px-2 py-1 sm:px-3 sm:py-2 truncate text-left">
+                        {item.description}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            {/* 合計金額表示 */}
+            <div className="bg-gray-50 p-3 sm:p-4 border-t">
+              <div className="flex justify-between items-center">
+                <span className="text-sm sm:text-base font-medium text-gray-700">
+                  合計金額:
+                </span>
+                <span className="text-lg sm:text-xl font-bold text-blue-600">
+                  {formatJPY(totalAmount)}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* 注文情報と顧客情報（右側） */}
-        <div className="w-full lg:w-1/3 flex flex-col gap-4 sm:gap-6">
+        <div className="w-full xl:w-1/3 flex flex-col gap-6">
           {/* 注文情報 */}
-          <div className="border border-gray-300 rounded-lg overflow-hidden">
-            <div className="bg-slate-700 text-white p-2 sm:p-3">
-              <h2 className="font-semibold text-sm sm:text-base">注文情報</h2>
+          <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+            <div className="bg-slate-700 text-white p-3">
+              <h2 className="font-semibold text-base sm:text-lg">注文情報</h2>
             </div>
             <div className="text-xs sm:text-sm">
-              <div className="grid grid-cols-[40%_60%] sm:grid-cols-[35%_65%]">
-                <div className="p-2 sm:p-3 bg-slate-700 text-white border-t border-gray-300">注文ID</div>
-                <div className="p-2 sm:p-3 border-t border-gray-300 break-all">{orderData.orderInfo.orderId}</div>
-                
-                <div className="p-2 sm:p-3 bg-slate-700 text-white border-t border-gray-300">注文日</div>
-                <div className="p-2 sm:p-3 border-t border-gray-300">{orderData.orderInfo.orderDate}</div>
-                
-                <div className="p-2 sm:p-3 bg-slate-700 text-white border-t border-gray-300">状態</div>
-                <div className="p-2 sm:p-3 border-t border-gray-300">{orderData.orderInfo.status}</div>
-                
-                <div className="p-2 sm:p-3 bg-slate-700 text-white border-t border-gray-300">備考</div>
-                <div className="p-2 sm:p-3 border-t border-gray-300 break-all">{orderData.orderInfo.remarks}</div>
+              <div className="divide-y divide-gray-200">
+                <div className="flex">
+                  <div className="w-2/5 p-3 bg-slate-100 font-medium text-gray-700">注文ID</div>
+                  <div className="w-3/5 p-3 break-all font-mono">{order?.id || 'N/A'}</div>
+                </div>
+                <div className="flex">
+                  <div className="w-2/5 p-3 bg-slate-100 font-medium text-gray-700">注文日</div>
+                  <div className="w-3/5 p-3">{order?.orderDate || 'N/A'}</div>
+                </div>
+                <div className="flex">
+                  <div className="w-2/5 p-3 bg-slate-100 font-medium text-gray-700">状態</div>
+                  <div className="w-3/5 p-3">
+                    {order?.status && (
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        order.status === '完了' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {order.status}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex">
+                  <div className="w-2/5 p-3 bg-slate-100 font-medium text-gray-700">備考</div>
+                  <div className="w-3/5 p-3 break-all">{order?.note || '（なし）'}</div>
+                </div>
               </div>
             </div>
           </div>
 
           {/* 顧客情報 */}
-          <div className="border border-gray-300 rounded-lg overflow-hidden">
-            <div className="bg-slate-700 text-white p-2 sm:p-3">
-              <h2 className="font-semibold text-sm sm:text-base">顧客情報</h2>
+          <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+            <div className="bg-slate-700 text-white p-3">
+              <h2 className="font-semibold text-base sm:text-lg">顧客情報</h2>
             </div>
             <div className="text-xs sm:text-sm">
-              <div className="grid grid-cols-[40%_60%] sm:grid-cols-[35%_65%]">
-                <div className="p-2 sm:p-3 bg-slate-700 text-white border-t border-gray-300">名義</div>
-                <div className="p-2 sm:p-3 border-t border-gray-300 break-all">{orderData.customerInfo.name}</div>
-                
-                <div className="p-2 sm:p-3 bg-slate-700 text-white border-t border-gray-300">担当者</div>
-                <div className="p-2 sm:p-3 border-t border-gray-300 break-all">{orderData.customerInfo.responsiblePerson}</div>
-                
-                <div className="p-2 sm:p-3 bg-slate-700 text-white border-t border-gray-300">電話番号</div>
-                <div className="p-2 sm:p-3 border-t border-gray-300">{orderData.customerInfo.phoneNumber}</div>
-                
-                <div className="p-2 sm:p-3 bg-slate-700 text-white border-t border-gray-300">配達条件</div>
-                <div className="p-2 sm:p-3 border-t border-gray-300 break-all">{orderData.customerInfo.deliveryCondition}</div>
-                
-                <div className="p-2 sm:p-3 bg-slate-700 text-white border-t border-gray-300">住所</div>
-                <div className="p-2 sm:p-3 border-t border-gray-300 break-all">{orderData.customerInfo.address}</div>
+              <div className="divide-y divide-gray-200">
+                <div className="flex">
+                  <div className="w-2/5 p-3 bg-slate-100 font-medium text-gray-700">顧客ID</div>
+                  <div className="w-3/5 p-3 break-all font-mono">{customer?.id || 'N/A'}</div>
+                </div>
+                <div className="flex">
+                  <div className="w-2/5 p-3 bg-slate-100 font-medium text-gray-700">名義</div>
+                  <div className="w-3/5 p-3 break-all font-semibold">{customer?.name || 'N/A'}</div>
+                </div>
+                <div className="flex">
+                  <div className="w-2/5 p-3 bg-slate-100 font-medium text-gray-700">担当者</div>
+                  <div className="w-3/5 p-3 break-all">{customer?.contactPerson || 'N/A'}</div>
+                </div>
+                <div className="flex">
+                  <div className="w-2/5 p-3 bg-slate-100 font-medium text-gray-700">電話番号</div>
+                  <div className="w-3/5 p-3">{customer?.phone || 'N/A'}</div>
+                </div>
+                <div className="flex">
+                  <div className="w-2/5 p-3 bg-slate-100 font-medium text-gray-700">配達条件</div>
+                  <div className="w-3/5 p-3 break-all">{customer?.deliveryCondition || 'N/A'}</div>
+                </div>
+                <div className="flex">
+                  <div className="w-2/5 p-3 bg-slate-100 font-medium text-gray-700">住所</div>
+                  <div className="w-3/5 p-3 break-all">{customer?.address || 'N/A'}</div>
+                </div>
               </div>
             </div>
           </div>
@@ -271,16 +454,16 @@ const OrderDetailPage: FC = () => {
       </div>
 
       {/* アクションボタン */}
-      <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 mt-6 sm:mt-8">
+      <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 mt-8">
         <button
           onClick={handleDelete}
-          className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 sm:px-6 rounded order-2 sm:order-1 text-sm sm:text-base border border-black"
+          className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg text-sm sm:text-base border border-red-700 transition-colors shadow-sm order-2 sm:order-1"
         >
           削除
         </button>
         <button
           onClick={handlePdfExport}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 sm:px-6 rounded order-1 sm:order-2 text-sm sm:text-base border border-black"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-sm sm:text-base border border-blue-700 transition-colors shadow-sm order-1 sm:order-2"
         >
           PDF出力
         </button>
