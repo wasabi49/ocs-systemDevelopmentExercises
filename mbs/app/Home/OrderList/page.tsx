@@ -157,9 +157,16 @@ const OrderListPage: React.FC = () => {
     });
 
     // ソート結果をorderStateに反映（顧客情報を除いた注文データのみ）
-    const sortedOrders = sorted.map(
-      ({ customerName: _, customerContactPerson: __, ...order }) => order
-    );
+    const sortedOrders = sorted.map((orderWithCustomer) => ({
+      id: orderWithCustomer.id,
+      customerId: orderWithCustomer.customerId,
+      orderDate: orderWithCustomer.orderDate,
+      note: orderWithCustomer.note,
+      status: orderWithCustomer.status,
+      updatedAt: orderWithCustomer.updatedAt,
+      isDeleted: orderWithCustomer.isDeleted,
+      deletedAt: orderWithCustomer.deletedAt,
+    }));
     setOrders(sortedOrders);
     setSortConfig({ key: field, direction });
   };
