@@ -2,33 +2,93 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-type Order = {
-  id: string;
-  date: string;
-  customerName: string;
+// ERダイアグラムに対応した型定義
+type Customer = {
+  id: string; // C-XXXXX形式
+  storeId: string;
+  name: string;
+  contactPerson: string;
+  address: string;
+  phone: string;
+  deliveryCondition: string;
   note: string;
-  status: "完了" | "未完了" | "";
+  updatedAt: string;
+  isDeleted: boolean;
+  deletedAt?: string;
 };
 
+type Order = {
+  id: string; // OXXXXXXX形式
+  customerId: string;
+  orderDate: string;
+  note: string;
+  status: '完了' | '未完了' | '';
+  updatedAt: string;
+  isDeleted: boolean;
+  deletedAt?: string;
+};
+
+// 表示用の注文データ型（顧客情報を含む）
+type OrderWithCustomer = Order & {
+  customerName: string;
+  customerContactPerson: string;
+};
+
+// ダミーの顧客データ
+const dummyCustomers: Customer[] = [
+  {
+    id: 'C-00001',
+    storeId: 'store-001',
+    name: '大阪情報専門学校',
+    contactPerson: '田中太郎',
+    address: '大阪府大阪市北区梅田1-1-1',
+    phone: '06-1234-5678',
+    deliveryCondition: '平日9:00-17:00',
+    note: '教育機関',
+    updatedAt: '2024-12-15T09:00:00Z',
+    isDeleted: false
+  },
+  {
+    id: 'C-00002',
+    storeId: 'store-001',
+    name: '森ノ宮病院',
+    contactPerson: '佐藤花子',
+    address: '大阪府大阪市中央区森ノ宮1-2-3',
+    phone: '06-2345-6789',
+    deliveryCondition: '24時間対応可',
+    note: '医療機関',
+    updatedAt: '2024-12-14T14:30:00Z',
+    isDeleted: false
+  }
+];
+
+// ダミーの注文データ（ERダイアグラム対応）
 const dummyOrders: Order[] = [
   {
-    id: "O123456",
-    date: "2004/4/7",
-    customerName: "大阪情報専門学校",
+    id: "O1234567",
+    customerId: "C-00001",
+    orderDate: "2004/4/7",
     note: "",
     status: "完了",
+    updatedAt: "2024-12-15T09:00:00Z",
+    isDeleted: false
   },
   {
-    id: "O123457",
-    date: "2004/4/8",
-    customerName: "森ノ宮病院",
-    note: "",
+    id: "O1234568",
+    customerId: "C-00002",
+    orderDate: "2004/4/8",
+    note: "早期納品希望",
     status: "未完了",
-  },
+    updatedAt: "2024-12-15T10:00:00Z",
+    isDeleted: false
+  }
 ];
 
 export default function OrderListPage() {
+  const router = useRouter();
+  
   const [searchField, setSearchField] = useState<
     "すべて" | "注文ID" | "注文日" | "顧客名" | "備考" | "商品名"
   >("すべて");
@@ -36,11 +96,35 @@ export default function OrderListPage() {
   const [statusFilter, setStatusFilter] = useState<"完了" | "未完了" | "">("");
   const [orders, setOrders] = useState<Order[]>(dummyOrders);
   const [sortConfig, setSortConfig] = useState<{
-    key: keyof Order;
+    key: keyof OrderWithCustomer;
     direction: "asc" | "desc";
   } | null>({ key: "id", direction: "asc" });
+  
+  // ページング関連の状態
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
 
-  const handleSort = (field: keyof Order) => {
+  // 注文追加ページへ遷移する関数
+  const handleAddOrder = () => {
+    router.push("/Home/OrderList/Create");
+  };
+
+  // 顧客情報を取得する関数
+  const getCustomerById = (customerId: string): Customer | undefined => {
+    return dummyCustomers.find(customer => customer.id === customerId);
+  };
+
+  // 注文データに顧客情報を結合
+  const ordersWithCustomer: OrderWithCustomer[] = orders.map(order => {
+    const customer = getCustomerById(order.customerId);
+    return {
+      ...order,
+      customerName: customer?.name || '不明な顧客',
+      customerContactPerson: customer?.contactPerson || ''
+    };
+  });
+
+  const handleSort = (field: keyof OrderWithCustomer) => {
     let direction: "asc" | "desc" = "asc";
     if (
       sortConfig &&
@@ -49,37 +133,105 @@ export default function OrderListPage() {
     ) {
       direction = "desc";
     }
-    const sorted = [...orders].sort((a, b) => {
+    const sorted = [...ordersWithCustomer].sort((a, b) => {
       const aValue = a[field];
       const bValue = b[field];
-      if (aValue < bValue) return direction === "asc" ? -1 : 1;
-      if (aValue > bValue) return direction === "asc" ? 1 : -1;
+      
+      // 文字列として比較
+      const aStr = String(aValue || '');
+      const bStr = String(bValue || '');
+      
+      if (aStr < bStr) return direction === "asc" ? -1 : 1;
+      if (aStr > bStr) return direction === "asc" ? 1 : -1;
       return 0;
     });
-    setOrders(sorted);
+    
+    // ソート結果をorderStateに反映（顧客情報を除いた注文データのみ）
+    const sortedOrders = sorted.map(({ customerName, customerContactPerson, ...order }) => order);
+    setOrders(sortedOrders);
     setSortConfig({ key: field, direction });
   };
 
-  const filteredOrders = orders.filter((order) => {
-    const matchField =
-      searchField === "すべて" ||
-      order[searchField as keyof Order]?.includes(searchKeyword);
+  const filteredOrders = ordersWithCustomer.filter((order) => {
+    let matchField = false;
+    
+    if (searchField === "すべて") {
+      matchField = true;
+    } else if (searchField === "注文ID") {
+      matchField = order.id.includes(searchKeyword);
+    } else if (searchField === "注文日") {
+      matchField = order.orderDate.includes(searchKeyword);
+    } else if (searchField === "顧客名") {
+      matchField = order.customerName.includes(searchKeyword);
+    } else if (searchField === "備考") {
+      matchField = order.note.includes(searchKeyword);
+    } else if (searchField === "商品名") {
+      // 商品名検索は実装されていないため、falseを返す
+      matchField = false;
+    }
+    
     const matchStatus = statusFilter === "" || order.status === statusFilter;
     return matchField && matchStatus;
   });
 
-  const displayedOrders = [...filteredOrders];
-  while (displayedOrders.length < 15) {
+  // ページング計算
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
+
+  // 表示用に空行を追加（現在のページのアイテム数が15未満の場合）
+  const displayedOrders = [...paginatedOrders];
+  while (displayedOrders.length < itemsPerPage) {
     displayedOrders.push({
       id: "",
-      date: "",
-      customerName: "",
+      customerId: "",
+      orderDate: "",
       note: "",
-      status: "",
+      status: "" as const,
+      updatedAt: "",
+      isDeleted: false,
+      customerName: "",
+      customerContactPerson: ""
     });
   }
 
-  const renderSortIcon = (field: keyof Order) => {
+  // ページング関数
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  // ページング表示用の配列を生成
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= maxVisiblePages; i++) {
+          pages.push(i);
+        }
+      } else if (currentPage >= totalPages - 2) {
+        for (let i = totalPages - maxVisiblePages + 1; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        for (let i = currentPage - 2; i <= currentPage + 2; i++) {
+          pages.push(i);
+        }
+      }
+    }
+    
+    return pages;
+  };
+
+  const renderSortIcon = (field: keyof OrderWithCustomer) => {
     const isActive = sortConfig?.key === field;
     const direction = sortConfig?.direction;
     return (
@@ -103,9 +255,13 @@ export default function OrderListPage() {
   };
 
   return (
-    <div className="p-4 max-w-screen-lg mx-auto flex flex-col items-center">
-      <div className="flex flex-nowrap mb-4 w-full max-w-full overflow-x-auto justify-center gap-2 sm:gap-4">
-        <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold h-[48px] w-12 border border-black rounded-md text-xs md:text-sm">
+    <div className="p-2 sm:p-4 lg:p-6 max-w-screen-xl mx-auto flex flex-col items-center min-h-screen">
+      {/* 検索・フィルター エリア */}
+      <div className="flex flex-row gap-2 sm:gap-4 mb-4 w-full justify-center items-center">
+        <button 
+          className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold h-[48px] px-3 sm:px-4 border border-black rounded-md text-xs sm:text-sm whitespace-nowrap flex-shrink-0"
+          onClick={handleAddOrder}
+        >
           注文追加
         </button>
 
@@ -122,7 +278,7 @@ export default function OrderListPage() {
                 | "商品名"
             )
           }
-          className="border border-black px-2 py-2 h-[48px] text-xs md:text-sm rounded-md w-25 md:w-32  "
+          className="border border-black px-2 py-2 h-[48px] text-xs sm:text-sm rounded-md w-24 sm:w-32 flex-shrink-0"
         >
           <option value="すべて">すべて検索</option>
           <option value="注文ID">注文ID</option>
@@ -132,15 +288,15 @@ export default function OrderListPage() {
           <option value="商品名">商品名</option>
         </select>
 
-        <div className="relative flex items-center w-64 sm:w-[250px]">
-          <div className="absolute left-2 text-gray-500">
+        <div className="relative flex items-center flex-1 min-w-0">
+          <div className="absolute left-2 text-gray-500 z-10">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth={1.5}
               stroke="currentColor"
-              className="w-5 h-5"
+              className="w-4 h-4 sm:w-5 sm:h-5"
             >
               <path
                 strokeLinecap="round"
@@ -154,37 +310,49 @@ export default function OrderListPage() {
             placeholder="例：注文日"
             value={searchKeyword}
             onChange={(e) => setSearchKeyword(e.target.value)}
-            className="border border-black pl-8 pr-2 py-2 h-[48px] text-sm rounded-md w-full bg-white focus:border-orange-500 focus:outline-none"
+            className="border border-black pl-8 pr-3 py-2 h-[48px] text-xs sm:text-sm rounded-md w-full bg-white focus:border-orange-500 focus:outline-none"
             aria-label="検索フィールド"
           />
         </div>
       </div>
 
-      <div className="w-full overflow-x-auto">
-        <table className="w-full border-collapse text-center text-sm table-fixed sm:table-auto">
+      {/* テーブル エリア */}
+      <div className="w-full overflow-x-auto bg-white rounded-lg shadow-sm">
+        <table className="w-full border-collapse text-center text-xs sm:text-sm min-w-[600px]">
           <thead className="bg-blue-300">
             <tr>
               <th
-                className="border px-1 py-1 w-24 truncate cursor-pointer"
+                className="border px-2 py-2 sm:px-3 sm:py-3 w-[15%] sm:w-[12%] truncate cursor-pointer hover:bg-blue-400 transition-colors"
                 onClick={() => handleSort("id")}
               >
-                注文ID{renderSortIcon("id")}
+                <div className="flex items-center justify-center">
+                  注文ID{renderSortIcon("id")}
+                </div>
               </th>
               <th
-                className="border px-1 py-1 w-28 truncate cursor-pointer"
-                onClick={() => handleSort("date")}
+                className="border px-2 py-2 sm:px-3 sm:py-3 w-[15%] sm:w-[12%] truncate cursor-pointer hover:bg-blue-400 transition-colors"
+                onClick={() => handleSort("orderDate")}
               >
-                注文日{renderSortIcon("date")}
+                <div className="flex items-center justify-center">
+                  注文日{renderSortIcon("orderDate")}
+                </div>
               </th>
-              <th className="border px-1 py-1 w-72 truncate">顧客名</th>
-              <th className="border px-1 py-1 w-120 truncate">備考</th>
-              <th className="border px-1 py-1 w-16 truncate">
+              <th 
+                className="border px-2 py-2 sm:px-3 sm:py-3 w-[25%] sm:w-[30%] truncate cursor-pointer hover:bg-blue-400 transition-colors"
+                onClick={() => handleSort("customerName")}
+              >
+                <div className="flex items-center justify-center">
+                  顧客名{renderSortIcon("customerName")}
+                </div>
+              </th>
+              <th className="border px-2 py-2 sm:px-3 sm:py-3 w-[25%] sm:w-[30%] truncate">備考</th>
+              <th className="border px-2 py-2 sm:px-3 sm:py-3 w-[15%] sm:w-[12%] truncate">
                 <select
                   value={statusFilter}
                   onChange={(e) =>
                     setStatusFilter(e.target.value as "完了" | "未完了" | "")
                   }
-                  className="text-sm bg-transparent hover:bg-blue-200 transition-colors duration-200"
+                  className="text-xs sm:text-sm bg-transparent hover:bg-blue-200 transition-colors duration-200 border-none outline-none w-full"
                 >
                   <option value="">状態</option>
                   <option value="完了">完了</option>
@@ -199,13 +367,13 @@ export default function OrderListPage() {
                 key={index}
                 className={`${
                   index % 2 === 0 ? "bg-blue-100" : "bg-white"
-                } h-8`}
+                } h-10 sm:h-12 hover:bg-blue-200 transition-colors`}
               >
-                <td className="border px-1 py-1 truncate">
+                <td className="border px-2 py-1 sm:px-3 sm:py-2 truncate">
                   {order.id ? (
                     <Link
                       href={`/Home/OrderList/${order.id}`}
-                      className="text-blue-500 underline"
+                      className="text-blue-600 hover:text-blue-800 underline font-medium transition-colors"
                     >
                       {order.id}
                     </Link>
@@ -213,16 +381,22 @@ export default function OrderListPage() {
                     ""
                   )}
                 </td>
-                <td className="border px-1 py-1 truncate">{order.date}</td>
-                <td className="border px-1 py-1 truncate">
+                <td className="border px-2 py-1 sm:px-3 sm:py-2 truncate">{order.orderDate}</td>
+                <td className="border px-2 py-1 sm:px-3 sm:py-2 truncate text-left sm:text-center">
                   {order.customerName}
                 </td>
-                <td className="border px-1 py-1 truncate">{order.note}</td>
-                <td className="border px-1 py-1 truncate">
+                <td className="border px-2 py-1 sm:px-3 sm:py-2 truncate text-left sm:text-center">{order.note}</td>
+                <td className="border px-2 py-1 sm:px-3 sm:py-2 truncate">
                   {order.status === "未完了" ? (
-                    <span className="text-red-500">{order.status}</span>
+                    <span className="text-red-600 font-semibold bg-red-50 px-2 py-1 rounded-full text-xs">
+                      {order.status}
+                    </span>
+                  ) : order.status === "完了" ? (
+                    <span className="text-green-600 font-semibold bg-green-50 px-2 py-1 rounded-full text-xs">
+                      {order.status}
+                    </span>
                   ) : (
-                    order.status
+                    ""
                   )}
                 </td>
               </tr>
@@ -231,14 +405,74 @@ export default function OrderListPage() {
         </table>
       </div>
 
-      <div className="mt-2 text-center text-sm">
-        <span className="mx-1 cursor-pointer">&lt;&lt;</span>
-        <span className="mx-1 cursor-pointer font-bold">1</span>
-        <span className="mx-1 cursor-pointer">2</span>
-        <span className="mx-1 cursor-pointer">3</span>
-        <span className="mx-1 cursor-pointer">4</span>
-        <span className="mx-1 cursor-pointer">5</span>
-        <span className="mx-1 cursor-pointer">&gt;&gt;</span>
+      {/* ページング エリア */}
+      <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
+        <div className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-0">
+          {filteredOrders.length > 0 ? (
+            <>
+              {startIndex + 1}-{Math.min(endIndex, filteredOrders.length)} / {filteredOrders.length}件
+            </>
+          ) : (
+            "0件"
+          )}
+        </div>
+        
+        <div className="flex items-center gap-1 sm:gap-2">
+          {/* 最初のページ */}
+          <button
+            onClick={() => handlePageChange(1)}
+            disabled={currentPage === 1}
+            className="px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            aria-label="最初のページ"
+          >
+            &lt;&lt;
+          </button>
+          
+          {/* 前のページ */}
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            aria-label="前のページ"
+          >
+            &lt;
+          </button>
+
+          {/* ページ番号 */}
+          {getPageNumbers().map((page) => (
+            <button
+              key={page}
+              onClick={() => handlePageChange(page)}
+              className={`px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm border rounded transition-colors ${
+                currentPage === page
+                  ? "bg-blue-500 text-white font-bold border-blue-500"
+                  : "hover:bg-gray-100"
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+
+          {/* 次のページ */}
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            aria-label="次のページ"
+          >
+            &gt;
+          </button>
+
+          {/* 最後のページ */}
+          <button
+            onClick={() => handlePageChange(totalPages)}
+            disabled={currentPage === totalPages}
+            className="px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            aria-label="最後のページ"
+          >
+            &gt;&gt;
+          </button>
+        </div>
       </div>
     </div>
   );
