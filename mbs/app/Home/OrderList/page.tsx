@@ -36,6 +36,12 @@ type OrderWithCustomer = Order & {
   customerContactPerson: string;
 };
 
+// 検索フィールドの型定義
+type SearchField = "すべて" | "注文ID" | "注文日" | "顧客名" | "備考" | "商品名";
+
+// ステータスフィルターの型定義
+type StatusFilter = "完了" | "未完了" | "";
+
 // ダミーの顧客データ
 const dummyCustomers: Customer[] = [
   {
@@ -89,11 +95,9 @@ const dummyOrders: Order[] = [
 export default function OrderListPage() {
   const router = useRouter();
   
-  const [searchField, setSearchField] = useState<
-    "すべて" | "注文ID" | "注文日" | "顧客名" | "備考" | "商品名"
-  >("すべて");
+  const [searchField, setSearchField] = useState<SearchField>("すべて");
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"完了" | "未完了" | "">("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("");
   const [orders, setOrders] = useState<Order[]>(dummyOrders);
   const [sortConfig, setSortConfig] = useState<{
     key: keyof OrderWithCustomer;
@@ -254,6 +258,14 @@ export default function OrderListPage() {
     );
   };
 
+  const handleSearchFieldChange = (value: string) => {
+    setSearchField(value as SearchField);
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value as StatusFilter);
+  };
+
   return (
     <div className="p-2 sm:p-4 lg:p-6 max-w-screen-xl mx-auto flex flex-col items-center min-h-screen">
       {/* 検索・フィルター エリア */}
@@ -267,17 +279,7 @@ export default function OrderListPage() {
 
         <select
           value={searchField}
-          onChange={(e) =>
-            setSearchField(
-              e.target.value as
-                | "すべて"
-                | "注文ID"
-                | "注文日"
-                | "顧客名"
-                | "備考"
-                | "商品名"
-            )
-          }
+          onChange={(e) => handleSearchFieldChange(e.target.value)}
           className="border border-black px-2 py-2 h-[48px] text-xs sm:text-sm rounded-md w-24 sm:w-32 flex-shrink-0"
         >
           <option value="すべて">すべて検索</option>
@@ -349,9 +351,7 @@ export default function OrderListPage() {
               <th className="border px-2 py-2 sm:px-3 sm:py-3 w-[15%] sm:w-[12%] truncate">
                 <select
                   value={statusFilter}
-                  onChange={(e) =>
-                    setStatusFilter(e.target.value as "完了" | "未完了" | "")
-                  }
+                  onChange={(e) => handleStatusFilterChange(e.target.value)}
                   className="text-xs sm:text-sm bg-transparent hover:bg-blue-200 transition-colors duration-200 border-none outline-none w-full"
                 >
                   <option value="">状態</option>
