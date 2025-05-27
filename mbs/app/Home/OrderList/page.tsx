@@ -158,7 +158,7 @@ const OrderListPage: React.FC = () => {
 
     // ソート結果をorderStateに反映（顧客情報を除いた注文データのみ）
     const sortedOrders = sorted.map(
-      ({ customerName, customerContactPerson, ...order }) => order
+      ({ customerName: _, customerContactPerson: __, ...order }) => order
     );
     setOrders(sortedOrders);
     setSortConfig({ key: field, direction });
