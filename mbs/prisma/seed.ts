@@ -34,20 +34,26 @@ async function main() {
 
   console.log('Database cleanup completed successfully');
 
-  // 店舗データ作成
-  const store = await prisma.store.create({
-    data: {
-      name: '本社',
-    },
-  });
+  // 店舗データ作成 - 3つの指定された店舗を使用
+  const stores = await Promise.all([
+    prisma.store.create({
+      data: { name: '今里店' },
+    }),
+    prisma.store.create({
+      data: { name: '深江橋店' },
+    }),
+    prisma.store.create({
+      data: { name: '緑橋本店' },
+    }),
+  ]);
 
-  // 顧客データ作成
+  // 顧客データ作成 - 顧客を3つの店舗に分散させる
   const customers = await Promise.all([
     prisma.customer.create({
       data: {
         id: 'C-00001',
         name: '大阪情報専門学校',
-        storeId: store.id,
+        storeId: stores[0].id,
         contactPerson: '山田太郎',
         address: '大阪府大阪市北区',
         phone: '06-1234-5678',
@@ -59,7 +65,7 @@ async function main() {
       data: {
         id: 'C-00002',
         name: '株式会社スマートソリューションズ',
-        storeId: store.id,
+        storeId: stores[1].id,
         contactPerson: '佐藤次郎',
         address: '大阪府大阪市中央区',
         phone: '06-2345-6789',
@@ -71,7 +77,7 @@ async function main() {
       data: {
         id: 'C-00003',
         name: '株式会社SCC',
-        storeId: store.id,
+        storeId: stores[2].id,
         contactPerson: '田中三郎',
         address: '大阪府吹田市',
         phone: '06-3456-7890',
@@ -83,7 +89,7 @@ async function main() {
       data: {
         id: 'C-00004',
         name: '株式会社くら寿司',
-        storeId: store.id,
+        storeId: stores[0].id,
         contactPerson: '鈴木四郎',
         address: '大阪府堺市',
         phone: '072-456-7890',
@@ -133,16 +139,16 @@ async function main() {
 
   // 注文明細データの作成
   const products = [
-    { name: 'ノートパソコン', price: 120000 },
-    { name: 'デスクトップPC', price: 150000 },
-    { name: 'タブレット', price: 50000 },
-    { name: 'プリンタ', price: 30000 },
-    { name: 'モニター', price: 25000 },
-    { name: 'キーボード', price: 5000 },
-    { name: 'マウス', price: 3000 },
-    { name: 'ソフトウェアライセンス', price: 80000 },
-    { name: 'サーバー', price: 300000 },
-    { name: 'ネットワーク機器', price: 50000 },
+    { name: '世界の名著シリーズ', price: 12000 },
+    { name: '現代文学全集', price: 15000 },
+    { name: 'プログラミング入門書', price: 5000 },
+    { name: 'ビジネス戦略ガイド', price: 3000 },
+    { name: '英語学習教材セット', price: 8500 },
+    { name: '日本の歴史図鑑', price: 5000 },
+    { name: '子供向け絵本セット', price: 3000 },
+    { name: 'デザイン年鑑', price: 8000 },
+    { name: '美術全集', price: 30000 },
+    { name: '専門用語辞典', price: 5000 },
   ];
 
   const orderDetails = [];
@@ -162,7 +168,7 @@ async function main() {
           productName: product.name,
           unitPrice: product.price,
           quantity,
-          description: `${product.name}の詳細説明`,
+          description: `${product.name}・${quantity}冊セット`,
         },
       });
 
@@ -172,85 +178,115 @@ async function main() {
 
   // 納品データの作成
   const deliveryData = [
-    { id: 'D00001', date: '2025/05/01', customerName: '大阪情報専門学校', note: '初回納品' },
+    { id: 'D00001', date: '2025/05/01', customerName: '大阪情報専門学校', note: '教科書納品' },
     {
       id: 'D00002',
       date: '2025/05/03',
       customerName: '株式会社スマートソリューションズ',
-      note: '追加納品',
+      note: '技術書追加納品',
     },
-    { id: 'D00003', date: '2025/05/05', customerName: '株式会社SCC', note: '緊急納品' },
-    { id: 'D00004', date: '2025/05/07', customerName: '株式会社くら寿司', note: '定期納品' },
-    { id: 'D00005', date: '2025/05/10', customerName: '大阪情報専門学校', note: '教材納品' },
+    { id: 'D00003', date: '2025/05/05', customerName: '株式会社SCC', note: '緊急参考書納品' },
+    { id: 'D00004', date: '2025/05/07', customerName: '株式会社くら寿司', note: '定期雑誌納品' },
+    { id: 'D00005', date: '2025/05/10', customerName: '大阪情報専門学校', note: '学習参考書納品' },
     {
       id: 'D00006',
       date: '2025/05/12',
       customerName: '株式会社スマートソリューションズ',
-      note: '機材納品',
+      note: '資格書籍納品',
     },
-    { id: 'D00007', date: '2025/05/15', customerName: '株式会社SCC', note: '追加注文対応' },
-    { id: 'D00008', date: '2025/05/18', customerName: '株式会社くら寿司', note: '新メニュー対応' },
-    { id: 'D00009', date: '2025/05/20', customerName: '大阪情報専門学校', note: 'イベント用納品' },
+    { id: 'D00007', date: '2025/05/15', customerName: '株式会社SCC', note: '追加図鑑対応' },
+    {
+      id: 'D00008',
+      date: '2025/05/18',
+      customerName: '株式会社くら寿司',
+      note: '新メニュー用レシピ本',
+    },
+    { id: 'D00009', date: '2025/05/20', customerName: '大阪情報専門学校', note: 'イベント用書籍' },
     {
       id: 'D00010',
       date: '2025/05/22',
       customerName: '株式会社スマートソリューションズ',
-      note: '展示会用納品',
+      note: '展示会用専門書',
     },
-    { id: 'D00011', date: '2025/05/25', customerName: '株式会社SCC', note: '特別納品' },
-    { id: 'D00012', date: '2025/05/28', customerName: '株式会社くら寿司', note: '季節限定商品' },
-    { id: 'D00013', date: '2025/06/01', customerName: '大阪情報専門学校', note: '追加教材納品' },
+    { id: 'D00011', date: '2025/05/25', customerName: '株式会社SCC', note: '特別限定版書籍' },
+    {
+      id: 'D00012',
+      date: '2025/05/28',
+      customerName: '株式会社くら寿司',
+      note: '季節限定メニュー本',
+    },
+    { id: 'D00013', date: '2025/06/01', customerName: '大阪情報専門学校', note: '追加教材書籍' },
     {
       id: 'D00014',
       date: '2025/06/03',
       customerName: '株式会社スマートソリューションズ',
-      note: '新規プロジェクト対応',
+      note: '新規プロジェクト関連書籍',
     },
-    { id: 'D00015', date: '2025/06/05', customerName: '株式会社SCC', note: '定期納品' },
-    { id: 'D00016', date: '2025/06/07', customerName: '株式会社くら寿司', note: '新店舗対応' },
-    { id: 'D00017', date: '2025/06/10', customerName: '大阪情報専門学校', note: '夏季講習用納品' },
+    { id: 'D00015', date: '2025/06/05', customerName: '株式会社SCC', note: '定期購読雑誌' },
+    {
+      id: 'D00016',
+      date: '2025/06/07',
+      customerName: '株式会社くら寿司',
+      note: '新店舗用マニュアル',
+    },
+    {
+      id: 'D00017',
+      date: '2025/06/10',
+      customerName: '大阪情報専門学校',
+      note: '夏季講習用テキスト',
+    },
     {
       id: 'D00018',
       date: '2025/06/12',
       customerName: '株式会社スマートソリューションズ',
-      note: '追加機材納品',
+      note: '追加技術書',
     },
-    { id: 'D00019', date: '2025/06/15', customerName: '株式会社SCC', note: '緊急対応' },
-    { id: 'D00020', date: '2025/06/18', customerName: '株式会社くら寿司', note: '新商品テスト' },
-    { id: 'D00021', date: '2025/06/20', customerName: '大阪情報専門学校', note: '卒業式用納品' },
+    { id: 'D00019', date: '2025/06/15', customerName: '株式会社SCC', note: '緊急対応専門書' },
+    {
+      id: 'D00020',
+      date: '2025/06/18',
+      customerName: '株式会社くら寿司',
+      note: '新商品開発参考書',
+    },
+    { id: 'D00021', date: '2025/06/20', customerName: '大阪情報専門学校', note: '卒業記念文集' },
     {
       id: 'D00022',
       date: '2025/06/22',
       customerName: '株式会社スマートソリューションズ',
-      note: '展示会追加納品',
+      note: '展示会用資料集',
     },
-    { id: 'D00023', date: '2025/06/25', customerName: '株式会社SCC', note: '特別対応' },
-    { id: 'D00024', date: '2025/06/28', customerName: '株式会社くら寿司', note: '夏季限定商品' },
-    { id: 'D00025', date: '2025/07/01', customerName: '大阪情報専門学校', note: '新学期準備' },
+    { id: 'D00023', date: '2025/06/25', customerName: '株式会社SCC', note: '特別版全集' },
+    {
+      id: 'D00024',
+      date: '2025/06/28',
+      customerName: '株式会社くら寿司',
+      note: '夏季限定メニュー本',
+    },
+    { id: 'D00025', date: '2025/07/01', customerName: '大阪情報専門学校', note: '新学期用教科書' },
     {
       id: 'D00026',
       date: '2025/07/03',
       customerName: '株式会社スマートソリューションズ',
-      note: '新規案件対応',
+      note: '新規案件技術書',
     },
-    { id: 'D00027', date: '2025/07/05', customerName: '株式会社SCC', note: '追加納品' },
+    { id: 'D00027', date: '2025/07/05', customerName: '株式会社SCC', note: '追加文庫セット' },
     {
       id: 'D00028',
       date: '2025/07/07',
       customerName: '株式会社くら寿司',
-      note: '新規店舗オープン',
+      note: '新規店舗マニュアル',
     },
     {
       id: 'D00029',
       date: '2025/07/10',
       customerName: '大阪情報専門学校',
-      note: '夏季講習追加納品',
+      note: '夏季講習追加テキスト',
     },
     {
       id: 'D00030',
       date: '2025/07/12',
       customerName: '株式会社スマートソリューションズ',
-      note: '展示会終了後対応',
+      note: '展示会資料集',
     },
   ];
 
