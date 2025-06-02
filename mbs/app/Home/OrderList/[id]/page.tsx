@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import type { Customer, Order, OrderDetail, Prisma } from '@/app/generated/prisma';
+import type { OrderDetail, Prisma } from '@/app/generated/prisma';
 
 // APIレスポンス用の型（Prismaのinclude結果）
 type OrderWithRelations = Prisma.OrderGetPayload<{
@@ -41,7 +41,7 @@ const OrderDetailPage: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
 
   // ダミーデータを使用してデータを生成する関数
-  const fetchOrderDetail = async (): Promise<void> => {
+  const fetchOrderDetail = useCallback(async (): Promise<void> => {
     try {
       setLoading(true);
       
@@ -187,14 +187,14 @@ const OrderDetailPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [orderId]); // orderIdを依存関係に追加
 
   // コンポーネントマウント時にデータを取得
   useEffect(() => {
     if (orderId) {
       fetchOrderDetail();
     }
-  }, [orderId]);
+  }, [orderId, fetchOrderDetail]); // fetchOrderDetailを依存関係に追加
 
   // 納品明細IDを取得する関数（簡易実装）
   const getDeliveryDetailId = (orderDetailId: string): string => {
@@ -452,7 +452,6 @@ const OrderDetailPage: React.FC = () => {
           <button
             onClick={handlePdfExport}
             className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-sm sm:text-base border border-blue-700 transition-colors shadow-sm order-1 sm:order-2"
-            disabled={showDeleteModal}
           >
             PDF出力
           </button>
