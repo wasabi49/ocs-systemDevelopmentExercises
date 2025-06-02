@@ -37,7 +37,6 @@ const OrderDetailPage: React.FC = () => {
   const orderId = (params?.id as string) || '';
 
   const [orderData, setOrderData] = useState<OrderWithRelations | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
 
   // ダミーデータを使用してデータを生成する関数
@@ -253,7 +252,6 @@ const OrderDetailPage: React.FC = () => {
   const handlePdfExport = () => {
     alert('PDFを出力しています（デモのため実際の出力は行われていません）');
   };
-
 
   return (
     <>
