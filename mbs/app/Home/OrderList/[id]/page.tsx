@@ -254,17 +254,6 @@ const OrderDetailPage: React.FC = () => {
     alert('PDFを出力しています（デモのため実際の出力は行われていません）');
   };
 
-  // ローディング表示
-  if (loading) {
-    return (
-      <div className="container mx-auto flex min-h-screen max-w-7xl items-center justify-center px-2 py-4 sm:px-4 sm:py-6 lg:px-6">
-        <div className="text-center">
-          <div className="mx-auto h-32 w-32 animate-spin rounded-full border-b-2 border-blue-500"></div>
-          <p className="mt-4 text-gray-600">注文明細を読み込み中...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <>
