@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { Customer, Order, Prisma } from '@/app/generated/prisma';
+import type { Order, Prisma } from '@/app/generated/prisma';
 
 // Prismaのinclude結果の型（API応答用）
 type OrderWithCustomerRelation = Prisma.OrderGetPayload<{
@@ -36,7 +36,6 @@ const OrderListPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<StatusFilterType>("");
   const [orders, setOrders] = useState<OrderWithCustomer[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>("");
   const [sortConfig, setSortConfig] = useState<SortConfig | null>({
     key: "id",
     direction: "asc",
@@ -50,7 +49,6 @@ const OrderListPage: React.FC = () => {
   const fetchOrders = async (): Promise<void> => {
     try {
       setLoading(true);
-      setError("");
       
       console.log("=== API経由でデータ取得開始 ===");
       
@@ -93,7 +91,6 @@ const OrderListPage: React.FC = () => {
       
     } catch (err) {
       console.error("エラー詳細:", err);
-      setError(`データ取得エラー: ${err}`);
       
       // フォールバック: ダミーデータを使用（seed.tsのOrder型と完全一致）
       console.log("フォールバック: ダミーデータを使用します");
