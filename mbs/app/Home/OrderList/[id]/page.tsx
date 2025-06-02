@@ -6,7 +6,7 @@ import type { OrderDetail, Prisma } from '@/app/generated/prisma';
 
 // APIレスポンス用の型（Prismaのinclude結果）
 type OrderWithRelations = Prisma.OrderGetPayload<{
-  include: { 
+  include: {
     customer: true;
     orderDetails: true;
   };
@@ -21,7 +21,7 @@ interface OrderDetailWithDelivery extends OrderDetail {
 const formatJPY = (amount: number): string => {
   return new Intl.NumberFormat('ja-JP', {
     style: 'currency',
-    currency: 'JPY'
+    currency: 'JPY',
   }).format(amount);
 };
 
@@ -34,8 +34,8 @@ const formatDate = (date: Date | string): string => {
 const OrderDetailPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
-  const orderId = params?.id as string || '';
-  
+  const orderId = (params?.id as string) || '';
+
   const [orderData, setOrderData] = useState<OrderWithRelations | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
@@ -44,33 +44,33 @@ const OrderDetailPage: React.FC = () => {
   const fetchOrderDetail = useCallback(async (): Promise<void> => {
     try {
       setLoading(true);
-      
-      console.log("=== 注文明細ダミーデータを使用します ===", orderId);
-      
+
+      console.log('=== 注文明細ダミーデータを使用します ===', orderId);
+
       // APIを使用せず、直接ダミーデータを生成
-      
+
       // seed.tsの20顧客データ
       const fallbackCustomers = [
-        { id: "C-00001", name: "大阪情報専門学校", contactPerson: "山田太郎" },
-        { id: "C-00002", name: "株式会社スマートソリューションズ", contactPerson: "佐藤次郎" },
-        { id: "C-00003", name: "株式会社SCC", contactPerson: "田中三郎" },
-        { id: "C-00004", name: "株式会社くら寿司", contactPerson: "鈴木四郎" },
-        { id: "C-00005", name: "株式会社大阪テクノロジー", contactPerson: "伊藤五郎" },
-        { id: "C-00006", name: "関西医科大学", contactPerson: "高橋六郎" },
-        { id: "C-00007", name: "グローバル貿易株式会社", contactPerson: "中村七海" },
-        { id: "C-00008", name: "大阪市立図書館", contactPerson: "小林八雲" },
-        { id: "C-00009", name: "近畿大学", contactPerson: "松本九十" },
-        { id: "C-00010", name: "株式会社関西出版", contactPerson: "渡辺十郎" },
-        { id: "C-00011", name: "さくら幼稚園", contactPerson: "斎藤春子" },
-        { id: "C-00012", name: "大阪府立高校", contactPerson: "加藤夏子" },
-        { id: "C-00013", name: "株式会社大阪エンジニアリング", contactPerson: "山本秋雄" },
-        { id: "C-00014", name: "関西料理学校", contactPerson: "木村冬彦" },
-        { id: "C-00015", name: "大阪アート美術館", contactPerson: "井上春夫" },
-        { id: "C-00016", name: "関西経済研究所", contactPerson: "佐々木夏子" },
-        { id: "C-00017", name: "大阪音楽院", contactPerson: "山下秋男" },
-        { id: "C-00018", name: "関西健康センター", contactPerson: "中島冬美" },
-        { id: "C-00019", name: "大阪ITスクール", contactPerson: "田村春樹" },
-        { id: "C-00020", name: "関西メディカルセンター", contactPerson: "小川夏菜" },
+        { id: 'C-00001', name: '大阪情報専門学校', contactPerson: '山田太郎' },
+        { id: 'C-00002', name: '株式会社スマートソリューションズ', contactPerson: '佐藤次郎' },
+        { id: 'C-00003', name: '株式会社SCC', contactPerson: '田中三郎' },
+        { id: 'C-00004', name: '株式会社くら寿司', contactPerson: '鈴木四郎' },
+        { id: 'C-00005', name: '株式会社大阪テクノロジー', contactPerson: '伊藤五郎' },
+        { id: 'C-00006', name: '関西医科大学', contactPerson: '高橋六郎' },
+        { id: 'C-00007', name: 'グローバル貿易株式会社', contactPerson: '中村七海' },
+        { id: 'C-00008', name: '大阪市立図書館', contactPerson: '小林八雲' },
+        { id: 'C-00009', name: '近畿大学', contactPerson: '松本九十' },
+        { id: 'C-00010', name: '株式会社関西出版', contactPerson: '渡辺十郎' },
+        { id: 'C-00011', name: 'さくら幼稚園', contactPerson: '斎藤春子' },
+        { id: 'C-00012', name: '大阪府立高校', contactPerson: '加藤夏子' },
+        { id: 'C-00013', name: '株式会社大阪エンジニアリング', contactPerson: '山本秋雄' },
+        { id: 'C-00014', name: '関西料理学校', contactPerson: '木村冬彦' },
+        { id: 'C-00015', name: '大阪アート美術館', contactPerson: '井上春夫' },
+        { id: 'C-00016', name: '関西経済研究所', contactPerson: '佐々木夏子' },
+        { id: 'C-00017', name: '大阪音楽院', contactPerson: '山下秋男' },
+        { id: 'C-00018', name: '関西健康センター', contactPerson: '中島冬美' },
+        { id: 'C-00019', name: '大阪ITスクール', contactPerson: '田村春樹' },
+        { id: 'C-00020', name: '関西メディカルセンター', contactPerson: '小川夏菜' },
       ];
 
       // 注文IDから顧客を決定（O000001→C-00001のようにマッピング）
@@ -78,17 +78,17 @@ const OrderDetailPage: React.FC = () => {
         // 注文IDから数値部分を抽出（O000001 → 1）
         const orderNumber = parseInt(orderIdParam.replace(/^O0*/, '')) || 1;
         // 顧客インデックスを計算（1-20の範囲で循環）
-        const customerIndex = ((orderNumber - 1) % 20);
+        const customerIndex = (orderNumber - 1) % 20;
         const selectedCustomer = fallbackCustomers[customerIndex];
-        
+
         return {
           id: selectedCustomer.id,
-          storeId: "store-001",
+          storeId: 'store-001',
           name: selectedCustomer.name,
           contactPerson: selectedCustomer.contactPerson,
-          address: "大阪府大阪市内",
+          address: '大阪府大阪市内',
           phone: `06-${1000 + customerIndex}-${5678 + customerIndex}`,
-          deliveryCondition: "営業時間内配送",
+          deliveryCondition: '営業時間内配送',
           note: `${selectedCustomer.name}向け配送`,
           updatedAt: new Date(),
           isDeleted: false,
@@ -143,17 +143,17 @@ const OrderDetailPage: React.FC = () => {
 
       // 選択された顧客
       const selectedCustomer = getCustomerByOrderId(orderId);
-      
+
       // 注文明細を決定的に生成（Math.randomの代わりにシード値を使用）
       const generateOrderDetails = () => {
         const details = [];
         const detailCount = Math.floor(getSeededRandom(orderSeed) * 3) + 2; // 2-4個の商品
-        
+
         for (let i = 1; i <= detailCount; i++) {
           const productIndex = Math.floor(getSeededRandom(orderSeed + i) * fallbackProducts.length);
           const product = fallbackProducts[productIndex];
           const quantity = Math.floor(getSeededRandom(orderSeed + i + 100) * 10) + 1;
-          
+
           details.push({
             id: `${orderId}-${String(i).padStart(2, '0')}`,
             orderId: orderId,
@@ -166,23 +166,23 @@ const OrderDetailPage: React.FC = () => {
             deletedAt: null,
           });
         }
-        
+
         return details;
       };
-      
+
       const fallbackOrderData: OrderWithRelations = {
         id: orderId,
         customerId: selectedCustomer.id,
-        orderDate: new Date("2025-01-01"),
+        orderDate: new Date('2025-01-01'),
         note: `${selectedCustomer.name}からの注文`,
-        status: getSeededRandom(orderSeed + 1000) > 0.5 ? "完了" : "未完了",
+        status: getSeededRandom(orderSeed + 1000) > 0.5 ? '完了' : '未完了',
         updatedAt: new Date(),
         isDeleted: false,
         deletedAt: null,
         customer: selectedCustomer,
-        orderDetails: generateOrderDetails()
+        orderDetails: generateOrderDetails(),
       };
-      
+
       setOrderData(fallbackOrderData);
     } finally {
       setLoading(false);
@@ -203,32 +203,32 @@ const OrderDetailPage: React.FC = () => {
   };
 
   // 表示用データに納品明細IDを追加
-  const displayOrderDetails: OrderDetailWithDelivery[] = orderData?.orderDetails 
-    ? orderData.orderDetails.map(detail => ({
+  const displayOrderDetails: OrderDetailWithDelivery[] = orderData?.orderDetails
+    ? orderData.orderDetails.map((detail) => ({
         ...detail,
-        deliveryDetailId: getDeliveryDetailId(detail.id)
+        deliveryDetailId: getDeliveryDetailId(detail.id),
       }))
     : [];
 
   // 空行を追加（合計10行になるよう調整）
   while (displayOrderDetails.length < 10) {
     displayOrderDetails.push({
-      id: "",
-      orderId: "",
-      productName: "",
+      id: '',
+      orderId: '',
+      productName: '',
       unitPrice: 0,
       quantity: 0,
-      description: "",
+      description: '',
       updatedAt: new Date(),
       isDeleted: false,
       deletedAt: null,
-      deliveryDetailId: ""
+      deliveryDetailId: '',
     });
   }
 
   // 合計金額計算
-  const totalAmount = orderData?.orderDetails 
-    ? orderData.orderDetails.reduce((sum, detail) => sum + (detail.unitPrice * detail.quantity), 0)
+  const totalAmount = orderData?.orderDetails
+    ? orderData.orderDetails.reduce((sum, detail) => sum + detail.unitPrice * detail.quantity, 0)
     : 0;
 
   // ハンドラー関数
@@ -257,9 +257,9 @@ const OrderDetailPage: React.FC = () => {
   // ローディング表示
   if (loading) {
     return (
-      <div className="container mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6 max-w-7xl flex justify-center items-center min-h-screen">
+      <div className="container mx-auto flex min-h-screen max-w-7xl items-center justify-center px-2 py-4 sm:px-4 sm:py-6 lg:px-6">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto"></div>
+          <div className="mx-auto h-32 w-32 animate-spin rounded-full border-b-2 border-blue-500"></div>
           <p className="mt-4 text-gray-600">注文明細を読み込み中...</p>
         </div>
       </div>
@@ -268,21 +268,25 @@ const OrderDetailPage: React.FC = () => {
 
   return (
     <>
-      <div className={`container mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6 max-w-7xl transition-all duration-300 ${showDeleteModal ? 'blur-sm' : ''}`}>
+      <div
+        className={`container mx-auto max-w-7xl px-2 py-4 transition-all  sm:px-4 sm:py-6 lg:px-6`}
+      >
         {/* ヘッダー */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
+        <div className="mb-4 flex flex-col items-start justify-between gap-3 sm:mb-6 sm:flex-row sm:items-center">
           <div>
-            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">
+            <h1 className="text-lg font-bold text-gray-800 sm:text-xl lg:text-2xl">
               注文明細 - {orderData?.id || 'ID不明'}
             </h1>
             {orderData && (
-              <p className="text-sm text-gray-600 mt-1">
-                注文日: {formatDate(orderData.orderDate)} | 状態: 
-                <span className={`ml-1 px-2 py-1 rounded-full text-xs font-semibold ${
-                  orderData.status === '完了' 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
-                }`}>
+              <p className="mt-1 text-sm text-gray-600">
+                注文日: {formatDate(orderData.orderDate)} | 状態:
+                <span
+                  className={`ml-1 rounded-full px-2 py-1 text-xs font-semibold ${
+                    orderData.status === '完了'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}
+                >
                   {orderData.status}
                 </span>
               </p>
@@ -291,7 +295,7 @@ const OrderDetailPage: React.FC = () => {
           <div>
             <button
               onClick={handleEdit}
-              className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded-lg text-sm sm:text-base border border-yellow-600 transition-colors shadow-sm"
+              className="rounded-lg border border-yellow-600 bg-yellow-400 px-4 py-2 text-sm font-bold text-black shadow-sm transition-colors hover:bg-yellow-500 sm:text-base"
               disabled={showDeleteModal}
             >
               編集
@@ -299,49 +303,61 @@ const OrderDetailPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex flex-col xl:flex-row gap-6">
+        <div className="flex flex-col gap-6 xl:flex-row">
           {/* 注文明細テーブル（左側・メイン） */}
           <div className="w-full xl:w-2/3">
-            <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-              <div className="bg-blue-500 text-white p-3">
-                <h2 className="font-semibold text-base sm:text-lg">注文明細一覧</h2>
+            <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
+              <div className="bg-blue-500 p-3 text-white">
+                <h2 className="text-base font-semibold sm:text-lg">注文明細一覧</h2>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-center text-xs sm:text-sm min-w-[700px]">
+                <table className="w-full min-w-[700px] border-collapse text-center text-xs sm:text-sm">
                   <thead className="bg-blue-300">
                     <tr>
-                      <th className="border border-gray-400 px-2 py-2 sm:px-3 sm:py-3 w-[15%] font-semibold">注文明細ID</th>
-                      <th className="border border-gray-400 px-2 py-2 sm:px-3 sm:py-3 w-[25%] font-semibold">商品名</th>
-                      <th className="border border-gray-400 px-2 py-2 sm:px-3 sm:py-3 w-[12%] font-semibold">単価</th>
-                      <th className="border border-gray-400 px-2 py-2 sm:px-3 sm:py-3 w-[8%] font-semibold">数量</th>
-                      <th className="border border-gray-400 px-2 py-2 sm:px-3 sm:py-3 w-[15%] font-semibold">納品明細ID</th>
-                      <th className="border border-gray-400 px-2 py-2 sm:px-3 sm:py-3 w-[25%] font-semibold">摘要</th>
+                      <th className="w-[15%] border border-gray-400 px-2 py-2 font-semibold sm:px-3 sm:py-3">
+                        注文明細ID
+                      </th>
+                      <th className="w-[25%] border border-gray-400 px-2 py-2 font-semibold sm:px-3 sm:py-3">
+                        商品名
+                      </th>
+                      <th className="w-[12%] border border-gray-400 px-2 py-2 font-semibold sm:px-3 sm:py-3">
+                        単価
+                      </th>
+                      <th className="w-[8%] border border-gray-400 px-2 py-2 font-semibold sm:px-3 sm:py-3">
+                        数量
+                      </th>
+                      <th className="w-[15%] border border-gray-400 px-2 py-2 font-semibold sm:px-3 sm:py-3">
+                        納品明細ID
+                      </th>
+                      <th className="w-[25%] border border-gray-400 px-2 py-2 font-semibold sm:px-3 sm:py-3">
+                        摘要
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {displayOrderDetails.map((item, index) => (
-                      <tr 
-                        key={index} 
+                      <tr
+                        key={index}
                         className={`${
-                          index % 2 === 0 ? "bg-blue-50" : "bg-white"
-                        } h-10 sm:h-12 hover:bg-blue-100 transition-colors`}
+                          index % 2 === 0 ? 'bg-blue-50' : 'bg-white'
+                        } h-10 transition-colors hover:bg-blue-100 sm:h-12`}
                       >
-                        <td className="border border-gray-400 px-2 py-1 sm:px-3 sm:py-2 truncate font-mono text-xs">
+                        <td className="truncate border border-gray-400 px-2 py-1 font-mono text-xs sm:px-3 sm:py-2">
                           {item.id}
                         </td>
-                        <td className="border border-gray-400 px-2 py-1 sm:px-3 sm:py-2 truncate text-left">
+                        <td className="truncate border border-gray-400 px-2 py-1 text-left sm:px-3 sm:py-2">
                           {item.productName}
                         </td>
-                        <td className="border border-gray-400 px-2 py-1 sm:px-3 sm:py-2 text-right font-medium">
-                          {item.unitPrice > 0 ? formatJPY(item.unitPrice) : ""}
+                        <td className="border border-gray-400 px-2 py-1 text-right font-medium sm:px-3 sm:py-2">
+                          {item.unitPrice > 0 ? formatJPY(item.unitPrice) : ''}
                         </td>
-                        <td className="border border-gray-400 px-2 py-1 sm:px-3 sm:py-2 text-right font-medium">
-                          {item.quantity > 0 ? item.quantity.toLocaleString() : ""}
+                        <td className="border border-gray-400 px-2 py-1 text-right font-medium sm:px-3 sm:py-2">
+                          {item.quantity > 0 ? item.quantity.toLocaleString() : ''}
                         </td>
-                        <td className="border border-gray-400 px-2 py-1 sm:px-3 sm:py-2 truncate font-mono text-xs">
+                        <td className="truncate border border-gray-400 px-2 py-1 font-mono text-xs sm:px-3 sm:py-2">
                           {item.deliveryDetailId}
                         </td>
-                        <td className="border border-gray-400 px-2 py-1 sm:px-3 sm:py-2 truncate text-left">
+                        <td className="truncate border border-gray-400 px-2 py-1 text-left sm:px-3 sm:py-2">
                           {item.description}
                         </td>
                       </tr>
@@ -349,14 +365,12 @@ const OrderDetailPage: React.FC = () => {
                   </tbody>
                 </table>
               </div>
-              
+
               {/* 合計金額表示 */}
-              <div className="bg-gray-50 p-3 sm:p-4 border-t">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm sm:text-base font-medium text-gray-700">
-                    合計金額:
-                  </span>
-                  <span className="text-lg sm:text-xl font-bold text-blue-600">
+              <div className="border-t bg-gray-50 p-3 sm:p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700 sm:text-base">合計金額:</span>
+                  <span className="text-lg font-bold text-blue-600 sm:text-xl">
                     {formatJPY(totalAmount)}
                   </span>
                 </div>
@@ -365,38 +379,42 @@ const OrderDetailPage: React.FC = () => {
           </div>
 
           {/* 注文情報と顧客情報（右側） */}
-          <div className="w-full xl:w-1/3 flex flex-col gap-6">
+          <div className="flex w-full flex-col gap-6 xl:w-1/3">
             {/* 注文情報 */}
-            <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-              <div className="bg-slate-700 text-white p-3">
-                <h2 className="font-semibold text-base sm:text-lg">注文情報</h2>
+            <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
+              <div className="bg-slate-700 p-3 text-white">
+                <h2 className="text-base font-semibold sm:text-lg">注文情報</h2>
               </div>
               <div className="text-xs sm:text-sm">
                 <div className="divide-y divide-gray-200">
                   <div className="flex">
-                    <div className="w-2/5 p-3 bg-slate-100 font-medium text-gray-700">注文ID</div>
-                    <div className="w-3/5 p-3 break-all font-mono">{orderData?.id || 'N/A'}</div>
+                    <div className="w-2/5 bg-slate-100 p-3 font-medium text-gray-700">注文ID</div>
+                    <div className="w-3/5 p-3 font-mono break-all">{orderData?.id || 'N/A'}</div>
                   </div>
                   <div className="flex">
-                    <div className="w-2/5 p-3 bg-slate-100 font-medium text-gray-700">注文日</div>
-                    <div className="w-3/5 p-3">{orderData ? formatDate(orderData.orderDate) : 'N/A'}</div>
+                    <div className="w-2/5 bg-slate-100 p-3 font-medium text-gray-700">注文日</div>
+                    <div className="w-3/5 p-3">
+                      {orderData ? formatDate(orderData.orderDate) : 'N/A'}
+                    </div>
                   </div>
                   <div className="flex">
-                    <div className="w-2/5 p-3 bg-slate-100 font-medium text-gray-700">状態</div>
+                    <div className="w-2/5 bg-slate-100 p-3 font-medium text-gray-700">状態</div>
                     <div className="w-3/5 p-3">
                       {orderData?.status && (
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          orderData.status === '完了' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
+                        <span
+                          className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                            orderData.status === '完了'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}
+                        >
                           {orderData.status}
                         </span>
                       )}
                     </div>
                   </div>
                   <div className="flex">
-                    <div className="w-2/5 p-3 bg-slate-100 font-medium text-gray-700">備考</div>
+                    <div className="w-2/5 bg-slate-100 p-3 font-medium text-gray-700">備考</div>
                     <div className="w-3/5 p-3 break-all">{orderData?.note || '（なし）'}</div>
                   </div>
                 </div>
@@ -404,35 +422,45 @@ const OrderDetailPage: React.FC = () => {
             </div>
 
             {/* 顧客情報 */}
-            <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-              <div className="bg-slate-700 text-white p-3">
-                <h2 className="font-semibold text-base sm:text-lg">顧客情報</h2>
+            <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
+              <div className="bg-slate-700 p-3 text-white">
+                <h2 className="text-base font-semibold sm:text-lg">顧客情報</h2>
               </div>
               <div className="text-xs sm:text-sm">
                 <div className="divide-y divide-gray-200">
                   <div className="flex">
-                    <div className="w-2/5 p-3 bg-slate-100 font-medium text-gray-700">顧客ID</div>
-                    <div className="w-3/5 p-3 break-all font-mono">{orderData?.customer?.id || 'N/A'}</div>
+                    <div className="w-2/5 bg-slate-100 p-3 font-medium text-gray-700">顧客ID</div>
+                    <div className="w-3/5 p-3 font-mono break-all">
+                      {orderData?.customer?.id || 'N/A'}
+                    </div>
                   </div>
                   <div className="flex">
-                    <div className="w-2/5 p-3 bg-slate-100 font-medium text-gray-700">名義</div>
-                    <div className="w-3/5 p-3 break-all font-semibold">{orderData?.customer?.name || 'N/A'}</div>
+                    <div className="w-2/5 bg-slate-100 p-3 font-medium text-gray-700">名義</div>
+                    <div className="w-3/5 p-3 font-semibold break-all">
+                      {orderData?.customer?.name || 'N/A'}
+                    </div>
                   </div>
                   <div className="flex">
-                    <div className="w-2/5 p-3 bg-slate-100 font-medium text-gray-700">担当者</div>
-                    <div className="w-3/5 p-3 break-all">{orderData?.customer?.contactPerson || 'N/A'}</div>
+                    <div className="w-2/5 bg-slate-100 p-3 font-medium text-gray-700">担当者</div>
+                    <div className="w-3/5 p-3 break-all">
+                      {orderData?.customer?.contactPerson || 'N/A'}
+                    </div>
                   </div>
                   <div className="flex">
-                    <div className="w-2/5 p-3 bg-slate-100 font-medium text-gray-700">電話番号</div>
+                    <div className="w-2/5 bg-slate-100 p-3 font-medium text-gray-700">電話番号</div>
                     <div className="w-3/5 p-3">{orderData?.customer?.phone || 'N/A'}</div>
                   </div>
                   <div className="flex">
-                    <div className="w-2/5 p-3 bg-slate-100 font-medium text-gray-700">配達条件</div>
-                    <div className="w-3/5 p-3 break-all">{orderData?.customer?.deliveryCondition || 'N/A'}</div>
+                    <div className="w-2/5 bg-slate-100 p-3 font-medium text-gray-700">配達条件</div>
+                    <div className="w-3/5 p-3 break-all">
+                      {orderData?.customer?.deliveryCondition || 'N/A'}
+                    </div>
                   </div>
                   <div className="flex">
-                    <div className="w-2/5 p-3 bg-slate-100 font-medium text-gray-700">住所</div>
-                    <div className="w-3/5 p-3 break-all">{orderData?.customer?.address || 'N/A'}</div>
+                    <div className="w-2/5 bg-slate-100 p-3 font-medium text-gray-700">住所</div>
+                    <div className="w-3/5 p-3 break-all">
+                      {orderData?.customer?.address || 'N/A'}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -441,17 +469,17 @@ const OrderDetailPage: React.FC = () => {
         </div>
 
         {/* アクションボタン */}
-        <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 mt-8">
+        <div className="mt-8 flex flex-col justify-between gap-3 sm:flex-row sm:gap-4">
           <button
             onClick={handleDelete}
-            className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg text-sm sm:text-base border border-red-700 transition-colors shadow-sm order-2 sm:order-1"
+            className="order-2 rounded-lg border border-red-700 bg-red-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-red-700 sm:order-1 sm:text-base"
             disabled={showDeleteModal}
           >
             削除
           </button>
           <button
             onClick={handlePdfExport}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-sm sm:text-base border border-blue-700 transition-colors shadow-sm order-1 sm:order-2"
+            className="order-1 rounded-lg border border-blue-700 bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-blue-700 sm:order-2 sm:text-base"
           >
             PDF出力
           </button>
@@ -460,56 +488,62 @@ const OrderDetailPage: React.FC = () => {
 
       {/* 削除確認モーダル - 完全に独立したコンポーネント */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-slate-600 bg-opacity-60 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full transform transition-all duration-300 scale-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-brightness-50">
+          <div className="w-full max-w-sm scale-100 transform rounded-2xl bg-white shadow-xl transition-all duration-50">
             <div className="p-6 text-center">
               {/* 警告アイコン */}
-              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
-                <svg className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+                <svg
+                  className="h-8 w-8 text-red-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+                  />
                 </svg>
               </div>
-              
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
-                注文削除
-              </h3>
-              
-              <p className="text-sm text-gray-600 mb-4">
-                削除すると以下の情報が全て失われます
-              </p>
-              
+
+              <h3 className="mb-2 text-xl font-bold text-gray-900">注文削除</h3>
+
+              <p className="mb-4 text-sm text-gray-600">削除すると以下の情報が全て失われます</p>
+
               {/* 削除される情報のリスト */}
-              <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
+              <div className="mb-6 rounded-lg bg-gray-50 p-4 text-left">
                 <ul className="space-y-2 text-sm text-gray-800">
                   <li className="flex items-center">
-                    <span className="w-1.5 h-1.5 bg-gray-500 rounded-full mr-3 flex-shrink-0"></span>
+                    <span className="mr-3 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-500"></span>
                     <span className="font-medium">注文明細情報</span>
                   </li>
                   <li className="flex items-center">
-                    <span className="w-1.5 h-1.5 bg-gray-500 rounded-full mr-3 flex-shrink-0"></span>
+                    <span className="mr-3 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-500"></span>
                     <span className="font-medium">商品データ</span>
                   </li>
                   <li className="flex items-center">
-                    <span className="w-1.5 h-1.5 bg-gray-500 rounded-full mr-3 flex-shrink-0"></span>
+                    <span className="mr-3 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-500"></span>
                     <span className="font-medium">金額情報</span>
                   </li>
                   <li className="flex items-center">
-                    <span className="w-1.5 h-1.5 bg-gray-500 rounded-full mr-3 flex-shrink-0"></span>
+                    <span className="mr-3 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-500"></span>
                     <span className="font-medium">配送履歴</span>
                   </li>
                 </ul>
               </div>
-              
+
               <div className="flex gap-3">
                 <button
                   onClick={handleDeleteCancel}
-                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-lg text-sm transition-colors border border-gray-300"
+                  className="flex-1 rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-200"
                 >
                   キャンセル
                 </button>
                 <button
                   onClick={handleDeleteConfirm}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg text-sm transition-colors shadow-lg"
+                  className="flex-1 rounded-lg bg-red-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-red-700"
                 >
                   削除
                 </button>
