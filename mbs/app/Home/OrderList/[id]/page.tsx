@@ -42,7 +42,6 @@ const OrderDetailPage: React.FC = () => {
   // ダミーデータを使用してデータを生成する関数
   const fetchOrderDetail = useCallback(async (): Promise<void> => {
     try {
-      setLoading(true);
 
       console.log('=== 注文明細ダミーデータを使用します ===', orderId);
 
@@ -184,7 +183,6 @@ const OrderDetailPage: React.FC = () => {
 
       setOrderData(fallbackOrderData);
     } finally {
-      setLoading(false);
     }
   }, [orderId]); // orderIdを依存関係に追加
 
