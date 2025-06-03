@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import type { OrderDetail, Customer, Prisma } from '@/app/generated/prisma';
+import type { Customer } from '@/app/generated/prisma';
 
 // 注文作成時のデータ型定義（Prismaの型をベースに）
 type OrderCreateData = {
@@ -738,7 +738,7 @@ export default function OrderCreatePage() {
       router.push('/Home/OrderList');
       
     } catch (error) {
-      console.error('注文追加エラー:', error);
+      // エラーハンドリング
       alert('注文の追加に失敗しました。もう一度お試しください。');
     } finally {
       setIsSubmitting(false);
@@ -834,7 +834,7 @@ export default function OrderCreatePage() {
               <div className="w-[15%]"></div> {/* 数量列のスペース */}
               <div className="w-[20%]"></div> {/* 単価列のスペース */}
               <div className="w-[35%] text-right"> {/* 摘要列の位置・右寄せ */}
-                合計金額: ¥{formatJPY(totalAmount)}
+                合計金額: ¥{totalAmount.toLocaleString()}
               </div>
             </div>
             
