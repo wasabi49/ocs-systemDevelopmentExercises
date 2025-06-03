@@ -737,7 +737,7 @@ export default function OrderCreatePage() {
       alert('注文を追加しました');
       router.push('/Home/OrderList');
       
-    } catch (error) {
+    } catch {
       // エラーハンドリング
       alert('注文の追加に失敗しました。もう一度お試しください。');
     } finally {
