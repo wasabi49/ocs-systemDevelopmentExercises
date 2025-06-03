@@ -14,7 +14,14 @@ type OrderWithRelations = Prisma.OrderGetPayload<{
 
 // 表示用の拡張型
 interface OrderDetailWithDelivery extends OrderDetail {
-  deliveryDetailId?: string;
+  deliveryAllocations?: {
+    deliveryDetailId: string;
+    deliveryDate: string;
+    allocatedQuantity: number;
+    deliveryId: string;
+  }[];
+  totalDelivered?: number;
+  deliveryStatus?: string;
 }
 
 // 日本円のフォーマット関数
@@ -161,6 +168,7 @@ const OrderDetailPage: React.FC = () => {
 
   const [orderData, setOrderData] = useState<OrderWithRelations | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   // ダミーデータを使用してデータを生成する関数
   const fetchOrderDetail = useCallback(async (): Promise<void> => {
@@ -316,18 +324,54 @@ const OrderDetailPage: React.FC = () => {
     }
   }, [orderId, fetchOrderDetail]); // fetchOrderDetailを依存関係に追加
 
-  // 納品明細IDを取得する関数（簡易実装）
-  const getDeliveryDetailId = (orderDetailId: string): string => {
-    // 注文明細IDを納品明細IDに変換（O→D）
-    return orderDetailId.replace(/^O/, 'D');
+  // 納品情報を取得する関数（複数納品対応）
+  const getDeliveryInfo = (orderDetailId: string) => {
+    // 注文明細IDに基づいて納品情報を生成（ダミーロジック）
+    const seed = parseInt(orderDetailId.slice(-1)) || 0;
+    const deliveryCount = Math.floor(seed / 2) + 1; // 1-4個の納品
+    const allocations = [];
+    let totalDelivered = 0;
+
+    for (let i = 0; i < deliveryCount && i < 3; i++) {
+      const deliveryDate = new Date(2025, 0, 1 + i * 7); // 7日間隔
+      const allocatedQuantity = Math.floor((seed + i) * 1.5) + 5; // 5-15個程度
+      const deliveryId = `D${String(seed + i + 1).padStart(6, '0')}`;
+      const deliveryDetailId = `${deliveryId}-${String(i + 1).padStart(2, '0')}`;
+      
+      allocations.push({
+        deliveryDetailId,
+        deliveryDate: deliveryDate.toISOString().split('T')[0],
+        allocatedQuantity,
+        deliveryId
+      });
+      totalDelivered += allocatedQuantity;
+    }
+
+    // 注文数量を想定（ダミー）
+    const orderQuantity = Math.floor(seed * 2) + 10; // 10-25個程度
+    let status = '未納品';
+    if (totalDelivered >= orderQuantity) {
+      status = '完了';
+    } else if (totalDelivered > 0) {
+      status = '一部納品';
+    }
+
+    return {
+      deliveryAllocations: allocations,
+      totalDelivered,
+      deliveryStatus: status
+    };
   };
 
-  // 表示用データに納品明細IDを追加
+  // 表示用データに納品情報を追加
   const displayOrderDetails: OrderDetailWithDelivery[] = orderData?.orderDetails
-    ? orderData.orderDetails.map((detail) => ({
-        ...detail,
-        deliveryDetailId: getDeliveryDetailId(detail.id),
-      }))
+    ? orderData.orderDetails.map((detail) => {
+        const deliveryInfo = getDeliveryInfo(detail.id);
+        return {
+          ...detail,
+          ...deliveryInfo
+        };
+      })
     : [];
 
   // 空行を追加（合計10行になるよう調整）
@@ -342,7 +386,9 @@ const OrderDetailPage: React.FC = () => {
       updatedAt: new Date(),
       isDeleted: false,
       deletedAt: null,
-      deliveryDetailId: '',
+      deliveryAllocations: [],
+      totalDelivered: 0,
+      deliveryStatus: '',
     });
   }
 
@@ -372,6 +418,17 @@ const OrderDetailPage: React.FC = () => {
 
   const handlePdfExport = () => {
     alert('PDFを出力しています（デモのため実際の出力は行われていません）');
+  };
+
+  // 行の展開/折りたたみハンドラー
+  const toggleRowExpansion = (orderDetailId: string) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(orderDetailId)) {
+      newExpanded.delete(orderDetailId);
+    } else {
+      newExpanded.add(orderDetailId);
+    }
+    setExpandedRows(newExpanded);
   };
 
   return (
@@ -435,7 +492,7 @@ const OrderDetailPage: React.FC = () => {
                         数量
                       </th>
                       <th className="w-[15%] border border-gray-400 px-2 py-2 font-semibold sm:px-3 sm:py-3">
-                        納品明細ID
+                        納品状況
                       </th>
                       <th className="w-[25%] border border-gray-400 px-2 py-2 font-semibold sm:px-3 sm:py-3">
                         摘要
@@ -444,31 +501,82 @@ const OrderDetailPage: React.FC = () => {
                   </thead>
                   <tbody>
                     {displayOrderDetails.map((item, index) => (
-                      <tr
-                        key={index}
-                        className={`${
-                          index % 2 === 0 ? 'bg-blue-50' : 'bg-white'
-                        } h-10 transition-colors hover:bg-blue-100 sm:h-12`}
-                      >
-                        <td className="truncate border border-gray-400 px-2 py-1 font-mono text-xs sm:px-3 sm:py-2">
-                          {item.id}
-                        </td>
-                        <td className="truncate border border-gray-400 px-2 py-1 text-left sm:px-3 sm:py-2">
-                          {item.productName}
-                        </td>
-                        <td className="border border-gray-400 px-2 py-1 text-right font-medium sm:px-3 sm:py-2">
-                          {item.unitPrice > 0 ? formatJPY(item.unitPrice) : ''}
-                        </td>
-                        <td className="border border-gray-400 px-2 py-1 text-right font-medium sm:px-3 sm:py-2">
-                          {item.quantity > 0 ? item.quantity.toLocaleString() : ''}
-                        </td>
-                        <td className="truncate border border-gray-400 px-2 py-1 font-mono text-xs sm:px-3 sm:py-2">
-                          {item.deliveryDetailId}
-                        </td>
-                        <td className="truncate border border-gray-400 px-2 py-1 text-left sm:px-3 sm:py-2">
-                          {item.description}
-                        </td>
-                      </tr>
+                      <React.Fragment key={index}>
+                        <tr
+                          className={`${
+                            index % 2 === 0 ? 'bg-blue-50' : 'bg-white'
+                          } h-10 transition-colors hover:bg-blue-100 sm:h-12`}
+                        >
+                          <td className="truncate border border-gray-400 px-2 py-1 font-mono text-xs sm:px-3 sm:py-2">
+                            {item.id}
+                          </td>
+                          <td className="truncate border border-gray-400 px-2 py-1 text-left sm:px-3 sm:py-2">
+                            {item.productName}
+                          </td>
+                          <td className="border border-gray-400 px-2 py-1 text-right font-medium sm:px-3 sm:py-2">
+                            {item.unitPrice > 0 ? formatJPY(item.unitPrice) : ''}
+                          </td>
+                          <td className="border border-gray-400 px-2 py-1 text-right font-medium sm:px-3 sm:py-2">
+                            {item.quantity > 0 ? item.quantity.toLocaleString() : ''}
+                          </td>
+                          <td className="border border-gray-400 px-2 py-1 text-center sm:px-3 sm:py-2">
+                            {item.deliveryStatus && (
+                              <div className="flex items-center justify-center gap-2">
+                                <span
+                                  className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                                    item.deliveryStatus === '完了'
+                                      ? 'bg-green-100 text-green-800'
+                                      : item.deliveryStatus === '一部納品'
+                                      ? 'bg-yellow-100 text-yellow-800'
+                                      : item.deliveryStatus === '未納品'
+                                      ? 'bg-red-100 text-red-800'
+                                      : ''
+                                  }`}
+                                >
+                                  {item.deliveryStatus}
+                                </span>
+                                {item.deliveryAllocations && item.deliveryAllocations.length > 0 && (
+                                  <button
+                                    onClick={() => toggleRowExpansion(item.id)}
+                                    className="text-blue-600 hover:text-blue-800 text-xs font-medium"
+                                    title={expandedRows.has(item.id) ? '詳細を閉じる' : '詳細を表示'}
+                                  >
+                                    {expandedRows.has(item.id) ? '▲' : '▼'}
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </td>
+                          <td className="truncate border border-gray-400 px-2 py-1 text-left sm:px-3 sm:py-2">
+                            {item.description}
+                          </td>
+                        </tr>
+                        
+                        {/* 展開時の詳細情報 */}
+                        {expandedRows.has(item.id) && item.deliveryAllocations && item.deliveryAllocations.length > 0 && (
+                          <tr className="bg-gray-50">
+                            <td colSpan={6} className="border border-gray-400 px-4 py-3">
+                              <div className="text-sm">
+                                <div className="font-medium text-gray-700 mb-2">
+                                  納品明細 ({item.totalDelivered || 0}/{item.quantity} 個)
+                                </div>
+                                <div className="space-y-1">
+                                  {item.deliveryAllocations.map((allocation, allocIndex) => (
+                                    <div key={allocIndex} className="flex justify-between items-center text-xs bg-white rounded px-3 py-2">
+                                      <div className="flex gap-4">
+                                        <span className="font-mono text-blue-600">{allocation.deliveryDetailId}</span>
+                                        <span className="text-gray-600">{allocation.deliveryDate}</span>
+                                        <span className="font-medium">{allocation.allocatedQuantity}個</span>
+                                      </div>
+                                      <span className="text-gray-500">納品ID: {allocation.deliveryId}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
                     ))}
                   </tbody>
                 </table>
