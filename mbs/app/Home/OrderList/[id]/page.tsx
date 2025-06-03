@@ -31,6 +31,129 @@ const formatDate = (date: Date | string): string => {
   return dateObj.toISOString().split('T')[0]; // YYYY-MM-DD形式
 };
 
+// 削除確認モーダルコンポーネント
+const DeleteConfirmModal = ({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  orderData
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  orderData: OrderWithRelations | null;
+}) => {
+  if (!isOpen || !orderData) return null;
+
+  const totalAmount = orderData.orderDetails.reduce((sum, detail) => sum + detail.unitPrice * detail.quantity, 0);
+  const productCount = orderData.orderDetails.length;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-brightness-50">
+      <div className="w-full max-w-md scale-100 transform rounded-2xl bg-white shadow-xl transition-all duration-50">
+        <div className="p-6 text-center">
+          {/* 警告アイコン */}
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+            <svg
+              className="h-8 w-8 text-red-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+              />
+            </svg>
+          </div>
+
+          <h3 className="mb-2 text-xl font-bold text-gray-900">注文削除</h3>
+
+          <p className="mb-4 text-sm text-gray-600">以下の注文を削除してもよろしいですか？</p>
+
+          {/* 削除対象注文の情報表示 */}
+          <div className="mb-6 rounded-lg bg-gray-50 p-4">
+            <div className="text-left space-y-3">
+              <div>
+                <div className="flex items-center mb-1">
+                  <span className="mr-2 h-2 w-2 flex-shrink-0 rounded-full bg-blue-500"></span>
+                  <span className="font-medium text-sm text-gray-800">注文ID</span>
+                </div>
+                <p className="ml-4 text-sm font-semibold text-gray-900 font-mono">
+                  {orderData.id}
+                </p>
+              </div>
+              
+              <div>
+                <div className="flex items-center mb-1">
+                  <span className="mr-2 h-2 w-2 flex-shrink-0 rounded-full bg-green-500"></span>
+                  <span className="font-medium text-sm text-gray-800">顧客名</span>
+                </div>
+                <p className="ml-4 text-sm font-semibold text-gray-900">
+                  {orderData.customer.name}
+                </p>
+              </div>
+              
+              <div>
+                <div className="flex items-center mb-1">
+                  <span className="mr-2 h-2 w-2 flex-shrink-0 rounded-full bg-purple-500"></span>
+                  <span className="font-medium text-sm text-gray-800">注文日</span>
+                </div>
+                <p className="ml-4 text-sm font-semibold text-gray-900">
+                  {formatDate(orderData.orderDate)}
+                </p>
+              </div>
+              
+              <div className="flex justify-between">
+                <div className="w-1/2 pr-2">
+                  <div className="flex items-center mb-1">
+                    <span className="mr-2 h-2 w-2 flex-shrink-0 rounded-full bg-orange-500"></span>
+                    <span className="font-medium text-sm text-gray-800">商品数</span>
+                  </div>
+                  <p className="ml-4 text-sm font-semibold text-gray-900">
+                    {productCount}点
+                  </p>
+                </div>
+                
+                <div className="w-1/2 pl-2">
+                  <div className="flex items-center mb-1">
+                    <span className="mr-2 h-2 w-2 flex-shrink-0 rounded-full bg-red-500"></span>
+                    <span className="font-medium text-sm text-gray-800">合計金額</span>
+                  </div>
+                  <p className="ml-4 text-sm font-semibold text-gray-900">
+                    {formatJPY(totalAmount)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p className="mb-6 text-xs text-red-600">
+            この操作は取り消すことができません。
+          </p>
+
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className="flex-1 rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-200"
+            >
+              キャンセル
+            </button>
+            <button
+              onClick={onConfirm}
+              className="flex-1 rounded-lg bg-red-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-red-700"
+            >
+              削除
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const OrderDetailPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
@@ -471,72 +594,13 @@ const OrderDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 削除確認モーダル - 完全に独立したコンポーネント */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-brightness-50">
-          <div className="w-full max-w-sm scale-100 transform rounded-2xl bg-white shadow-xl transition-all duration-50">
-            <div className="p-6 text-center">
-              {/* 警告アイコン */}
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-                <svg
-                  className="h-8 w-8 text-red-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
-                  />
-                </svg>
-              </div>
-
-              <h3 className="mb-2 text-xl font-bold text-gray-900">注文削除</h3>
-
-              <p className="mb-4 text-sm text-gray-600">削除すると以下の情報が全て失われます</p>
-
-              {/* 削除される情報のリスト */}
-              <div className="mb-6 rounded-lg bg-gray-50 p-4 text-left">
-                <ul className="space-y-2 text-sm text-gray-800">
-                  <li className="flex items-center">
-                    <span className="mr-3 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-500"></span>
-                    <span className="font-medium">注文明細情報</span>
-                  </li>
-                  <li className="flex items-center">
-                    <span className="mr-3 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-500"></span>
-                    <span className="font-medium">商品データ</span>
-                  </li>
-                  <li className="flex items-center">
-                    <span className="mr-3 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-500"></span>
-                    <span className="font-medium">金額情報</span>
-                  </li>
-                  <li className="flex items-center">
-                    <span className="mr-3 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-500"></span>
-                    <span className="font-medium">配送履歴</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={handleDeleteCancel}
-                  className="flex-1 rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-200"
-                >
-                  キャンセル
-                </button>
-                <button
-                  onClick={handleDeleteConfirm}
-                  className="flex-1 rounded-lg bg-red-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-red-700"
-                >
-                  削除
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 削除確認モーダル */}
+      <DeleteConfirmModal
+        isOpen={showDeleteModal}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        orderData={orderData}
+      />
     </>
   );
 };
