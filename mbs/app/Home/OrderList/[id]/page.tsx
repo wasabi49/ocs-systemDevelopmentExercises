@@ -577,17 +577,17 @@ const OrderDetailPage: React.FC = () => {
         </div>
 
         {/* アクションボタン */}
-        <div className="mt-8 flex flex-col justify-between gap-3 sm:flex-row sm:gap-4">
+        <div className="mt-8 flex flex-row justify-center items-center gap-3 sm:justify-between sm:gap-4">
           <button
             onClick={handleDelete}
-            className="order-2 rounded-lg border border-red-700 bg-red-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-red-700 sm:order-1 sm:text-base"
+            className="w-32 rounded-lg border border-red-700 bg-red-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-red-700 sm:w-auto sm:px-6 sm:text-base"
             disabled={showDeleteModal}
           >
             削除
           </button>
           <button
             onClick={handlePdfExport}
-            className="order-1 rounded-lg border border-blue-700 bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-blue-700 sm:order-2 sm:text-base"
+            className="w-32 rounded-lg border border-blue-700 bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-blue-700 sm:w-auto sm:px-6 sm:text-base"
           >
             PDF出力
           </button>
