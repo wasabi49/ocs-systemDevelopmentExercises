@@ -777,6 +777,7 @@ export default function OrderEditPage() {
       setOrderDetails(generatedDetails);
 
     } catch (error) {
+      console.error('注文データの読み込みに失敗しました:', error);
       alert('注文データの読み込みに失敗しました。');
     }
   }, [orderId]);
@@ -920,7 +921,8 @@ export default function OrderEditPage() {
       alert('注文を更新しました');
       router.push('/Home/OrderList');
       
-    } catch {
+    } catch (error) {
+      console.error('注文の更新に失敗しました:', error);
       alert('注文の更新に失敗しました。もう一度お試しください。');
     } finally {
       setIsSubmitting(false);
