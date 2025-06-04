@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import type { Customer } from '@/app/generated/prisma';
 
-// 注文更新時のデータ型定義（Prismaの型をベースに）
+// 注文更新時のデータ型定義
 type OrderUpdateData = {
   orderDetails: {
     productName: string;
@@ -23,13 +23,14 @@ type ValidationResult = {
   errors: string[];
 };
 
-// 注文明細の編集時用型（一時的なIDを含む）
+// 注文明細の編集用型
 type OrderDetailEdit = {
   id: string; // 既存IDまたは一時的なID（TEMP-XX形式）
   productName: string;
   unitPrice: number;
   quantity: number;
-  description: string; // nullを許可しない
+  description: string;
+  deliveryStatus?: string; // 既存商品の場合のみ
 };
 
 // 定数定義
@@ -505,6 +506,23 @@ const ProductRow = ({
           placeholder="0"
         />
       </td>
+      <td className="border border-black px-2 py-1 text-center">
+        {orderDetail.deliveryStatus && (
+          <span
+            className={`rounded-full px-2 py-1 text-xs font-semibold ${
+              orderDetail.deliveryStatus === '完了'
+                ? 'bg-green-100 text-green-800'
+                : orderDetail.deliveryStatus === '一部納品'
+                ? 'bg-yellow-100 text-yellow-800'
+                : orderDetail.deliveryStatus === '未納品'
+                ? 'bg-red-100 text-red-800'
+                : ''
+            }`}
+          >
+            {orderDetail.deliveryStatus}
+          </span>
+        )}
+      </td>
       <td className="border border-black px-2 py-1">
         <input 
           type="text" 
@@ -567,6 +585,62 @@ const generateTempOrderDetailId = (index: number): string => {
   return `TEMP-${String(index + 1).padStart(2, '0')}`;
 };
 
+// 納品情報を取得する関数
+const getDeliveryInfo = (orderDetailId: string, orderQuantity: number) => {
+  // 一時的なIDの場合は納品情報なし
+  if (orderDetailId.startsWith('TEMP-')) {
+    return { deliveryStatus: '' };
+  }
+
+  const seed = parseInt(orderDetailId.slice(-1)) || 0;
+  const deliveryCount = Math.floor(seed / 2) + 1;
+  const allocations = [];
+  let totalDelivered = 0;
+
+  const maxDeliverable = orderQuantity;
+
+  for (let i = 0; i < deliveryCount && totalDelivered < maxDeliverable; i++) {
+    const deliveryDate = new Date(2025, 0, 1 + i * 7);
+    const remaining = maxDeliverable - totalDelivered;
+    let allocatedQuantity;
+    
+    if (i === deliveryCount - 1) {
+      allocatedQuantity = remaining;
+    } else {
+      const ratio = 0.3 + (seed % 4) * 0.1;
+      allocatedQuantity = Math.min(Math.ceil(maxDeliverable * ratio), remaining);
+    }
+
+    if (allocatedQuantity > 0) {
+      const deliveryId = `D${String(seed + i + 1).padStart(6, '0')}`;
+      const deliveryDetailId = `${deliveryId}-${String(i + 1).padStart(2, '0')}`;
+      
+      allocations.push({
+        deliveryDetailId,
+        deliveryDate: deliveryDate.toISOString().split('T')[0],
+        allocatedQuantity,
+        deliveryId
+      });
+      totalDelivered += allocatedQuantity;
+    }
+  }
+
+  let status = '未納品';
+  if (totalDelivered >= orderQuantity) {
+    status = '完了';
+  } else if (totalDelivered > 0) {
+    status = '一部納品';
+  }
+
+  if (seed % 4 === 0) {
+    return { deliveryStatus: '未納品' };
+  } else if (seed % 4 === 1) {
+    return { deliveryStatus: '一部納品' };
+  }
+
+  return { deliveryStatus: status };
+};
+
 // メインコンポーネント
 export default function OrderEditPage() {
   const router = useRouter();
@@ -581,7 +655,6 @@ export default function OrderEditPage() {
   const [showCustomerDropdown, setShowCustomerDropdown] = useState<boolean>(false);
   const [note, setNote] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   
   // 削除モーダル関連の状態
   const [deleteModal, setDeleteModal] = useState<{
@@ -599,8 +672,6 @@ export default function OrderEditPage() {
   // 既存注文データの読み込み
   const loadOrderData = useCallback(async () => {
     try {
-      setIsLoading(true);
-      
       // 注文明細ページと同じロジックでダミーデータを生成
       const fallbackCustomers = [
         { id: 'C-00001', name: '大阪情報専門学校', contactPerson: '山田太郎' },
@@ -681,8 +752,8 @@ export default function OrderEditPage() {
       // 備考を設定
       setNote(`${customer.name}からの注文`);
 
-      // 商品明細を生成
-      const detailCount = Math.floor(getSeededRandom(orderSeed) * 3) + 2; // 2-4個の商品
+      // 商品明細を生成（編集可能）
+      const detailCount = Math.floor(getSeededRandom(orderSeed) * 3) + 2;
       const generatedDetails: OrderDetailEdit[] = [];
 
       for (let i = 1; i <= detailCount; i++) {
@@ -690,12 +761,16 @@ export default function OrderEditPage() {
         const product = fallbackProducts[productIndex];
         const quantity = Math.floor(getSeededRandom(orderSeed + i + 100) * 10) + 1;
 
+        const orderDetailId = `${orderId}-${String(i).padStart(2, '0')}`;
+        const deliveryInfo = getDeliveryInfo(orderDetailId, quantity);
+
         generatedDetails.push({
-          id: `${orderId}-${String(i).padStart(2, '0')}`,
+          id: orderDetailId,
           productName: product.name,
           unitPrice: product.price,
           quantity: quantity,
-          description: `${customer.name}向け商品`
+          description: `${customer.name}向け商品`,
+          deliveryStatus: deliveryInfo.deliveryStatus
         });
       }
 
@@ -703,8 +778,6 @@ export default function OrderEditPage() {
 
     } catch (error) {
       alert('注文データの読み込みに失敗しました。');
-    } finally {
-      setIsLoading(false);
     }
   }, [orderId]);
 
@@ -738,7 +811,8 @@ export default function OrderEditPage() {
       productName: '',
       quantity: 1,
       unitPrice: 0,
-      description: ''
+      description: '',
+      deliveryStatus: '' // 新規商品は納品状況なし
     };
     setOrderDetails(prev => [...prev, newOrderDetail]);
   }, [orderDetails.length]);
@@ -858,18 +932,6 @@ export default function OrderEditPage() {
     return orderDetails.reduce((sum, detail) => sum + (detail.unitPrice * detail.quantity), 0);
   }, [orderDetails]);
 
-  // ローディング表示
-  if (isLoading) {
-    return (
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 flex justify-center items-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">注文データを読み込み中...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
       {/* ページヘッダー */}
@@ -895,15 +957,16 @@ export default function OrderEditPage() {
                   <table className="w-full min-w-[400px] border-collapse text-xs sm:text-sm border-l border-r border-b border-black">
                     <thead>
                       <tr style={{height: '41px'}}>
-                        <th className="border border-black px-2 py-1 bg-blue-500 text-white w-[30%]">
+                        <th className="border border-black px-2 py-1 bg-blue-500 text-white w-[25%]">
                           <div className="flex items-center justify-center gap-2">
                             商品名
                             <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-md">必須</span>
                           </div>
                         </th>
                         <th className="border border-black px-2 py-1 bg-blue-500 text-white w-[15%]">数量</th>
-                        <th className="border border-black px-2 py-1 bg-blue-500 text-white w-[20%]">単価</th>
-                        <th className="border border-black px-2 py-1 bg-blue-500 text-white w-[35%]">
+                        <th className="border border-black px-2 py-1 bg-blue-500 text-white w-[15%]">単価</th>
+                        <th className="border border-black px-2 py-1 bg-blue-500 text-white w-[15%]">納品状況</th>
+                        <th className="border border-black px-2 py-1 bg-blue-500 text-white w-[30%]">
                           <div className="flex items-center justify-center gap-2">
                             摘要
                             <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-md">必須</span>
@@ -962,10 +1025,11 @@ export default function OrderEditPage() {
             
             {/* 合計金額表示 */}
             <div className="mt-2 font-semibold text-sm flex">
-              <div className="w-[30%]"></div> {/* 商品名列のスペース */}
+              <div className="w-[25%]"></div> {/* 商品名列のスペース */}
               <div className="w-[15%]"></div> {/* 数量列のスペース */}
-              <div className="w-[20%]"></div> {/* 単価列のスペース */}
-              <div className="w-[35%] text-right"> {/* 摘要列の位置・右寄せ */}
+              <div className="w-[15%]"></div> {/* 単価列のスペース */}
+              <div className="w-[15%]"></div> {/* 納品状況列のスペース */}
+              <div className="w-[30%] text-right"> {/* 摘要列の位置・右寄せ */}
                 合計金額: ¥{totalAmount.toLocaleString()}
               </div>
             </div>
