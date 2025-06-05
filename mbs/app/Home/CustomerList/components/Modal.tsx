@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import Papa from 'papaparse';
+import Modal from '../../../components/Modal';
 
-export type ModalProps = {
+export type CSVImportModalProps = {
   open: boolean;
   onCancel: () => void;
   onOk: (data: string[][]) => void;
 };
 
-const Modal = ({ open, onCancel, onOk }: ModalProps) => {
+const CSVImportModal = ({ open, onCancel, onOk }: CSVImportModalProps) => {
   const [fileNames, setFileNames] = useState<string[]>([]);
   const [csvData, setCsvData] = useState<string[][]>([]);
 
@@ -32,50 +33,47 @@ const Modal = ({ open, onCancel, onOk }: ModalProps) => {
     reader.readAsText(file, 'Shift_JIS'); // 明示的にShift_JISで読む
   };
 
-  return open ? (
+  const modalContent = (
     <>
-      <div className="absolute top-1/2 left-1/2 z-20 flex w-96 -translate-x-1/2 -translate-y-1/2 transform flex-col bg-white p-5">
-        <h1 className="mb-2 text-xl font-bold">CSVファイルをインポート</h1>
-        <p className="mb-2 text-sm">文字コード: Shift_JIS</p>
+      <p className="mb-2 text-sm">文字コード: Shift_JIS</p>
 
-        <div className="mb-3">
-          <label
-            htmlFor="csv-upload"
-            className="inline-block cursor-pointer rounded bg-blue-500 px-4 py-2 text-sm text-white hover:bg-blue-600"
-          >
-            ファイルを選択
-          </label>
-          <input
-            id="csv-upload"
-            type="file"
-            accept=".csv"
-            onChange={handleFileUpload}
-            className="hidden"
-          />
-        </div>
-
-        {/* ファイル名を改行して表示 */}
-        {fileNames.length > 0 && (
-          <div className="mb-3 text-xs whitespace-pre-line text-gray-600">
-            {fileNames.join('\n')}
-          </div>
-        )}
-
-        <div className="mt-auto flex w-full">
-          <button
-            className="mx-auto bg-slate-900 px-8 py-2 text-white hover:bg-slate-700"
-            onClick={() => onOk(csvData)}
-          >
-            インポート
-          </button>
-        </div>
+      <div className="mb-3">
+        <label
+          htmlFor="csv-upload"
+          className="inline-block cursor-pointer rounded bg-blue-500 px-4 py-2 text-sm text-white hover:bg-blue-600"
+        >
+          ファイルを選択
+        </label>
+        <input
+          id="csv-upload"
+          type="file"
+          accept=".csv"
+          onChange={handleFileUpload}
+          className="hidden"
+        />
       </div>
-      <div
-        className="bg-opacity-25 fixed inset-0 z-10 h-full w-full bg-black/50"
-        onClick={onCancel}
-      ></div>
+
+      {/* ファイル名を改行して表示 */}
+      {fileNames.length > 0 && (
+        <div className="mb-3 text-xs whitespace-pre-line text-gray-600">{fileNames.join('\n')}</div>
+      )}
     </>
-  ) : null;
+  );
+
+  const modalFooter = (
+    <button
+      className="mx-auto bg-slate-900 px-8 py-2 text-white hover:bg-slate-700"
+      onClick={() => onOk(csvData)}
+    >
+      インポート
+    </button>
+  );
+
+  return (
+    <Modal open={open} onCancel={onCancel} title="CSVファイルをインポート" footer={modalFooter}>
+      {modalContent}
+    </Modal>
+  );
 };
 
 export default Modal;
