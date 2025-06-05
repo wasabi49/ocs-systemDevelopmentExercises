@@ -36,7 +36,7 @@ const Header = () => {
               <Link href="/Home/DeliveryList">納品</Link>
             </li>
             <li className="cursor-pointer hover:underline">
-              <Link href="/Home/Statisticalinfo">統計</Link>
+              <Link href="/Home/Statistics">統計</Link>
             </li>
             <li className="cursor-pointer hover:underline">
               <Link href="/">店舗</Link>
@@ -62,7 +62,7 @@ const Header = () => {
             <Link href="/Home/DeliveryList">納品</Link>
           </li>
           <li onClick={() => setIsOpen(false)}>
-            <Link href="/Home/Statisticalinfo">統計</Link>
+            <Link href="/Home/Statistics">統計</Link>
           </li>
           <li onClick={() => setIsOpen(false)}>
             <Link href="/Home/Stores">店舗</Link>
