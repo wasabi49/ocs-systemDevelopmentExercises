@@ -2,16 +2,17 @@
 
 import React, { useState } from 'react';
 
+
 type List = {
 customerId: string,
 customerName: string,
 leadTime: number, // 平均リードタイム（例: 日数）
-sales: number
+totalSales: number
 };
 
 const dummyOrders: List[] = [
-{ customerId: 'C001', customerName: '大阪情報専門学校', leadTime: 5 ,sales: 0},
-{ customerId: 'C002', customerName: '森ノ宮病院', leadTime: 7 ,sales: 0},
+{ customerId: 'C001', customerName: '大阪情報専門学校', leadTime: 5 ,totalSales: 0},
+{ customerId: 'C002', customerName: '森ノ宮病院', leadTime: 7 ,totalSales: 0},
 ];
 
 export default function StatisticalInfo() {
@@ -26,9 +27,6 @@ const handleSort = (field: keyof List) => {
   setOrders(sorted);
 };
 
-const handleSearch = () => {
-  console.log('検索確定：', searchKeyword);
-};
 
 const filteredOrders = orders.filter(list => {
   if (searchField === 'すべて') {
@@ -36,14 +34,14 @@ const filteredOrders = orders.filter(list => {
       list.customerId.includes(searchKeyword) ||
       list.customerName.includes(searchKeyword) ||
       list.leadTime.toString().includes(searchKeyword)||
-      list.sales.toString().includes(searchKeyword)
+      list.totalSales.toString().includes(searchKeyword)
     );
   }
 
   const fieldValue = list[searchField === '顧客ID' ? 'customerId'
     : searchField === '顧客名' ? 'customerName'
       :  searchField === '平均リードタイム' ? 'leadTime'
-        : 'sales'
+        : 'totalSales'
     ];
 
   return fieldValue.toString().includes(searchKeyword);
@@ -57,7 +55,7 @@ const exportToCSV = () => {
     order.customerId,
     order.customerName,
     order.leadTime.toString(),
-    order.sales.toString()
+    order.totalSales.toString()
   ]);
   
   // ★ 日本語対応：BOM付きCSVにする
@@ -83,7 +81,7 @@ const exportToCSV = () => {
 // 15行確保
 const displayedOrders = [...filteredOrders];
 while (displayedOrders.length < 15) {
-  displayedOrders.push({ customerId: '', customerName: '', leadTime: 0,sales: 0});
+  displayedOrders.push({ customerId: '', customerName: '', leadTime: 0,totalSales: 0});
 }
   return (
     <div className="p-4  mx-auto text-black bg-white">
@@ -122,16 +120,19 @@ while (displayedOrders.length < 15) {
       {/* テーブル */}
       <div className="max-w-screen-lg mx-auto w-full overflow-x-auto px-4 mb-4">
         <table className=
-                        //表の伸縮性、コメントアウト//
-                        "min-w-[600px] w-full border-collapse text-center text-sm text-black">
-                        {/* "w-full border-collapse text-center text-sm text-black"> */}
+          //表の伸縮性、コメントアウト//
+          "min-w-[600px] w-full border-collapse text-center text-sm text-black">
+          {/* "w-full border-collapse text-center text-sm text-black"> */}
                         
           <thead className="bg-blue-300 text-black">
             <tr>
-              <th className="border px-2 py-1 cursor-pointer" onClick={() => handleSort('customerId')}>顧客ID</th>
+              <th className="border px-2 py-1 cursor-pointer" 
+              onClick={() => handleSort('customerId')}
+              >
+                顧客ID</th>
               <th className="border px-2 py-1 cursor-pointer" onClick={() => handleSort('customerName')}>顧客名</th>
               <th className="border px-2 py-1 cursor-pointer" onClick={() => handleSort('leadTime')}>平均リードタイム（日）</th>
-              <th className="border px-2 py-1 cursor-pointer" onClick={() => handleSort('sales')}>累計売上額</th>
+              <th className="border px-2 py-1 cursor-pointer" onClick={() => handleSort('totalSales')}>累計売上額</th>
             </tr>
           </thead>
           <tbody>
@@ -140,7 +141,7 @@ while (displayedOrders.length < 15) {
                 <td className="border px-2 py-1">{order.customerId}</td>
                 <td className="border px-2 py-1">{order.customerName}</td>
                 <td className="border px-2 py-1">{order.customerId === '' ? '' : order.leadTime}</td>
-                <td className="border px-2 py-1">{order.customerId === '' ? '' : order.sales}</td>
+                <td className="border px-2 py-1">{order.customerId === '' ? '' : order.totalSales}</td>
               </tr>
             ))}
           </tbody>
