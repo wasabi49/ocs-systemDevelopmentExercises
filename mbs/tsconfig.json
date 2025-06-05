@@ -18,8 +18,15 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@/componts/*": ["./components/*"],
+      "@/lib/*": ["./lib/*"],
+      "@/hooks/*": ["./app/hooks/*"],
+      "@/actions/*": ["./app/actions/*"],
+      "@/public/*": ["./public/*"],
+      "@/types/*": ["./app/types/*"]
     },
     "types": ["vitest", "@testing-library/jest-dom"]
   },
