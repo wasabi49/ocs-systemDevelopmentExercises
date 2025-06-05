@@ -675,9 +675,9 @@ export default function OrderCreatePage() {
                 <thead>
                   <tr style={{height: '60px'}}>
                     <th className="border border-black px-1 sm:px-2 py-2 bg-blue-500 text-white" style={{width: '35%'}}>
-                      <div className="flex flex-col items-center justify-center gap-1">
+                      <div className="flex items-center justify-center gap-1">
                         <span className="text-xs sm:text-sm">商品名</span>
-                        <span className="bg-red-500 text-white text-xs px-1 sm:px-2 py-1 rounded-md">必須</span>
+                        <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-md">必須</span>
                       </div>
                     </th>
                     <th className="border border-black px-1 sm:px-2 py-2 bg-blue-500 text-white" style={{width: '12%'}}>
@@ -687,9 +687,9 @@ export default function OrderCreatePage() {
                       <span className="text-xs sm:text-sm">単価</span>
                     </th>
                     <th className="border border-black px-1 sm:px-2 py-2 bg-blue-500 text-white" style={{width: '25%'}}>
-                      <div className="flex flex-col items-center justify-center gap-1">
+                      <div className="flex items-center justify-center gap-1">
                         <span className="text-xs sm:text-sm">摘要</span>
-                        <span className="bg-red-500 text-white text-xs px-1 sm:px-2 py-1 rounded-md">必須</span>
+                        <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-md">必須</span>
                       </div>
                     </th>
                     <th className="border border-black px-1 sm:px-2 py-2 bg-blue-500 text-white" style={{width: '10%'}}>
@@ -815,7 +815,7 @@ export default function OrderCreatePage() {
                 <div className="flex flex-col sm:flex-row sm:items-center mb-2 gap-2">
                   <label className="text-xs sm:text-sm flex items-center gap-2 whitespace-nowrap">
                     顧客
-                    <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-md">必須</span>
+                    <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-md">必須</span>
                   </label>
                   <div className="flex-1 relative">
                     <div className="flex items-center">
