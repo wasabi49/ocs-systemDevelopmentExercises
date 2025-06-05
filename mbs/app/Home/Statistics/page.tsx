@@ -40,8 +40,7 @@ const filteredOrders = orders.filter(list => {
 
   const fieldValue = list[searchField === '顧客ID' ? 'customerId'
     : searchField === '顧客名' ? 'customerName'
-      :  searchField === '平均リードタイム' ? 'leadTime'
-        : 'totalSales'
+      : 'totalSales'
     ];
 
   return fieldValue.toString().includes(searchKeyword);
@@ -99,7 +98,8 @@ while (displayedOrders.length < 15) {
 
         <select
           value={searchField}
-          onChange={e => setSearchField(e.target.value as any)}
+          onChange={(e : React.ChangeEvent<HTMLSelectElement>) => 
+            setSearchField(e.target.value as "顧客ID" | "顧客名" )}
           className="border rounded p-2 text-black w-40"
         >
           <option value="すべて">すべて検索</option>
