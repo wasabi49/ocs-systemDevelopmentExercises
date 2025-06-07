@@ -2,6 +2,7 @@
 
 import DeliveryTable, { Delivery } from './DeliveryTable';
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 // ダミーデータ（DスタートID）
 const dummyDeliveries: Delivery[] = [
@@ -17,6 +18,7 @@ const dummyDeliveries: Delivery[] = [
 ];
 
 export default function DeliveryListPage() {
+  const router = useRouter();
   const [searchField, setSearchField] = useState<
     'すべて' | '納品ID' | '納品日' | '顧客名' | '備考' | '商品名'
   >('すべて');
@@ -79,7 +81,10 @@ export default function DeliveryListPage() {
     <div className="mb-4 flex flex-col items-center justify-center gap-2 md:gap-4">
       {/* 納品追加ボタン＋検索 */}
       <div className="mt-6 flex flex-wrap items-center justify-start gap-4">
-        <button className="rounded bg-yellow-400 px-4 py-2 font-bold text-black hover:bg-yellow-500">
+        <button
+          className="rounded bg-yellow-400 px-4 py-2 font-bold text-black hover:bg-yellow-500"
+          onClick={() => router.push('/Home/DeliveryList/Add')}
+        >
           納品追加
         </button>
 
