@@ -610,16 +610,14 @@ export default function OrderCreatePage() {
         description: detail.description || null
       }));
 
-      const orderData: OrderCreateData = {
+      // 実際のAPI呼び出しで使用するデータ
+      console.log('注文データ:', {
         orderDetails: orderDetailsForCreate,
         orderDate,
         customerId: selectedCustomer?.id || '',
         note: note || null
-      };
-      
-      // 実際のAPI呼び出しをここで行う
-      // console.log('注文データ:', orderData);
-      // console.log('選択された顧客:', selectedCustomer);
+      });
+      console.log('選択された顧客:', selectedCustomer);
       
       // 成功時の処理
       setShowSuccessModal(true);
