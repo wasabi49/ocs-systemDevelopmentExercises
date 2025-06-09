@@ -79,9 +79,12 @@ export default function DeliveryListPage() {
     <div className="mb-4 flex flex-col items-center justify-center gap-2 md:gap-4">
       {/* 納品追加ボタン＋検索 */}
       <div className="mt-6 flex flex-wrap items-center justify-start gap-4">
-        <button className="rounded bg-yellow-400 px-4 py-2 font-bold text-black hover:bg-yellow-500">
+        <a
+          href="/Home/DeliveryList/Add"
+          className="inline-block rounded bg-yellow-400 px-4 py-2 text-center font-bold text-black hover:bg-yellow-500"
+        >
           納品追加
-        </button>
+        </a>
 
         <select
           value={searchField}
