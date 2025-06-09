@@ -1,9 +1,9 @@
 import React from 'react';
 
 /**
- * 共通検索コンポーネントのProps
+ * 検索コンポーネントのProps
  */
-export type CommonSearchProps = {
+export type SearchProps = {
   // 検索キーワード
   keyword: string;
   // 検索キーワード変更ハンドラー
@@ -23,10 +23,10 @@ export type CommonSearchProps = {
 };
 
 /**
- * 共通検索コンポーネント
+ * 検索コンポーネント
  * 検索フィールド選択、検索キーワード入力、アクションボタンを提供
  */
-export default function CommonSearch({
+export default function Search({
   keyword,
   onKeywordChange,
   searchField,
@@ -35,7 +35,7 @@ export default function CommonSearch({
   placeholder = '検索キーワードを入力',
   actionButtonLabel,
   onActionButtonClick,
-}: CommonSearchProps) {
+}: SearchProps) {
   return (
     <div className="mb-4 flex w-full flex-row items-center justify-center gap-2 sm:gap-4">
       {/* アクションボタン（注文追加など） */}

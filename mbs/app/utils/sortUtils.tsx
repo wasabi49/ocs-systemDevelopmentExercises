@@ -1,4 +1,5 @@
 import React from 'react';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 
 /**
  * ソート設定の型定義
@@ -22,21 +23,15 @@ export function SortIcon<T>({
   const direction = sortConfig?.direction;
 
   return (
-    <span className="ml-1">
-      <span
-        className={`inline-block text-xs ${
-          isActive && direction === 'asc' ? 'text-black' : 'text-gray-400'
-        }`}
-      >
-        ▲
-      </span>
-      <span
-        className={`ml-0.5 inline-block text-xs ${
-          isActive && direction === 'desc' ? 'text-black' : 'text-gray-400'
-        }`}
-      >
-        ▼
-      </span>
+    <span className="ml-1 inline-flex flex-col">
+      <ChevronUp
+        size={12}
+        className={isActive && direction === 'asc' ? 'text-gray-800' : 'text-gray-400'}
+      />
+      <ChevronDown
+        size={12}
+        className={isActive && direction === 'desc' ? 'text-gray-800' : 'text-gray-400'}
+      />
     </span>
   );
 }
