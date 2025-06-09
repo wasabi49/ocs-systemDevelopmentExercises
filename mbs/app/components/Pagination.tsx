@@ -1,4 +1,5 @@
 import React from 'react';
+import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-react';
 
 /**
  * ページネーションコンポーネントのProps
@@ -95,7 +96,7 @@ export default function Pagination({
           aria-label="最初のページ"
           type="button"
         >
-          &lt;&lt;
+          <ChevronsLeft size={16} />
         </button>
 
         {/* 前のページ */}
@@ -106,7 +107,7 @@ export default function Pagination({
           aria-label="前のページ"
           type="button"
         >
-          &lt;
+          <ChevronLeft size={16} />
         </button>
 
         {/* ページ番号ボタン */}
@@ -133,7 +134,7 @@ export default function Pagination({
           aria-label="次のページ"
           type="button"
         >
-          &gt;
+          <ChevronRight size={16} />
         </button>
 
         {/* 最後のページ */}
@@ -144,7 +145,7 @@ export default function Pagination({
           aria-label="最後のページ"
           type="button"
         >
-          &gt;&gt;
+          <ChevronsRight size={16} />
         </button>
       </div>
     </div>
