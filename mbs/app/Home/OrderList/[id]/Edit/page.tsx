@@ -408,7 +408,7 @@ const generateTempOrderDetailId = (index: number): string => {
 };
 
 // 納品情報を取得する関数
-const getDeliveryInfo = (orderDetailId: string, orderQuantity: number) => {
+const getDeliveryInfo = (orderDetailId: string) => {
   // 一時的なIDの場合は納品情報なし
   if (orderDetailId.startsWith('TEMP-')) {
     return { deliveryStatus: '' };
@@ -518,7 +518,7 @@ export default function OrderEditPage() {
         const quantity = Math.floor(getSeededRandom(orderSeed + i + 100) * 10) + 1;
 
         const orderDetailId = `${orderId}-${String(i).padStart(2, '0')}`;
-        const deliveryInfo = getDeliveryInfo(orderDetailId, quantity);
+        const deliveryInfo = getDeliveryInfo(orderDetailId);
 
         generatedDetails.push({
           id: orderDetailId,
@@ -701,16 +701,14 @@ export default function OrderEditPage() {
         description: detail.description || null
       }));
 
-      const orderData: OrderUpdateData = {
+      // 実際のAPI呼び出しで使用するデータ
+      console.log('注文更新データ:', {
         orderDetails: orderDetailsForUpdate,
         orderDate,
         customerId: selectedCustomer?.id || '',
         note: note || null
-      };
-      
-      // 実際のAPI呼び出しをここで行う
-      // console.log('注文更新データ:', orderData);
-      // console.log('選択された顧客:', selectedCustomer);
+      });
+      console.log('選択された顧客:', selectedCustomer);
       
       // 成功時の処理
       setShowSuccessModal(true);
