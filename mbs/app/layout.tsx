@@ -5,6 +5,7 @@ import './globals.css';
 import Header from './components/Header';
 import Breadcrumbs from './components/Breadcrumbs';
 import { usePathname } from 'next/navigation';
+import { StoreProvider } from './contexts/StoreContext';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -24,9 +25,11 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <Header />
-        <Breadcrumbs path={usePathname()} />
-        {children}
+        <StoreProvider>
+          <Header />
+          <Breadcrumbs path={usePathname()} />
+          {children}
+        </StoreProvider>
       </body>
     </html>
   );
