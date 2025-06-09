@@ -28,7 +28,7 @@ type OrderDetailEdit = {
   id: string; // 既存IDまたは一時的なID（TEMP-XX形式）
   productName: string;
   unitPrice: number;
-  quantity: number;
+  quantity: number | '';
   description: string;
   deliveryStatus?: string; // 既存商品の場合のみ
 };
@@ -100,201 +100,6 @@ const DUMMY_CUSTOMERS: Customer[] = [
     deliveryCondition: '平日10:00-18:00',
     note: 'IT関連機器専門',
     updatedAt: new Date('2025-01-05'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00006', 
-    storeId: 'store-001',
-    name: '関西医科大学',
-    contactPerson: '高橋六郎',
-    address: '大阪府枚方市',
-    phone: '072-678-9012',
-    deliveryCondition: '医療機器は慎重配送',
-    note: '医療関連機関',
-    updatedAt: new Date('2025-01-06'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00007', 
-    storeId: 'store-001',
-    name: 'グローバル貿易株式会社',
-    contactPerson: '中村七海',
-    address: '大阪府豊中市',
-    phone: '06-7890-1234',
-    deliveryCondition: '国際便対応可',
-    note: '輸出入関連',
-    updatedAt: new Date('2025-01-07'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00008', 
-    storeId: 'store-001',
-    name: '大阪市立図書館',
-    contactPerson: '小林八雲',
-    address: '大阪府大阪市西区',
-    phone: '06-8901-2345',
-    deliveryCondition: '図書館開館時間内',
-    note: '公共機関',
-    updatedAt: new Date('2025-01-08'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00009', 
-    storeId: 'store-001',
-    name: '近畿大学',
-    contactPerson: '松本九十',
-    address: '大阪府東大阪市',
-    phone: '06-9012-3456',
-    deliveryCondition: '大学構内配送可',
-    note: '教育機関',
-    updatedAt: new Date('2025-01-09'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00010', 
-    storeId: 'store-001',
-    name: '株式会社関西出版',
-    contactPerson: '渡辺十郎',
-    address: '大阪府大阪市中央区',
-    phone: '06-0123-4567',
-    deliveryCondition: '出版関連は梱包厳重',
-    note: '出版業界',
-    updatedAt: new Date('2025-01-10'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00011', 
-    storeId: 'store-001',
-    name: 'さくら幼稚園',
-    contactPerson: '斎藤春子',
-    address: '大阪府吹田市',
-    phone: '06-1234-6789',
-    deliveryCondition: '子供の安全を最優先',
-    note: '教育機関',
-    updatedAt: new Date('2025-01-11'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00012', 
-    storeId: 'store-001',
-    name: '大阪府立高校',
-    contactPerson: '加藤夏子',
-    address: '大阪府大阪市天王寺区',
-    phone: '06-2345-7890',
-    deliveryCondition: '学校行事期間を避ける',
-    note: '公立学校',
-    updatedAt: new Date('2025-01-12'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00013', 
-    storeId: 'store-001',
-    name: '株式会社大阪エンジニアリング',
-    contactPerson: '山本秋雄',
-    address: '大阪府堺市北区',
-    phone: '072-3456-7890',
-    deliveryCondition: '精密機器は振動注意',
-    note: '製造業',
-    updatedAt: new Date('2025-01-13'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00014', 
-    storeId: 'store-001',
-    name: '関西料理学校',
-    contactPerson: '木村冬彦',
-    address: '大阪府大阪市浪速区',
-    phone: '06-4567-8901',
-    deliveryCondition: '食品関連機材は清潔配送',
-    note: '専門学校',
-    updatedAt: new Date('2025-01-14'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00015', 
-    storeId: 'store-001',
-    name: '大阪アート美術館',
-    contactPerson: '井上春夫',
-    address: '大阪府大阪市北区',
-    phone: '06-5678-9012',
-    deliveryCondition: '美術品は温湿度管理必須',
-    note: '文化施設',
-    updatedAt: new Date('2025-01-15'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00016', 
-    storeId: 'store-001',
-    name: '関西経済研究所',
-    contactPerson: '佐々木夏子',
-    address: '大阪府大阪市中央区',
-    phone: '06-6789-0123',
-    deliveryCondition: '機密文書取扱注意',
-    note: '研究機関',
-    updatedAt: new Date('2025-01-16'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00017', 
-    storeId: 'store-001',
-    name: '大阪音楽院',
-    contactPerson: '山下秋男',
-    address: '大阪府豊中市',
-    phone: '06-7890-1234',
-    deliveryCondition: '楽器は衝撃厳禁',
-    note: '音楽教育機関',
-    updatedAt: new Date('2025-01-17'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00018', 
-    storeId: 'store-001',
-    name: '関西健康センター',
-    contactPerson: '中島冬美',
-    address: '大阪府東大阪市',
-    phone: '06-8901-2345',
-    deliveryCondition: '医療機器は滅菌済み配送',
-    note: '医療関連',
-    updatedAt: new Date('2025-01-18'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00019', 
-    storeId: 'store-001',
-    name: '大阪ITスクール',
-    contactPerson: '田村春樹',
-    address: '大阪府大阪市西区',
-    phone: '06-9012-3456',
-    deliveryCondition: 'IT機器は静電気対策必須',
-    note: 'IT教育機関',
-    updatedAt: new Date('2025-01-19'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00020', 
-    storeId: 'store-001',
-    name: '関西メディカルセンター',
-    contactPerson: '小川夏菜',
-    address: '大阪府枚方市',
-    phone: '072-0123-4567',
-    deliveryCondition: '24時間緊急対応可',
-    note: '医療機関',
-    updatedAt: new Date('2025-01-20'),
     isDeleted: false,
     deletedAt: null
   }
@@ -457,82 +262,99 @@ const DeleteConfirmModal = ({
   );
 };
 
-// 商品テーブル行コンポーネント
-const ProductRow = ({ 
-  orderDetail, 
-  index, 
-  onEdit
+// エラーモーダルコンポーネント
+const ErrorModal = ({ 
+  isOpen, 
+  onClose,
+  title,
+  message
 }: {
-  orderDetail: OrderDetailEdit;
-  index: number;
-  onEdit: (index: number, field: keyof OrderDetailEdit, value: string | number) => void;
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  message: string;
 }) => {
-  const handlePriceChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const numValue = parseJPYString(e.target.value);
-    onEdit(index, 'unitPrice', numValue);
-  }, [index, onEdit]);
-
-  const handleQuantityChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const quantity = parseInt(e.target.value) || 1;
-    onEdit(index, 'quantity', Math.max(1, quantity));
-  }, [index, onEdit]);
+  if (!isOpen) return null;
 
   return (
-    <tr className={index % 2 === 0 ? "bg-blue-100" : "bg-white"} style={{height: '42px'}}>
-      <td className="border border-black px-2 py-1">
-        <input 
-          type="text" 
-          className="w-full px-1 py-1 text-xs sm:text-sm"
-          value={orderDetail.productName}
-          onChange={(e) => onEdit(index, 'productName', e.target.value)}
-          placeholder="商品名を入力"
-        />
-      </td>
-      <td className="border border-black px-2 py-1">
-        <input 
-          type="number" 
-          className="w-full px-1 py-1 text-xs sm:text-sm text-right"
-          value={orderDetail.quantity}
-          min="1"
-          onChange={handleQuantityChange}
-        />
-      </td>
-      <td className="border border-black px-2 py-1">
-        <input 
-          type="text" 
-          className="w-full px-1 py-1 text-xs sm:text-sm text-right"
-          value={orderDetail.unitPrice === 0 ? '' : formatJPY(orderDetail.unitPrice)}
-          onChange={handlePriceChange}
-          placeholder="0"
-        />
-      </td>
-      <td className="border border-black px-2 py-1 text-center">
-        {orderDetail.deliveryStatus && (
-          <span
-            className={`rounded-full px-2 py-1 text-xs font-semibold ${
-              orderDetail.deliveryStatus === '完了'
-                ? 'bg-green-100 text-green-800'
-                : orderDetail.deliveryStatus === '一部納品'
-                ? 'bg-yellow-100 text-yellow-800'
-                : orderDetail.deliveryStatus === '未納品'
-                ? 'bg-red-100 text-red-800'
-                : ''
-            }`}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-brightness-50">
+      <div className="w-full max-w-sm scale-100 transform rounded-2xl bg-white shadow-xl transition-all duration-50">
+        <div className="p-6 text-center">
+          {/* エラーアイコン */}
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+            <svg
+              className="h-8 w-8 text-red-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </div>
+
+          <h3 className="mb-2 text-xl font-bold text-gray-900">{title}</h3>
+          <div className="mb-6 text-sm text-gray-600 whitespace-pre-line">{message}</div>
+
+          <button
+            onClick={onClose}
+            className="w-full rounded-lg bg-red-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-red-700"
           >
-            {orderDetail.deliveryStatus}
-          </span>
-        )}
-      </td>
-      <td className="border border-black px-2 py-1">
-        <input 
-          type="text" 
-          className="w-full px-1 py-1 text-xs sm:text-sm"
-          value={orderDetail.description || ''}
-          onChange={(e) => onEdit(index, 'description', e.target.value)}
-          placeholder="摘要を入力"
-        />
-      </td>
-    </tr>
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// 成功ポップアップコンポーネント
+const SuccessModal = ({ 
+  isOpen, 
+  onClose 
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-brightness-50">
+      <div className="w-full max-w-sm scale-100 transform rounded-2xl bg-white shadow-xl transition-all duration-50">
+        <div className="p-6 text-center">
+          {/* 成功アイコン */}
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+            <svg
+              className="h-8 w-8 text-green-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </div>
+
+          <h3 className="mb-2 text-xl font-bold text-gray-900">注文更新完了</h3>
+          <p className="mb-6 text-sm text-gray-600">注文が正常に更新されました。</p>
+
+          <button
+            onClick={onClose}
+            className="w-full rounded-lg bg-green-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-green-700"
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -593,44 +415,6 @@ const getDeliveryInfo = (orderDetailId: string, orderQuantity: number) => {
   }
 
   const seed = parseInt(orderDetailId.slice(-1)) || 0;
-  const deliveryCount = Math.floor(seed / 2) + 1;
-  const allocations = [];
-  let totalDelivered = 0;
-
-  const maxDeliverable = orderQuantity;
-
-  for (let i = 0; i < deliveryCount && totalDelivered < maxDeliverable; i++) {
-    const deliveryDate = new Date(2025, 0, 1 + i * 7);
-    const remaining = maxDeliverable - totalDelivered;
-    let allocatedQuantity;
-    
-    if (i === deliveryCount - 1) {
-      allocatedQuantity = remaining;
-    } else {
-      const ratio = 0.3 + (seed % 4) * 0.1;
-      allocatedQuantity = Math.min(Math.ceil(maxDeliverable * ratio), remaining);
-    }
-
-    if (allocatedQuantity > 0) {
-      const deliveryId = `D${String(seed + i + 1).padStart(6, '0')}`;
-      const deliveryDetailId = `${deliveryId}-${String(i + 1).padStart(2, '0')}`;
-      
-      allocations.push({
-        deliveryDetailId,
-        deliveryDate: deliveryDate.toISOString().split('T')[0],
-        allocatedQuantity,
-        deliveryId
-      });
-      totalDelivered += allocatedQuantity;
-    }
-  }
-
-  let status = '未納品';
-  if (totalDelivered >= orderQuantity) {
-    status = '完了';
-  } else if (totalDelivered > 0) {
-    status = '一部納品';
-  }
 
   if (seed % 4 === 0) {
     return { deliveryStatus: '未納品' };
@@ -638,7 +422,7 @@ const getDeliveryInfo = (orderDetailId: string, orderQuantity: number) => {
     return { deliveryStatus: '一部納品' };
   }
 
-  return { deliveryStatus: status };
+  return { deliveryStatus: '完了' };
 };
 
 // メインコンポーネント
@@ -655,6 +439,7 @@ export default function OrderEditPage() {
   const [showCustomerDropdown, setShowCustomerDropdown] = useState<boolean>(false);
   const [note, setNote] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
   
   // 削除モーダル関連の状態
   const [deleteModal, setDeleteModal] = useState<{
@@ -668,6 +453,17 @@ export default function OrderEditPage() {
     productName: '',
     description: ''
   });
+  
+  // エラーモーダル関連の状態
+  const [errorModal, setErrorModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    title: '',
+    message: ''
+  });
 
   // 既存注文データの読み込み
   const loadOrderData = useCallback(async () => {
@@ -678,56 +474,16 @@ export default function OrderEditPage() {
         { id: 'C-00002', name: '株式会社スマートソリューションズ', contactPerson: '佐藤次郎' },
         { id: 'C-00003', name: '株式会社SCC', contactPerson: '田中三郎' },
         { id: 'C-00004', name: '株式会社くら寿司', contactPerson: '鈴木四郎' },
-        { id: 'C-00005', name: '株式会社大阪テクノロジー', contactPerson: '伊藤五郎' },
-        { id: 'C-00006', name: '関西医科大学', contactPerson: '高橋六郎' },
-        { id: 'C-00007', name: 'グローバル貿易株式会社', contactPerson: '中村七海' },
-        { id: 'C-00008', name: '大阪市立図書館', contactPerson: '小林八雲' },
-        { id: 'C-00009', name: '近畿大学', contactPerson: '松本九十' },
-        { id: 'C-00010', name: '株式会社関西出版', contactPerson: '渡辺十郎' },
-        { id: 'C-00011', name: 'さくら幼稚園', contactPerson: '斎藤春子' },
-        { id: 'C-00012', name: '大阪府立高校', contactPerson: '加藤夏子' },
-        { id: 'C-00013', name: '株式会社大阪エンジニアリング', contactPerson: '山本秋雄' },
-        { id: 'C-00014', name: '関西料理学校', contactPerson: '木村冬彦' },
-        { id: 'C-00015', name: '大阪アート美術館', contactPerson: '井上春夫' },
-        { id: 'C-00016', name: '関西経済研究所', contactPerson: '佐々木夏子' },
-        { id: 'C-00017', name: '大阪音楽院', contactPerson: '山下秋男' },
-        { id: 'C-00018', name: '関西健康センター', contactPerson: '中島冬美' },
-        { id: 'C-00019', name: '大阪ITスクール', contactPerson: '田村春樹' },
-        { id: 'C-00020', name: '関西メディカルセンター', contactPerson: '小川夏菜' },
+        { id: 'C-00005', name: '株式会社大阪テクノロジー', contactPerson: '伊藤五郎' }
       ];
 
       // 商品データ
       const fallbackProducts = [
-        { name: '世界の名著シリーズ', price: 12000 },
-        { name: '現代文学全集', price: 15000 },
-        { name: 'プログラミング入門書', price: 5000 },
+        { name: 'IT情報コンサルメント', price: 3500 },
+        { name: 'プログラミング入門書', price: 2400 },
         { name: 'ビジネス戦略ガイド', price: 3000 },
         { name: '英語学習教材セット', price: 8500 },
-        { name: '日本の歴史図鑑', price: 5000 },
-        { name: '子供向け絵本セット', price: 3000 },
-        { name: 'デザイン年鑑', price: 8000 },
-        { name: '美術全集', price: 30000 },
-        { name: '専門用語辞典', price: 5000 },
-        { name: 'AI入門ガイド', price: 6500 },
-        { name: 'データサイエンス実践書', price: 7800 },
-        { name: '世界経済年鑑', price: 9200 },
-        { name: '健康医学事典', price: 11000 },
-        { name: '料理レシピ大全', price: 4500 },
-        { name: '建築デザイン集', price: 15800 },
-        { name: '写真集・日本の風景', price: 12500 },
-        { name: 'クラシック名曲解説', price: 6800 },
-        { name: '現代アート図録', price: 18000 },
-        { name: '日本文学選集', price: 9800 },
-        { name: '科学実験図鑑', price: 7200 },
-        { name: '世界遺産ガイド', price: 5600 },
-        { name: 'プログラミング言語辞典', price: 8900 },
-        { name: 'ビジネスマナー教本', price: 3200 },
-        { name: '子育てハンドブック', price: 4100 },
-        { name: '心理学入門', price: 5300 },
-        { name: '環境問題資料集', price: 6700 },
-        { name: '宇宙科学図鑑', price: 9500 },
-        { name: 'スポーツトレーニング指南', price: 4800 },
-        { name: '日本の伝統工芸', price: 11200 },
+        { name: 'デザイン年鑑', price: 8000 }
       ];
 
       // シード値を使った決定的な生成
@@ -738,7 +494,7 @@ export default function OrderEditPage() {
 
       const orderSeed = parseInt(orderId.replace(/\D/g, '')) || 1;
       const orderNumber = parseInt(orderId.replace(/^O0*/, '')) || 1;
-      const customerIndex = (orderNumber - 1) % 20;
+      const customerIndex = (orderNumber - 1) % 5;
       const selectedCustomerData = fallbackCustomers[customerIndex];
 
       // 顧客データを設定
@@ -768,7 +524,7 @@ export default function OrderEditPage() {
           id: orderDetailId,
           productName: product.name,
           unitPrice: product.price,
-          quantity: quantity,
+          quantity: i === 1 ? '' : quantity, // 最初の項目は数量を空にする
           description: `${customer.name}向け商品`,
           deliveryStatus: deliveryInfo.deliveryStatus
         });
@@ -778,7 +534,11 @@ export default function OrderEditPage() {
 
     } catch (error) {
       console.error('注文データの読み込みに失敗しました:', error);
-      alert('注文データの読み込みに失敗しました。');
+      setErrorModal({
+        isOpen: true,
+        title: 'データ読み込みエラー',
+        message: '注文データの読み込みに失敗しました。'
+      });
     }
   }, [orderId]);
 
@@ -799,18 +559,41 @@ export default function OrderEditPage() {
       (c.contactPerson || '').toLowerCase().includes(customerSearchTerm.toLowerCase())
     );
   }, [customerSearchTerm]);
+
+  // バリデーション状態の計算（メモ化）
+  const validationResult = useMemo(() => {
+    const orderDetailsForValidation = orderDetails.map(detail => ({
+      productName: detail.productName,
+      unitPrice: detail.unitPrice,
+      quantity: typeof detail.quantity === 'number' ? detail.quantity : 1,
+      description: detail.description || null
+    }));
+
+    const orderData: OrderUpdateData = {
+      orderDetails: orderDetailsForValidation,
+      orderDate,
+      customerId: selectedCustomer?.id || '',
+      note: note || null
+    };
+    
+    return validateOrderData(orderData);
+  }, [orderDetails, orderDate, selectedCustomer, note]);
   
   // 商品追加ハンドラー
   const handleAddOrderDetail = useCallback(() => {
     if (orderDetails.length >= MAX_PRODUCTS) {
-      alert(`商品は最大${MAX_PRODUCTS}個までです`);
+      setErrorModal({
+        isOpen: true,
+        title: '商品追加エラー',
+        message: `商品は最大${MAX_PRODUCTS}個までです`
+      });
       return;
     }
     
     const newOrderDetail: OrderDetailEdit = {
       id: generateTempOrderDetailId(orderDetails.length),
       productName: '',
-      quantity: 1,
+      quantity: '',
       unitPrice: 0,
       description: '',
       deliveryStatus: '' // 新規商品は納品状況なし
@@ -832,6 +615,15 @@ export default function OrderEditPage() {
 
   // 商品削除ハンドラー（モーダル表示）
   const handleDeleteOrderDetail = useCallback((index: number) => {
+    if (orderDetails.length <= 1) {
+      setErrorModal({
+        isOpen: true,
+        title: '削除エラー',
+        message: '商品は最低1つ必要です'
+      });
+      return;
+    }
+    
     const orderDetail = orderDetails[index];
     const productName = orderDetail?.productName || '';
     const description = orderDetail?.description || '';
@@ -868,6 +660,15 @@ export default function OrderEditPage() {
     });
   }, []);
 
+  // エラーモーダルを閉じるハンドラー
+  const handleCloseErrorModal = useCallback(() => {
+    setErrorModal({
+      isOpen: false,
+      title: '',
+      message: ''
+    });
+  }, []);
+
   // 顧客選択ハンドラー
   const handleSelectCustomer = useCallback((customer: Customer) => {
     setSelectedCustomer(customer);
@@ -887,7 +688,7 @@ export default function OrderEditPage() {
 
   // 注文更新ハンドラー
   const handleUpdateOrder = useCallback(async () => {
-    if (isSubmitting) return;
+    if (isSubmitting || !validationResult.isValid) return;
     
     setIsSubmitting(true);
     
@@ -896,7 +697,7 @@ export default function OrderEditPage() {
       const orderDetailsForUpdate = orderDetails.map(detail => ({
         productName: detail.productName,
         unitPrice: detail.unitPrice,
-        quantity: detail.quantity,
+        quantity: typeof detail.quantity === 'number' ? detail.quantity : 1,
         description: detail.description || null
       }));
 
@@ -907,31 +708,48 @@ export default function OrderEditPage() {
         note: note || null
       };
       
-      const validation = validateOrderData(orderData);
-      if (!validation.isValid) {
-        alert(validation.errors.join('\n'));
-        return;
-      }
-      
       // 実際のAPI呼び出しをここで行う
       // console.log('注文更新データ:', orderData);
       // console.log('選択された顧客:', selectedCustomer);
       
       // 成功時の処理
-      alert('注文を更新しました');
-      router.push('/Home/OrderList');
+      setShowSuccessModal(true);
       
-    } catch (error) {
-      console.error('注文の更新に失敗しました:', error);
-      alert('注文の更新に失敗しました。もう一度お試しください。');
+    } catch {
+      // エラーハンドリング
+      setErrorModal({
+        isOpen: true,
+        title: '注文更新エラー',
+        message: '注文の更新に失敗しました。もう一度お試しください。'
+      });
     } finally {
       setIsSubmitting(false);
     }
-  }, [orderDetails, orderDate, selectedCustomer, note, router, isSubmitting]);
+  }, [orderDetails, orderDate, selectedCustomer, note, isSubmitting, validationResult.isValid]);
+
+  // 成功モーダルを閉じる際の処理
+  const handleCloseSuccessModal = useCallback(() => {
+    setShowSuccessModal(false);
+    router.push('/Home/OrderList');
+  }, [router]);
+
+  // 無効な理由を表示するハンドラー
+  const handleShowValidationErrors = useCallback(() => {
+    if (!validationResult.isValid) {
+      setErrorModal({
+        isOpen: true,
+        title: '入力エラー',
+        message: validationResult.errors.join('\n')
+      });
+    }
+  }, [validationResult]);
 
   // 合計金額の計算（メモ化）
   const totalAmount = useMemo(() => {
-    return orderDetails.reduce((sum, detail) => sum + (detail.unitPrice * detail.quantity), 0);
+    return orderDetails.reduce((sum, detail) => {
+      const quantity = typeof detail.quantity === 'number' ? detail.quantity : 0;
+      return sum + (detail.unitPrice * quantity);
+    }, 0);
   }, [orderDetails]);
 
   return (
@@ -946,72 +764,137 @@ export default function OrderEditPage() {
         </p>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start lg:items-stretch">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
         {/* 商品選択エリア（左側） */}
         <div className="w-full lg:w-1/2">
           <div className="mb-4">
-            <div className="flex">
-              <div className="flex-1">
-                <div className="bg-blue-500 text-white p-2 font-semibold text-sm sm:text-base border-t border-l border-r border-black">
-                  商品情報
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[400px] border-collapse text-xs sm:text-sm border-l border-r border-b border-black">
-                    <thead>
-                      <tr style={{height: '41px'}}>
-                        <th className="border border-black px-2 py-1 bg-blue-500 text-white w-[25%]">
-                          <div className="flex items-center justify-center gap-2">
-                            商品名
-                            <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-md">必須</span>
-                          </div>
-                        </th>
-                        <th className="border border-black px-2 py-1 bg-blue-500 text-white w-[15%]">数量</th>
-                        <th className="border border-black px-2 py-1 bg-blue-500 text-white w-[15%]">単価</th>
-                        <th className="border border-black px-2 py-1 bg-blue-500 text-white w-[15%]">納品状況</th>
-                        <th className="border border-black px-2 py-1 bg-blue-500 text-white w-[30%]">
-                          <div className="flex items-center justify-center gap-2">
-                            摘要
-                            <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-md">必須</span>
-                          </div>
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {orderDetails.map((orderDetail, index) => (
-                        <ProductRow
-                          key={orderDetail.id}
-                          orderDetail={orderDetail}
-                          index={index}
-                          onEdit={handleEditOrderDetail}
+            <div className="bg-blue-500 text-white p-2 font-semibold text-sm sm:text-base border-t border-l border-r border-black">
+              商品情報
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[500px] border-collapse text-xs sm:text-sm border-l border-r border-b border-black">
+                <thead>
+                  <tr style={{height: '60px'}}>
+                    <th className="border border-black px-1 sm:px-2 py-2 bg-blue-500 text-white" style={{width: '25%'}}>
+                      <div className="flex items-center justify-center gap-1">
+                        <span className="text-xs sm:text-sm">商品名</span>
+                        <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-md">必須</span>
+                      </div>
+                    </th>
+                    <th className="border border-black px-1 sm:px-2 py-2 bg-blue-500 text-white" style={{width: '12%'}}>
+                      <span className="text-xs sm:text-sm">数量</span>
+                    </th>
+                    <th className="border border-black px-1 sm:px-2 py-2 bg-blue-500 text-white" style={{width: '15%'}}>
+                      <span className="text-xs sm:text-sm">単価</span>
+                    </th>
+                    <th className="border border-black px-1 sm:px-2 py-2 bg-blue-500 text-white" style={{width: '15%'}}>
+                      <span className="text-xs sm:text-sm">納品状況</span>
+                    </th>
+                    <th className="border border-black px-1 sm:px-2 py-2 bg-blue-500 text-white" style={{width: '23%'}}>
+                      <div className="flex items-center justify-center gap-1">
+                        <span className="text-xs sm:text-sm">摘要</span>
+                        <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-md">必須</span>
+                      </div>
+                    </th>
+                    <th className="border border-black px-1 sm:px-2 py-2 bg-blue-500 text-white" style={{width: '10%'}}>
+                      <span className="text-xs sm:text-sm">削除</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orderDetails.map((orderDetail, index) => (
+                    <tr key={orderDetail.id} className={index % 2 === 0 ? "bg-blue-100" : "bg-white"} style={{height: '42px'}}>
+                      <td className="border border-black px-1 sm:px-2 py-1">
+                        <input 
+                          type="text" 
+                          className="w-full px-1 py-1 text-xs sm:text-sm"
+                          value={orderDetail.productName}
+                          onChange={(e) => handleEditOrderDetail(index, 'productName', e.target.value)}
+                          placeholder="商品名を入力"
                         />
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              
-              {/* 削除ボタンエリア（テーブル右横） */}
-              <div className="flex flex-col w-16 ml-2">
-                {/* ヘッダーのスペーサー */}
-                <div style={{height: '74px'}}></div>
-                {orderDetails.map((orderDetail, index) => (
-                  <div 
-                    key={orderDetail.id} 
-                    className="flex items-center justify-center"
-                    style={{height: '42px'}}
-                  >
-                    <button 
-                      className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 text-xs rounded transition-colors duration-200 flex items-center justify-center"
-                      onClick={() => handleDeleteOrderDetail(index)}
-                      title="商品を削除"
-                    >
-                      {/* スマホ版は×アイコン、デスクトップ版は削除テキスト */}
-                      <span className="text-sm font-bold sm:hidden">×</span>
-                      <span className="hidden sm:inline">削除</span>
-                    </button>
-                  </div>
-                ))}
-              </div>
+                      </td>
+                      <td className="border border-black px-1 sm:px-2 py-1">
+                        <input 
+                          type="number" 
+                          className="w-full px-1 py-1 text-xs sm:text-sm text-right"
+                          value={orderDetail.quantity}
+                          min="1"
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === '') {
+                              handleEditOrderDetail(index, 'quantity', '');
+                            } else {
+                              const quantity = parseInt(value) || 1;
+                              handleEditOrderDetail(index, 'quantity', Math.max(1, quantity));
+                            }
+                          }}
+                          placeholder=""
+                        />
+                      </td>
+                      <td className="border border-black px-1 sm:px-2 py-1">
+                        <input 
+                          type="text" 
+                          className="w-full px-1 py-1 text-xs sm:text-sm text-right"
+                          value={orderDetail.unitPrice === 0 ? '' : formatJPY(orderDetail.unitPrice)}
+                          onChange={(e) => {
+                            const numValue = parseJPYString(e.target.value);
+                            handleEditOrderDetail(index, 'unitPrice', numValue);
+                          }}
+                          placeholder="0"
+                        />
+                      </td>
+                      <td className="border border-black px-1 sm:px-2 py-1 text-center">
+                        {orderDetail.deliveryStatus && (
+                          <span
+                            className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                              orderDetail.deliveryStatus === '完了'
+                                ? 'bg-green-100 text-green-800'
+                                : orderDetail.deliveryStatus === '一部納品'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : orderDetail.deliveryStatus === '未納品'
+                                ? 'bg-red-100 text-red-800'
+                                : ''
+                            }`}
+                          >
+                            {orderDetail.deliveryStatus}
+                          </span>
+                        )}
+                      </td>
+                      <td className="border border-black px-1 sm:px-2 py-1">
+                        <input 
+                          type="text" 
+                          className="w-full px-1 py-1 text-xs sm:text-sm"
+                          value={orderDetail.description || ''}
+                          onChange={(e) => handleEditOrderDetail(index, 'description', e.target.value)}
+                          placeholder="摘要を入力"
+                        />
+                      </td>
+                      <td className="border border-black px-1 sm:px-2 py-1 text-center">
+                        <button
+                          onClick={() => handleDeleteOrderDetail(index)}
+                          className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors duration-200"
+                          title="この行を削除"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H9a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
             
             {/* 追加ボタン */}
@@ -1026,12 +909,8 @@ export default function OrderEditPage() {
             </div>
             
             {/* 合計金額表示 */}
-            <div className="mt-2 font-semibold text-sm flex">
-              <div className="w-[25%]"></div> {/* 商品名列のスペース */}
-              <div className="w-[15%]"></div> {/* 数量列のスペース */}
-              <div className="w-[15%]"></div> {/* 単価列のスペース */}
-              <div className="w-[15%]"></div> {/* 納品状況列のスペース */}
-              <div className="w-[30%] text-right"> {/* 摘要列の位置・右寄せ */}
+            <div className="mt-2 font-semibold text-sm">
+              <div className="text-right">
                 合計金額: ¥{totalAmount.toLocaleString()}
               </div>
             </div>
@@ -1046,7 +925,7 @@ export default function OrderEditPage() {
         </div>
         
         {/* 注文情報エリア（右側） */}
-        <div className="w-full lg:w-1/2 max-w-md mx-auto lg:mx-0 lg:max-w-none">
+        <div className="w-full lg:w-1/2">
           <div className="flex flex-col gap-4">
             {/* 顧客情報 */}
             <div>
@@ -1054,10 +933,10 @@ export default function OrderEditPage() {
                 顧客情報
               </div>
               <div className="p-3 border-x border-b border-black">
-                <div className="flex items-center mb-2">
-                  <label className="text-xs sm:text-sm flex items-center mr-2 gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center mb-2 gap-2">
+                  <label className="text-xs sm:text-sm flex items-center gap-2 whitespace-nowrap">
                     顧客
-                    <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-md">必須</span>
+                    <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-md">必須</span>
                   </label>
                   <div className="flex-1 relative">
                     <div className="flex items-center">
@@ -1119,7 +998,7 @@ export default function OrderEditPage() {
               </div>
               <div className="p-3 border-x border-b border-black">
                 <textarea 
-                  className="w-full px-2 py-2 rounded text-xs sm:text-sm min-h-[120px] border border-black"
+                  className="w-full px-2 py-2 rounded text-xs sm:text-sm min-h-[100px] sm:min-h-[120px] border border-black"
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="備考を入力してください"
@@ -1133,8 +1012,12 @@ export default function OrderEditPage() {
       {/* 注文更新ボタン */}
       <div className="flex justify-center mt-6">
         <button 
-          className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg text-base shadow-lg border-2 border-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          onClick={handleUpdateOrder}
+          className={`font-bold py-3 px-6 sm:px-8 rounded-lg text-sm sm:text-base shadow-lg border-2 transition-all duration-200 ${
+            validationResult.isValid && !isSubmitting
+              ? 'bg-green-600 hover:bg-green-700 text-white border-green-700 cursor-pointer'
+              : 'bg-gray-400 text-gray-600 border-gray-500 cursor-not-allowed'
+          }`}
+          onClick={validationResult.isValid ? handleUpdateOrder : handleShowValidationErrors}
           disabled={isSubmitting}
         >
           {isSubmitting ? (
@@ -1144,7 +1027,7 @@ export default function OrderEditPage() {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 sm:h-5 w-4 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
               </svg>
               注文を更新
@@ -1153,6 +1036,27 @@ export default function OrderEditPage() {
         </button>
       </div>
       
+      {/* バリデーションエラー表示（モバイル用） */}
+      {!validationResult.isValid && (
+        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <div className="text-red-700 text-xs sm:text-sm font-semibold mb-2">以下の項目を確認してください：</div>
+          <ul className="text-red-600 text-xs space-y-1">
+            {validationResult.errors.map((error, index) => (
+              <li key={index} className="flex items-start">
+                <span className="mr-1">•</span>
+                <span>{error}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      
+      {/* 成功ポップアップ */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={handleCloseSuccessModal}
+      />
+      
       {/* 削除確認モーダル */}
       <DeleteConfirmModal
         isOpen={deleteModal.isOpen}
@@ -1160,6 +1064,14 @@ export default function OrderEditPage() {
         onConfirm={handleConfirmDelete}
         productName={deleteModal.productName}
         description={deleteModal.description}
+      />
+      
+      {/* エラーモーダル */}
+      <ErrorModal
+        isOpen={errorModal.isOpen}
+        onClose={handleCloseErrorModal}
+        title={errorModal.title}
+        message={errorModal.message}
       />
     </div>
   );
