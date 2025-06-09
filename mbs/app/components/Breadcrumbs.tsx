@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { ChevronRight } from 'lucide-react';
 
 const Breadcrumbs = ({ path }: { path: string }) => {
   // useParamsを使用して、URLパラメータを取得
@@ -28,15 +29,14 @@ const Breadcrumbs = ({ path }: { path: string }) => {
           return <span key={index}></span>;
         } else if (pathSegments.length > index + 1) {
           return (
-            <span key={index}>
+            <span key={index} className="flex items-center">
               <Link
-                key={index}
                 href={`/${pathSegments.slice(0, index + 1).join('/')}`}
                 className="text-blue-500 hover:underline"
               >
                 {pathname[segment]}
               </Link>
-              &nbsp;&gt;&nbsp;
+              <ChevronRight size={16} className="mx-2 text-gray-400" />
             </span>
           );
         } else {
