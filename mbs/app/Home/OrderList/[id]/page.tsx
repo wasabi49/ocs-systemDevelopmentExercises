@@ -334,7 +334,6 @@ const OrderDetailPage: React.FC = () => {
 
     // 実際の注文数量を基準に納品を生成
     const maxDeliverable = orderQuantity;
-    const avgPerDelivery = Math.ceil(maxDeliverable / deliveryCount);
 
     for (let i = 0; i < deliveryCount && totalDelivered < maxDeliverable; i++) {
       const deliveryDate = new Date(2025, 0, 1 + i * 7); // 7日間隔
