@@ -4,13 +4,15 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Home, Users, ShoppingCart, Truck, BarChart3, Store, Menu, X } from 'lucide-react';
+import { useStore } from '@/app/contexts/StoreContext';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const { selectedStore } = useStore();
 
   // 店舗選択画面かどうかを判定
-  const isStoreSelectionPage = pathname === '/';
+  const isStoreSelectionPage = pathname === '/stores' || pathname === '/';
 
   // モバイルメニューが開いているときのスクロール防止
   useEffect(() => {
@@ -40,20 +42,20 @@ const Header = () => {
     { href: '/Home/OrderList', label: '注文管理', icon: ShoppingCart },
     { href: '/Home/DeliveryList', label: '納品管理', icon: Truck },
     { href: '/Home/Statisticalinfo', label: '統計情報', icon: BarChart3 },
-    { href: '/', label: '店舗選択', icon: Store },
+    { href: '/stores', label: '店舗選択', icon: Store },
   ];
 
   // 店舗選択画面では一部のメニューを非表示にする
   const displayMenuItems = isStoreSelectionPage
-    ? menuItems.filter((item) => item.href === '/')
+    ? menuItems.filter((item) => item.href === '/stores')
     : menuItems;
 
   return (
     <header className="sticky top-0 z-50 bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600 shadow-lg">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          {/* ロゴ */}
-          <div className="flex items-center">
+          {/* ロゴと店舗表示 */}
+          <div className="flex items-center space-x-4">
             <Link
               href="/Home"
               className="group flex items-center space-x-2 text-white transition-all duration-200 hover:text-blue-100"
@@ -61,18 +63,24 @@ const Header = () => {
               <Home className="h-8 w-8 transition-transform group-hover:scale-110" />
               <span className="text-2xl font-bold tracking-tight">MBS</span>
             </Link>
+
+            {/* 選択中の店舗表示 */}
+            {selectedStore && !isStoreSelectionPage && (
+              <div className="hidden items-center space-x-2 rounded-lg bg-white/10 px-3 py-1 sm:flex">
+                <Store className="h-4 w-4 text-white" />
+                <span className="text-sm font-medium text-white">{selectedStore.name}</span>
+              </div>
+            )}
           </div>
 
           {/* ハンバーガーメニューボタン */}
-          {!isStoreSelectionPage && (
-            <button
-              className="rounded-lg p-2 text-white hover:bg-white/10 md:hidden"
-              onClick={() => setIsOpen(!isOpen)}
-              aria-label={isOpen ? 'メニューを閉じる' : 'メニューを開く'}
-            >
-              {isOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          )}
+          <button
+            className="rounded-lg p-2 text-white hover:bg-white/10 md:hidden"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label={isOpen ? 'メニューを閉じる' : 'メニューを開く'}
+          >
+            {isOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
 
           {/* デスクトップナビゲーション */}
           {!isStoreSelectionPage && (
