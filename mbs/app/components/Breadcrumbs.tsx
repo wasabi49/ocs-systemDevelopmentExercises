@@ -22,7 +22,7 @@ const Breadcrumbs = ({ path }: { path: string }) => {
   const pathSegments = path.split('/').filter((segment) => segment !== '');
 
   return (
-    <nav className="flex items-center space-x-2 px-2 text-sm md:text-base">
+    <nav className="flex items-center space-x-2 px-2 py-1 text-sm md:text-base">
       {pathSegments.map((segment: string, index: number) => {
         if (pathSegments.length === 1 || pathSegments.length === 0) {
           return <span key={index}></span>;

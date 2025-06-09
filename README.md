@@ -60,6 +60,7 @@ docker-compose exec mbs npx prisma generate
 - コンテナ起動: `docker-compose up -d`
 - コンテナ停止: `docker-compose down`
 - ログ確認: `docker-compose logs -f`
+- コンテナのBashを開く: `docker-compose exec <コンテナ名> bash`
 - マイグレーション実行: `docker-compose exec mbs npx prisma migrate dev --name <変更名>`
 - Prisma Studio (DB GUI): `docker-compose exec mbs npx prisma studio`
 
