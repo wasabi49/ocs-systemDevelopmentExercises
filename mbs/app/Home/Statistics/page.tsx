@@ -18,7 +18,7 @@ type SortOrder = 'asc' | 'desc';
 
 export default function StatisticalInfo() {
   // sortField, sortOrderのuseStateを追加
-  const [searchField, setSearchField] = useState<'すべて' | '顧客ID' | '顧客名' | '平均リードタイム'>('すべて');
+  const [searchField, setSearchField] = useState<'すべて' | '顧客ID' | '顧客名'>('すべて');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [orders, setOrders] = useState<List[]>(dummyOrders);
   const [sortField, setSortField] = useState<keyof List | null>(null);
@@ -114,14 +114,13 @@ export default function StatisticalInfo() {
         <select
           value={searchField}
           onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-            setSearchField(e.target.value as 'すべて' | '顧客ID' | '顧客名' | '平均リードタイム')
+            setSearchField(e.target.value as 'すべて' | '顧客ID' | '顧客名' )
           }
           className="border rounded p-2 text-black w-40"
         >
           <option value="すべて">すべて検索</option>
           <option value="顧客ID">顧客ID</option>
           <option value="顧客名">顧客名</option>
-          <option value="平均リードタイム">平均リードタイム</option>
         </select>
 
         <input
