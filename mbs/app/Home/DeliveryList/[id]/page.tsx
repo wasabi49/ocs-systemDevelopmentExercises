@@ -549,10 +549,8 @@ const OrderDetailPage: React.FC = () => {
                   </div>
                   <div className="flex">
                     <div className="w-2/5 bg-slate-100 p-3 font-medium text-gray-700">合計金額</div>
-                    <div className="w-3/5 p-3">
-                    <div className="w-3/5 p-3 font-mono break-all">
+                    <div className="w-2/5 p-3 font-mono break-all text-left">
                     {formatJPY(totalAmount)}
-                    </div>
                     </div>
                   </div>
                   <div className="flex">
@@ -578,7 +576,7 @@ const OrderDetailPage: React.FC = () => {
                   </div>
                   <div className="flex">
                     <div className="w-2/5 bg-slate-100 p-3 font-medium text-gray-700">名義</div>
-                    <div className="w-3/5 p-3 font-semibold break-all">
+                    <div className="w-3/5 p-3 font-mono break-all">
                       {orderData?.customer?.name || 'N/A'}
                     </div>
                   </div>
