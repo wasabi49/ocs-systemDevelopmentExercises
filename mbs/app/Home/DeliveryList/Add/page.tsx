@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import type { Customer } from '@/app/generated/prisma';
 
 // 納品作成時のデータ型定義（Prismaの型をベースに）
@@ -103,6 +103,32 @@ const DUMMY_CUSTOMERS: Customer[] = [
     deletedAt: null
   }
 ];
+
+// 顧客ごとの商品リスト（例）
+const customerProductsMap: Record<string, { id: string; name: string; quantity: number }[]> = {
+  'C-00001': [
+    { id: 'P-001', name: 'ノートパソコン', quantity: 12 },
+    { id: 'P-002', name: 'デスクトップPC', quantity: 8 },
+    { id: 'P-003', name: 'プリンター', quantity: 3 },
+  ],
+  'C-00002': [
+    { id: 'P-004', name: 'モニター', quantity: 25 },
+    { id: 'P-005', name: 'キーボード', quantity: 5 },
+    { id: 'P-006', name: 'マウス', quantity: 3 },
+  ],
+  'C-00003': [
+    { id: 'P-007', name: 'USBメモリ', quantity: 2 },
+    { id: 'P-008', name: '外付けハードディスク', quantity: 15 },
+  ],
+  'C-00004': [
+    { id: 'P-009', name: 'POSレジ', quantity: 4 },
+    { id: 'P-010', name: 'タブレット', quantity: 7 },
+  ],
+  'C-00005': [
+    { id: 'P-011', name: 'サーバー', quantity: 1 },
+    { id: 'P-012', name: 'ネットワーク機器', quantity: 10 },
+  ],
+};
 
 const formatDateForInput = (date: Date): string => {
   return date.toISOString().split('T')[0];
@@ -332,31 +358,55 @@ const generateTempOrderDetailId = (index: number): string => {
   return `TEMP-${String(index + 1).padStart(2, '0')}`;
 };
 
-// 商品リストのダミーデータ
-const dummyProducts = [
-  { id: 'P-001', name: 'ノートパソコン', quantity: 12 },
-  { id: 'P-002', name: 'デスクトップPC', quantity: 8 },
-  { id: 'P-003', name: 'プリンター', quantity: 3 },
-  { id: 'P-004', name: 'モニター', quantity: 25 },
-  { id: 'P-005', name: 'キーボード', quantity: 5 },
-  { id: 'P-006', name: 'マウス', quantity: 3 },
-  { id: 'P-007', name: 'USBメモリ', quantity: 2 },
-  { id: 'P-008', name: '外付けハードディスク', quantity: 15 },
-];
+// 数値フォーマットヘルパー
+const formatNumber = (num: number) => num.toLocaleString();
+const formatJPY = (amount: number): string => {
+  return new Intl.NumberFormat('ja-JP', {
+    style: 'currency',
+    currency: 'JPY',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
 
 // 商品リストポップアップコンポーネント
-const ProductListModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+const ProductListModal = ({ isOpen, onClose, products, router, pathname }: { isOpen: boolean; onClose: () => void; products: { id: string; name: string; quantity: number }[]; router: ReturnType<typeof useRouter>; pathname: string }) => {
+  const [checked, setChecked] = useState<boolean[]>([]);
+  const [added, setAdded] = useState(false);
+
+  useEffect(() => {
+    setChecked(Array(15).fill(false));
+    setAdded(false); // モーダルを開くたびにリセット
+  }, [isOpen, products]);
+
+  // 追加完了後に1秒後リロード
+  useEffect(() => {
+    if (added) {
+      const timer = setTimeout(() => {
+        router.replace('/Home/DeliveryList');
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [added, router]);
+
   if (!isOpen) return null;
   // 15行分の配列を作成
-  const displayedProducts = [...dummyProducts];
+  const displayedProducts = [...products];
   while (displayedProducts.length < 15) {
     displayedProducts.push({ id: '', name: '', quantity: 0 });
   }
+  const isAnyChecked = checked.some((v, idx) => displayedProducts[idx].id && v);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0, 0, 0, 0.6)' }}>
       <div
         className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-4 relative"
-        style={{ maxHeight: '80vh', minWidth: 600 }}
+        style={{
+          maxHeight: '80vh',
+          minWidth: 320,
+          width: '90vw',
+          maxWidth: '600px',
+        }}
       >
         <button
           className="absolute top-2 right-2 text-red-600 hover:text-red-800 text-3xl font-bold focus:outline-none"
@@ -368,38 +418,56 @@ const ProductListModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
         <h2 className="text-lg font-bold mb-4">商品リスト</h2>
         <div className="overflow-x-auto">
           <div style={{ maxHeight: '55vh', overflowY: 'auto' }}>
-            <table className="w-full min-w-[500px] border-collapse text-xs sm:text-sm border border-black">
-              <thead className="sticky top-0 z-10">
-                <tr style={{height: '48px'}}>
-                  <th className="border border-black px-2 py-2 bg-blue-500 text-white" style={{width: '10%'}}>選択</th>
-                  <th className="border border-black px-2 py-2 bg-blue-500 text-white" style={{width: '20%'}}>注文ID</th>
-                  <th className="border border-black px-2 py-2 bg-blue-500 text-white text-center" style={{width: '50%'}}>商品名</th>
-                  <th className="border border-black px-2 py-2 bg-blue-500 text-white" style={{width: '10%'}}>数量</th>
+            <table className="w-full min-w-[350px] border-collapse text-center text-xs sm:text-sm">
+              <thead className="bg-blue-300 sticky top-0 z-10">
+                <tr style={{height: '44px'}}>
+                  <th className="w-[12%] border border-gray-400 px-1 py-1 font-semibold sm:px-2 sm:py-2">選択</th>
+                  <th className="w-[18%] border border-gray-400 px-1 py-1 font-semibold sm:px-2 sm:py-2">注文ID</th>
+                  <th className="w-[50%] border border-gray-400 px-1 py-1 font-semibold sm:px-2 sm:py-2">商品名</th>
+                  <th className="w-[20%] border border-gray-400 px-1 py-1 font-semibold sm:px-2 sm:py-2">数量</th>
                 </tr>
               </thead>
-              <tbody style={{ height: 15 * 40 + 'px' }}>
+              <tbody>
                 {displayedProducts.map((p, idx) => (
-                  <tr key={idx} className={idx % 2 === 0 ? 'bg-blue-100' : 'bg-white'} style={{height: '40px'}}>
-                    <td className="border border-black px-2 py-1 text-center">
-                      {p.id && <input type="checkbox" />}
+                  <tr
+                    key={idx}
+                    className={`${idx % 2 === 0 ? 'bg-blue-50' : 'bg-white'} h-10 transition-colors hover:bg-blue-100 sm:h-12`}
+                  >
+                    <td className="border border-gray-400 px-1 py-1 text-center">
+                      {p.id && (
+                        <input
+                          type="checkbox"
+                          checked={checked[idx] || false}
+                          onChange={e => {
+                            const arr = [...checked];
+                            arr[idx] = e.target.checked;
+                            setChecked(arr);
+                          }}
+                        />
+                      )}
                     </td>
-                    <td className="border border-black px-2 py-1 text-center">{p.id}</td>
-                    <td className="border border-black px-2 py-1 text-left">{p.name}</td>
-                    <td className="border border-black px-2 py-1 text-center">{p.quantity !== 0 ? p.quantity : ''}</td>
+                    <td className="border border-gray-400 px-1 py-1 text-center font-mono text-xs sm:px-2 sm:py-2">{p.id}</td>
+                    <td className="border border-gray-400 px-1 py-1 text-left sm:px-2 sm:py-2">{p.name}</td>
+                    <td className="border border-gray-400 px-1 py-1 text-center font-medium sm:px-2 sm:py-2">{p.quantity > 0 ? formatNumber(p.quantity) : ''}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         </div>
-        {/* 追加ボタン */}
-        <div className="flex justify-center mt-4">
+        {/* 追加ボタンと追加完了メッセージ */}
+        <div className="flex flex-col items-center mt-4 gap-2">
           <button
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow border border-blue-700 text-sm" 
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow border border-blue-700 text-sm disabled:bg-gray-300 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed"
             type="button"
+            disabled={!isAnyChecked}
+            onClick={() => setAdded(true)}
           >
             追加
           </button>
+          {added && (
+            <div className="text-green-600 font-bold text-sm mt-2">追加完了</div>
+          )}
         </div>
       </div>
     </div>
@@ -409,6 +477,7 @@ const ProductListModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
 // メインコンポーネント
 export default function OrderCreatePage() {
   const router = useRouter();
+  const pathname = usePathname();
 
   // 商品リストポップアップ用の状態
   const [showProductListModal, setShowProductListModal] = useState(false);
@@ -623,6 +692,14 @@ export default function OrderCreatePage() {
     }
   }, [validationResult]);
 
+  // 選択中の顧客に応じた商品リストを取得
+  const customerProducts = useMemo(() => {
+    if (selectedCustomer && customerProductsMap[selectedCustomer.id]) {
+      return customerProductsMap[selectedCustomer.id];
+    }
+    return [];
+  }, [selectedCustomer]);
+
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 max-w-xl">
@@ -762,7 +839,7 @@ export default function OrderCreatePage() {
           />
           
           {/* 商品リストポップアップ */}
-          <ProductListModal isOpen={showProductListModal} onClose={() => setShowProductListModal(false)} />
+          <ProductListModal isOpen={showProductListModal} onClose={() => setShowProductListModal(false)} products={customerProducts} router={router} pathname={pathname} />
         </div>
       </div>
     </div>
