@@ -416,17 +416,6 @@ const OrderDetailPage: React.FC = () => {
     alert('PDFを出力しています（デモのため実際の出力は行われていません）');
   };
 
-  // 行の展開/折りたたみハンドラー
-  const toggleRowExpansion = (orderDetailId: string) => {
-    const newExpanded = new Set(expandedRows);
-    if (newExpanded.has(orderDetailId)) {
-      newExpanded.delete(orderDetailId);
-    } else {
-      newExpanded.add(orderDetailId);
-    }
-    setExpandedRows(newExpanded);
-  };
-
   return (
     <>
       <div
