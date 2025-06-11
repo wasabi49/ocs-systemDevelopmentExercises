@@ -3,7 +3,7 @@ import { getAllStores } from '@/app/actions/storeActions';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: '店舗選択 | 受注管理システム',
+  title: '店舗選択 | 書店管理システム',
   description: 'ご利用する店舗を選択してください',
 };
 
