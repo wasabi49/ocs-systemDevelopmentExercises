@@ -1,6 +1,7 @@
 'use server';
 
 import prisma from '@/lib/prisma';
+import { getStoreIdFromCookie } from '@/app/utils/storeUtils';
 import { Delivery, Customer } from '@/app/generated/prisma';
 
 type DeliveryWithCustomer = Delivery & { customer: Customer };
@@ -11,20 +12,42 @@ type DeliveryWithCustomer = Delivery & { customer: Customer };
  */
 export async function fetchDeliveries() {
   try {
-    // Prismaを使って納品データを取得（顧客情報を含む）
+    const storeId = await getStoreIdFromCookie();
+
+    if (!storeId) {
+      return {
+        status: 'store_required' as const,
+        error: '店舗を選択してください',
+      };
+    }
+
+    const storeExists = await prisma.store.findUnique({
+      where: { id: storeId },
+      select: { id: true },
+    });
+
+    if (!storeExists) {
+      return {
+        status: 'store_invalid' as const,
+        error: '指定された店舗が見つかりません',
+      };
+    }
+
     const deliveries = await prisma.delivery.findMany({
       where: {
-        isDeleted: false, // 削除されていないデータのみ
+        isDeleted: false,
+        customer: {
+          storeId: storeId,
+        },
       },
       include: {
-        customer: true, // 顧客情報を含める
+        customer: true,
       },
       orderBy: {
-        id: 'asc', // IDで昇順ソート
+        id: 'asc',
       },
     });
 
-    // 取得データをフロントエンド用にシリアライズ
     return {
       status: 'success' as const,
       data: deliveries.map((delivery: DeliveryWithCustomer) => ({
@@ -53,7 +76,7 @@ export async function fetchDeliveryById(id: string) {
     const delivery = await prisma.delivery.findUnique({
       where: {
         id: id,
-        isDeleted: false, // 削除されていないデータのみ
+        isDeleted: false,
       },
       include: {
         customer: true, // 顧客情報を含める

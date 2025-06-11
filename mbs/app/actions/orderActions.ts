@@ -1,6 +1,7 @@
 'use server';
 
 import prisma from '@/lib/prisma';
+import { getStoreIdFromCookie } from '@/app/utils/storeUtils';
 import { Order, Customer } from '@/app/generated/prisma';
 
 type OrderWithCustomer = Order & { customer: Customer };
@@ -11,20 +12,42 @@ type OrderWithCustomer = Order & { customer: Customer };
  */
 export async function fetchOrders() {
   try {
-    // Prismaを使って注文データを取得（顧客情報を含む）
+    const storeId = await getStoreIdFromCookie();
+
+    if (!storeId) {
+      return {
+        status: 'store_required' as const,
+        error: '店舗を選択してください',
+      };
+    }
+
+    const storeExists = await prisma.store.findUnique({
+      where: { id: storeId },
+      select: { id: true },
+    });
+
+    if (!storeExists) {
+      return {
+        status: 'store_invalid' as const,
+        error: '指定された店舗が見つかりません',
+      };
+    }
+
     const orders = await prisma.order.findMany({
       where: {
-        isDeleted: false, // 削除されていないデータのみ
+        isDeleted: false,
+        customer: {
+          storeId: storeId,
+        },
       },
       include: {
-        customer: true, // 顧客情報を含める
+        customer: true,
       },
       orderBy: {
-        id: 'asc', // IDで昇順ソート
+        id: 'asc',
       },
     });
 
-    // 取得データをフロントエンド用にシリアライズ
     return {
       status: 'success' as const,
       data: orders.map((order: OrderWithCustomer) => ({
@@ -58,10 +81,10 @@ export async function fetchOrderById(id: string) {
     const order = await prisma.order.findUnique({
       where: {
         id: id,
-        isDeleted: false, // 削除されていないデータのみ
+        isDeleted: false,
       },
       include: {
-        customer: true, // 顧客情報を含める
+        customer: true,
       },
     });
 
@@ -72,7 +95,6 @@ export async function fetchOrderById(id: string) {
       };
     }
 
-    // 取得データをフロントエンド用にシリアライズ
     return {
       success: true,
       order: {
@@ -92,6 +114,30 @@ export async function fetchOrderById(id: string) {
     return {
       success: false,
       error: '注文データの取得に失敗しました',
+    };
+  }
+}
+
+/**
+ * useActionState用の注文一覧データ取得アクション
+ * @returns 注文データの状態
+ */
+export async function fetchOrdersAction() {
+  try {
+    // 既存のfetchOrders関数を使用
+    const result = await fetchOrders();
+
+    return {
+      loading: false,
+      error: result.status === 'error' ? result.error : null,
+      data: result.status === 'success' ? result.data : [],
+    };
+  } catch (error) {
+    console.error('注文データの取得に失敗しました:', error);
+    return {
+      loading: false,
+      error: '注文データの取得中にエラーが発生しました',
+      data: [],
     };
   }
 }

@@ -1,28 +1,35 @@
 'use server';
 
 import prisma from '@/lib/prisma';
+import { getStoreIdFromCookie } from '@/app/utils/storeUtils';
 
-/**
- * 顧客一覧データを取得するServer Action
- * @param storeId 店舗ID（指定されている場合は該当店舗の顧客のみ取得）
- * @returns 顧客データの配列
- */
-export async function fetchCustomers(storeId?: string) {
+export async function fetchCustomers() {
   try {
-    // 条件を設定
-    const whereCondition: {
-      isDeleted: boolean;
-      storeId?: string;
-    } = {
-      isDeleted: false, // 削除されていないデータのみ
-    };
-
-    // 店舗IDが指定されている場合は追加
-    if (storeId) {
-      whereCondition.storeId = storeId;
+    const storeId = await getStoreIdFromCookie();
+    if (!storeId) {
+      return {
+        status: 'store_required' as const,
+        error: '店舗を選択してください',
+      };
     }
 
-    // Prismaを使って顧客データを取得
+    const storeExists = await prisma.store.findUnique({
+      where: { id: storeId },
+      select: { id: true },
+    });
+
+    if (!storeExists) {
+      return {
+        status: 'store_invalid' as const,
+        error: '指定された店舗が見つかりません',
+      };
+    }
+
+    const whereCondition = {
+      isDeleted: false,
+      storeId: storeId,
+    };
+
     const customers = await prisma.customer.findMany({
       where: whereCondition,
       include: {
@@ -33,11 +40,9 @@ export async function fetchCustomers(storeId?: string) {
         },
       },
       orderBy: {
-        id: 'asc', // IDで昇順ソート
+        id: 'asc',
       },
     });
-
-    // 取得データをフロントエンド用にシリアライズ
     return {
       status: 'success' as const,
       data: customers.map((customer) => ({
@@ -66,7 +71,7 @@ export async function fetchCustomerById(id: string) {
     const customer = await prisma.customer.findUnique({
       where: {
         id: id,
-        isDeleted: false, // 削除されていないデータのみ
+        isDeleted: false,
       },
     });
 
@@ -77,7 +82,6 @@ export async function fetchCustomerById(id: string) {
       };
     }
 
-    // 取得データをフロントエンド用にシリアライズ
     return {
       status: 'success' as const,
       data: {
@@ -103,10 +107,28 @@ export async function fetchCustomerById(id: string) {
  */
 export async function importCustomersFromCSV(csvData: string[][], storeId?: string) {
   try {
-    // ヘッダー行をスキップし、データ行のみを処理
+    if (!storeId) {
+      return {
+        status: 'store_required' as const,
+        error: '店舗を選択してください',
+      };
+    }
+
+    const storeExists = await prisma.store.findUnique({
+      where: { id: storeId },
+      select: { id: true },
+    });
+
+    if (!storeExists) {
+      return {
+        status: 'store_invalid' as const,
+        error: '指定された店舗が見つかりません',
+      };
+    }
+
     const dataRows = csvData.slice(1);
     const validRows = dataRows.filter(
-      (row) => row.length >= 3 && row[0] && row[1], // ID、顧客名は必須
+      (row) => row.length >= 3 && row[0] && row[1],
     );
 
     if (validRows.length === 0) {
@@ -116,32 +138,17 @@ export async function importCustomersFromCSV(csvData: string[][], storeId?: stri
       };
     }
 
-    // 店舗IDの決定（指定されている場合はそれを使用、されていない場合はデフォルトの店舗を取得）
-    let targetStoreId = storeId;
-    if (!targetStoreId) {
-      const defaultStore = await prisma.store.findFirst();
-      if (!defaultStore) {
-        return {
-          status: 'error' as const,
-          error: '店舗データが見つかりません',
-        };
-      }
-      targetStoreId = defaultStore.id;
-    }
-
-    // 重複チェック用に既存の顧客IDを取得
     const existingIds = await prisma.customer.findMany({
       select: { id: true },
       where: { isDeleted: false },
     });
     const existingIdSet = new Set(existingIds.map((c) => c.id));
 
-    // 新規データのみをフィルタリング
     const newCustomers = validRows
       .filter((row) => !existingIdSet.has(row[0]))
       .map((row) => ({
         id: row[0],
-        storeId: targetStoreId,
+        storeId: storeId,
         name: row[1],
         contactPerson: row[2] || null,
         address: row[3] || null,
@@ -157,7 +164,6 @@ export async function importCustomersFromCSV(csvData: string[][], storeId?: stri
       };
     }
 
-    // 一括作成
     const result = await prisma.customer.createMany({
       data: newCustomers,
       skipDuplicates: true,
@@ -175,6 +181,31 @@ export async function importCustomersFromCSV(csvData: string[][], storeId?: stri
     return {
       status: 'error' as const,
       error: 'データのインポートに失敗しました',
+    };
+  }
+}
+
+/**
+ * useActionState用の顧客一覧データ取得アクション
+ * @returns 顧客データの状態
+ */
+export async function fetchCustomersAction() {
+  try {
+    const result = await fetchCustomers();
+
+    return {
+      loading: false,
+      error: result.status !== 'success' ? result.error : null,
+      data: result.status === 'success' ? result.data : [],
+      needsStoreSelection: result.status === 'store_required' || result.status === 'store_invalid',
+    };
+  } catch (error) {
+    console.error('顧客データの取得に失敗しました:', error);
+    return {
+      loading: false,
+      error: '顧客データの取得中にエラーが発生しました',
+      data: [],
+      needsStoreSelection: false,
     };
   }
 }
