@@ -491,7 +491,7 @@ export default function OrderCreatePage() {
   const [customerSearchTerm, setCustomerSearchTerm] = useState<string>('');
   const [showCustomerDropdown, setShowCustomerDropdown] = useState<boolean>(false);
   const [note, setNote] = useState<string>('');
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [] = useState<boolean>(false);
   const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
   
   // 削除モーダル関連の状態
