@@ -385,7 +385,11 @@ const ProductListModal = ({ isOpen, onClose, products, router}: { isOpen: boolea
   const isAnyChecked = checked.some((v, idx) => displayedProducts[idx].id && v);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0, 0, 0, 0.6)' }}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ background: 'rgba(0, 0, 0, 0.6)' }}
+      onClick={onClose}
+    >
       <div
         className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-4 relative"
         style={{
@@ -394,6 +398,7 @@ const ProductListModal = ({ isOpen, onClose, products, router}: { isOpen: boolea
           width: '90vw',
           maxWidth: '600px',
         }}
+        onClick={e => e.stopPropagation()}
       >
         <button
           className="absolute top-2 right-2 text-red-600 hover:text-red-800 text-3xl font-bold focus:outline-none"
@@ -435,7 +440,25 @@ const ProductListModal = ({ isOpen, onClose, products, router}: { isOpen: boolea
                     </td>
                     <td className="border border-gray-400 px-1 py-1 text-center font-mono text-xs sm:px-2 sm:py-2">{p.id}</td>
                     <td className="border border-gray-400 px-1 py-1 text-left sm:px-2 sm:py-2">{p.name}</td>
-                    <td className="border border-gray-400 px-1 py-1 text-center font-medium sm:px-2 sm:py-2">{p.quantity > 0 ? formatNumber(p.quantity) : ''}</td>
+                    <td className="border border-gray-400 px-1 py-1 text-center font-medium sm:px-2 sm:py-2">
+                      {p.id ? (
+                        <select
+                          className="border rounded px-1 py-0.5 text-xs sm:text-sm"
+                          value={p.quantity ?? p.quantity}
+                          onChange={e => {
+                            const value = Number(e.target.value);
+                            const arr = [...checked];
+                            arr[idx] = true;
+                            setChecked(arr);
+                            p.quantity = value;
+                          }}
+                        >
+                          {Array.from({ length: p.quantity }, (_, i) => (
+                            <option key={i + 1} value={i + 1}>{i + 1}</option>
+                          ))}
+                        </select>
+                      ) : ''}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -700,19 +723,9 @@ export default function OrderCreatePage() {
             </div>
           </div>
           
-          {/* 商品リストへボタン */}
-          <div className="flex justify-center mt-6">
-            <button
-              className="font-bold py-3 px-6 sm:px-8 rounded-lg text-sm sm:text-base shadow-lg border-2 transition-all duration-200 bg-blue-600 hover:bg-blue-700 text-white border-blue-700 cursor-pointer disabled:bg-gray-400 disabled:text-gray-600 disabled:border-gray-500 disabled:cursor-not-allowed"
-              onClick={() => setShowProductListModal(true)}
-              type="button"
-              disabled={!selectedCustomer}
-            >
-              商品リストへ
-            </button>
-          </div>
-          
-          {/* バリデーションエラー表示（モバイル用） */}
+          {/* 商品リストへボタンと注意文言 */}
+          <div className="flex justify-center items-center mt-6 gap-2">
+            {/* バリデーションエラー表示（モバイル用） */}
           {!validationResult.isValid && (
             <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
               <div className="text-red-700 text-xs sm:text-sm font-semibold mb-2">以下の項目を確認してください：</div>
@@ -726,7 +739,15 @@ export default function OrderCreatePage() {
               </ul>
             </div>
           )}
-          
+            <button
+              className="font-bold py-3 px-6 sm:px-8 rounded-lg text-sm sm:text-base shadow-lg border-2 transition-all duration-200 bg-blue-600 hover:bg-blue-700 text-white border-blue-700 cursor-pointer disabled:bg-gray-400 disabled:text-gray-600 disabled:border-gray-500 disabled:cursor-not-allowed"
+              onClick={() => setShowProductListModal(true)}
+              type="button"
+              disabled={!selectedCustomer}
+            >
+              商品リストへ
+            </button>
+          </div>
           {/* 成功ポップアップ */}
           <SuccessModal
             isOpen={showSuccessModal}
