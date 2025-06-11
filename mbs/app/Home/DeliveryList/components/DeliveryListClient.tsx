@@ -1,10 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 import { SortConfig, sortItems } from '@/app/utils/sortUtils';
-import Search from '../../../components/Search';
+import Search from '@/app/components/Search';
 import Pagination from '@/app/components/Pagination';
 import DeliveryTable, { Delivery } from '../DeliveryTable';
+
+// Delivery型を再エクスポート
+export type { Delivery };
 
 interface DeliveryListClientProps {
   initialDeliveries: Delivery[];
@@ -71,9 +75,15 @@ const DeliveryListClient: React.FC<DeliveryListClientProps> = ({ initialDeliveri
     const isActive = sortConfig?.key === field;
     const direction = sortConfig?.direction;
     return (
-      <span className="ml-1 text-xs">
-        <span className={isActive && direction === 'asc' ? 'font-bold' : 'text-gray-400'}>▲</span>
-        <span className={isActive && direction === 'desc' ? 'font-bold' : 'text-gray-400'}>▼</span>
+      <span className="ml-1 inline-flex flex-col">
+        <ChevronUp
+          size={12}
+          className={isActive && direction === 'asc' ? 'text-gray-800' : 'text-gray-400'}
+        />
+        <ChevronDown
+          size={12}
+          className={isActive && direction === 'desc' ? 'text-gray-800' : 'text-gray-400'}
+        />
       </span>
     );
   };
@@ -91,7 +101,7 @@ const DeliveryListClient: React.FC<DeliveryListClientProps> = ({ initialDeliveri
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-screen-xl flex-col items-center p-2 sm:p-4 lg:p-6">
+    <div className="mx-auto flex min-h-142 max-w-screen-xl flex-col items-center p-2 sm:p-4 lg:p-5">
       {/* 検索・フィルター エリア */}
       <Search
         keyword={searchKeyword}
