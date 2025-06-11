@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Order } from '@/app/generated/prisma';
-import Search from '../../../components/Search';
+import Search from '@/app/components/Search';
 import Pagination from '@/app/components/Pagination';
 import { SortConfig, SortIcon, sortItems } from '@/app/utils/sortUtils';
 
@@ -131,7 +131,7 @@ const OrderListClient: React.FC<OrderListClientProps> = ({ initialOrders }) => {
   };
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-screen-xl flex-col items-center p-2 sm:p-4 lg:p-6">
+    <div className="mx-auto flex min-h-142 max-w-screen-xl flex-col items-center p-2 sm:p-4 lg:p-5">
       {/* 検索・フィルター エリア */}
       <Search
         keyword={searchKeyword}
@@ -157,28 +157,30 @@ const OrderListClient: React.FC<OrderListClientProps> = ({ initialOrders }) => {
           <thead className="bg-blue-300">
             <tr>
               <th
-                className="w-[15%] cursor-pointer truncate border px-2 py-2 transition-colors hover:bg-blue-400 sm:w-[12%] sm:px-3 sm:py-3"
+                className="w-[15%] cursor-pointer truncate border px-1 py-0.5 text-[10px] transition-colors hover:bg-blue-400 sm:w-[12%] sm:px-2 sm:py-1 sm:text-xs md:px-3 md:py-2 md:text-sm"
                 onClick={() => handleSort('id')}
               >
                 <div className="flex items-center justify-center">注文ID{renderSortIcon('id')}</div>
               </th>
               <th
-                className="w-[15%] cursor-pointer truncate border px-2 py-2 transition-colors hover:bg-blue-400 sm:w-[12%] sm:px-3 sm:py-3"
+                className="w-[15%] cursor-pointer truncate border px-1 py-0.5 text-[10px] transition-colors hover:bg-blue-400 sm:w-[12%] sm:px-2 sm:py-1 sm:text-xs md:px-3 md:py-2 md:text-sm"
                 onClick={() => handleSort('orderDate')}
               >
                 <div className="flex items-center justify-center">
                   注文日{renderSortIcon('orderDate')}
                 </div>
               </th>
-              <th className="w-[25%] truncate border px-2 py-2 sm:w-[30%] sm:px-3 sm:py-3">
+              <th className="w-[25%] truncate border px-1 py-0.5 text-[10px] sm:w-[30%] sm:px-2 sm:py-1 sm:text-xs md:px-3 md:py-2 md:text-sm">
                 顧客名
               </th>
-              <th className="w-[25%] truncate border px-2 py-2 sm:w-[30%] sm:px-3 sm:py-3">備考</th>
-              <th className="w-[15%] truncate border px-2 py-2 sm:w-[12%] sm:px-3 sm:py-3">
+              <th className="w-[25%] truncate border px-1 py-0.5 text-[10px] sm:w-[30%] sm:px-2 sm:py-1 sm:text-xs md:px-3 md:py-2 md:text-sm">
+                備考
+              </th>
+              <th className="w-[15%] truncate border px-1 py-0.5 text-[10px] sm:w-[12%] sm:px-2 sm:py-1 sm:text-xs md:px-3 md:py-2 md:text-sm">
                 <select
                   value={statusFilter}
                   onChange={handleStatusFilterChange}
-                  className="w-full border-none bg-transparent text-center text-xs transition-colors duration-200 outline-none hover:bg-blue-200 sm:text-sm"
+                  className="w-full border-none bg-transparent text-center text-[10px] transition-colors duration-200 outline-none hover:bg-blue-200 sm:text-xs md:text-sm"
                 >
                   <option value="">状態</option>
                   <option value="完了">完了</option>
@@ -193,7 +195,7 @@ const OrderListClient: React.FC<OrderListClientProps> = ({ initialOrders }) => {
                 key={order.id || `empty-${index}`}
                 className={`${
                   index % 2 === 0 ? 'bg-blue-100' : 'bg-white'
-                } h-10 transition-colors hover:bg-blue-200 sm:h-12`}
+                } h-6 transition-colors hover:bg-blue-200 sm:h-8 md:h-10`}
               >
                 <td className="truncate border px-2 py-1 sm:px-3 sm:py-2">
                   {order.id ? (
