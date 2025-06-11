@@ -1,5 +1,6 @@
 import Link from 'next/link';
-export const Home = () => {
+
+export default function HomePage() {
   const buttons = [
     { label: '顧客情報一覧', path: '/Home/CustomerList' },
     { label: '注文一覧', path: '/Home/OrderList' },
@@ -8,13 +9,13 @@ export const Home = () => {
   ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center  p-4">
-      <div className="w-full max-w-screen-lg grid grid-cols-1 sm:grid-cols-2 sm:gap-15 gap-6">
+    <div className="flex min-h-142 items-center justify-center p-4">
+      <div className="grid w-full max-w-screen-lg grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-15">
         {buttons.map((btn, idx) => (
           <Link
             key={idx}
             href={btn.path}
-            className="w-full sm:h-40  h-24 border border-black text-2xl bg-white hover:bg-gray-200 transition flex items-center justify-center"
+            className="flex h-24 w-full items-center justify-center border border-black bg-white text-2xl transition hover:bg-gray-200 sm:h-40"
           >
             {btn.label}
           </Link>
@@ -22,7 +23,4 @@ export const Home = () => {
       </div>
     </div>
   );
-};
-
-
-export default Home;
+}
