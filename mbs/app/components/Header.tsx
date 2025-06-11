@@ -124,6 +124,17 @@ const Header = () => {
             </button>
           </div>
 
+          {/* 選択中の店舗表示（モバイル） */}
+          {selectedStore && !isStoreSelectionPage && (
+            <div className="border-b border-gray-200 px-6 py-4">
+              <div className="flex items-center space-x-2">
+                <Store className="h-4 w-4 text-blue-600" />
+                <span className="text-sm font-medium text-gray-700">選択中の店舗</span>
+              </div>
+              <p className="mt-1 text-sm font-semibold text-blue-600">{selectedStore.name}</p>
+            </div>
+          )}
+
           {/* メニューアイテム */}
           <nav className="flex-1 px-4 py-6">
             <ul className="space-y-3">
