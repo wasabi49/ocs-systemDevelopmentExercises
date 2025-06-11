@@ -7,6 +7,12 @@ export interface Store {
   name: string;
 }
 
+export interface StoreActionState {
+  stores: Store[];
+  error: string | null;
+  isLoading: boolean;
+}
+
 /**
  * 全店舗データを取得
  */
@@ -26,6 +32,31 @@ export async function getAllStores(): Promise<Store[]> {
   } catch (error) {
     console.error('Failed to fetch stores:', error);
     throw new Error('店舗データの取得に失敗しました');
+  }
+}
+
+/**
+ * useActionState用の店舗データ取得アクション
+ */
+export async function fetchStoresAction(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _prevState: StoreActionState,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _formData?: FormData,
+): Promise<StoreActionState> {
+  try {
+    const stores = await getAllStores();
+    return {
+      stores,
+      error: null,
+      isLoading: false,
+    };
+  } catch (error) {
+    return {
+      stores: [],
+      error: error instanceof Error ? error.message : '店舗データの取得に失敗しました',
+      isLoading: false,
+    };
   }
 }
 

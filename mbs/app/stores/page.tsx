@@ -1,4 +1,5 @@
 import StoreSelection from '@/app/components/StoreSelection';
+import { getAllStores } from '@/app/actions/storeActions';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -6,6 +7,12 @@ export const metadata: Metadata = {
   description: 'ご利用する店舗を選択してください',
 };
 
-export default function StoreSelectionPage() {
-  return <StoreSelection />;
+export default async function StoreSelectionPage() {
+  try {
+    const initialStores = await getAllStores();
+    return <StoreSelection initialStores={initialStores} />;
+  } catch (error) {
+    console.error('Failed to load stores:', error);
+    return <StoreSelection initialStores={[]} initialError="店舗データの取得に失敗しました。" />;
+  }
 }

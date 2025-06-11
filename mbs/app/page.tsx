@@ -1,15 +1,15 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/app/contexts/StoreContext';
+import { useEffect } from 'react';
 
 export default function HomePage() {
   const router = useRouter();
   const { selectedStore } = useStore();
 
+  // useEffectを使ってリダイレクト処理を実行
   useEffect(() => {
-    // 店舗が選択されている場合はホーム画面へ、そうでなければ店舗選択画面へ
     if (selectedStore) {
       router.push('/Home');
     } else {

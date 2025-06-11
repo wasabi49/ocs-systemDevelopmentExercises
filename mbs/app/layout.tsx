@@ -1,11 +1,10 @@
-'use client';
-
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import Header from './components/Header';
 import Breadcrumbs from './components/Breadcrumbs';
-import { usePathname } from 'next/navigation';
+import StoreGuard from './components/StoreGuard';
 import { StoreProvider } from './contexts/StoreContext';
+import { getStoreFromCookie } from './utils/storeUtils';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -17,18 +16,23 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // サーバーサイドで店舗情報を取得
+  const initialStore = await getStoreFromCookie();
+
   return (
     <html lang="ja">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <StoreProvider>
-          <Header />
-          <Breadcrumbs path={usePathname()} />
-          {children}
+        <StoreProvider initialStore={initialStore}>
+          <StoreGuard>
+            <Header />
+            <Breadcrumbs />
+            {children}
+          </StoreGuard>
         </StoreProvider>
       </body>
     </html>

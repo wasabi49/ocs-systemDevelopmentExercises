@@ -1,6 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { setCookie, deleteCookie } from 'cookies-next';
 
 export interface Store {
   id: string;
@@ -28,35 +29,39 @@ export const useStore = (): StoreContextType => {
 
 interface StoreProviderProps {
   children: ReactNode;
+  initialStore?: Store | null;
 }
 
-export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
-  const [selectedStore, setSelectedStore] = useState<Store | null>(null);
+export const StoreProvider: React.FC<StoreProviderProps> = ({ children, initialStore = null }) => {
+  // 初期値として、サーバーサイドから渡された店舗を設定
+  const [selectedStore, setSelectedStoreState] = useState<Store | null>(initialStore);
   const [stores, setStores] = useState<Store[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // ローカルストレージから選択された店舗を復元
-  useEffect(() => {
-    const savedStore = localStorage.getItem('selectedStore');
-    if (savedStore) {
-      try {
-        const store = JSON.parse(savedStore);
-        setSelectedStore(store);
-      } catch (error) {
-        console.error('Failed to parse stored store data:', error);
-        localStorage.removeItem('selectedStore');
-      }
-    }
-  }, []);
+  // シンプルなCookieとの同期関数
+  const setSelectedStore = (store: Store | null) => {
+    setSelectedStoreState(store);
 
-  // 選択された店舗をローカルストレージに保存
-  useEffect(() => {
-    if (selectedStore) {
-      localStorage.setItem('selectedStore', JSON.stringify(selectedStore));
+    if (store) {
+      // 店舗IDのみをcookieに保存（効率的）
+      setCookie('selectedStoreId', store.id, {
+        maxAge: 30 * 24 * 60 * 60, // 30日
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+      });
+      // フォールバック用に店舗名も保存
+      setCookie('selectedStoreName', store.name, {
+        maxAge: 30 * 24 * 60 * 60, // 30日
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+      });
     } else {
-      localStorage.removeItem('selectedStore');
+      deleteCookie('selectedStoreId');
+      deleteCookie('selectedStoreName');
     }
-  }, [selectedStore]);
+  };
 
   return (
     <StoreContext.Provider

@@ -3,23 +3,35 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Store as MapPin, Loader2, Building2, CheckCircle, ArrowRight } from 'lucide-react';
-import { useStore } from '@/app/contexts/StoreContext';
+import { useStore, Store } from '@/app/contexts/StoreContext'; // Storeインターフェースをcontextからインポート
 import { getAllStores } from '@/app/actions/storeActions';
 
-interface Store {
-  id: string;
-  name: string;
+interface StoreSelectionProps {
+  initialStores?: Store[];
+  initialError?: string;
 }
 
-const StoreSelection: React.FC = () => {
+const StoreSelection: React.FC<StoreSelectionProps> = ({
+  initialStores = [],
+  initialError = '',
+}) => {
   const router = useRouter();
   const { setSelectedStore, setStores, isLoading, setIsLoading } = useStore();
-  const [storeList, setStoreList] = useState<Store[]>([]);
+  const [storeList, setStoreList] = useState<Store[]>(initialStores);
   const [selectedStoreId, setSelectedStoreId] = useState<string>('');
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>(initialError);
 
   // 店舗データを取得
   useEffect(() => {
+    // 初期データがある場合はそれを使用
+    if (initialStores.length > 0) {
+      setStoreList(initialStores);
+      setStores(initialStores);
+      setIsLoading(false);
+      return;
+    }
+
+    // 初期データがない場合のみAPIから取得
     const fetchStores = async () => {
       try {
         setIsLoading(true);
@@ -37,12 +49,15 @@ const StoreSelection: React.FC = () => {
     };
 
     fetchStores();
-  }, [setStores, setIsLoading]);
+  }, [initialStores, setStores, setIsLoading]);
 
   // 店舗選択ハンドラー
   const handleStoreSelect = (store: Store) => {
+    console.log('店舗選択:', store); 
     setSelectedStoreId(store.id);
-    setSelectedStore(store);
+    setSelectedStore(store); 
+
+    console.log('Cookie保存完了、画面遷移開始'); 
 
     // 少し遅延をかけてから画面遷移（選択アニメーションを見せるため）
     setTimeout(() => {
@@ -109,7 +124,7 @@ const StoreSelection: React.FC = () => {
     <div className="min-h-144 bg-gradient-to-br from-gray-50 to-white">
       {/* Header */}
       <div className="border-b border-gray-100 bg-white">
-        <div className="mx-auto max-w-6xl px-6 py-8">
+        <div className="mx-auto max-w-6xl px-6 py-6">
           <div className="text-center">
             <div className="mb-6 flex items-center justify-center">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 shadow-lg">
