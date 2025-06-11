@@ -32,9 +32,6 @@ type OrderDetailCreate = {
   description: string; // nullを許可しない
 };
 
-// 定数定義
-const MAX_PRODUCTS = 20;
-
 // ダミーの顧客データ（Prismaの型に準拠）
 const DUMMY_CUSTOMERS: Customer[] = [
   { 
@@ -165,8 +162,6 @@ const DeleteConfirmModal = ({
   isOpen, 
   onClose, 
   onConfirm, 
-  productName,
-  description
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -360,17 +355,9 @@ const generateTempOrderDetailId = (index: number): string => {
 
 // 数値フォーマットヘルパー
 const formatNumber = (num: number) => num.toLocaleString();
-const formatJPY = (amount: number): string => {
-  return new Intl.NumberFormat('ja-JP', {
-    style: 'currency',
-    currency: 'JPY',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-};
 
 // 商品リストポップアップコンポーネント
-const ProductListModal = ({ isOpen, onClose, products, router, pathname }: { isOpen: boolean; onClose: () => void; products: { id: string; name: string; quantity: number }[]; router: ReturnType<typeof useRouter>; pathname: string }) => {
+const ProductListModal = ({ isOpen, onClose, products, router}: { isOpen: boolean; onClose: () => void; products: { id: string; name: string; quantity: number }[]; router: ReturnType<typeof useRouter>; pathname: string }) => {
   const [checked, setChecked] = useState<boolean[]>([]);
   const [added, setAdded] = useState(false);
 
@@ -561,29 +548,6 @@ export default function OrderCreatePage() {
     return validateOrderData(orderData);
   }, [orderDetails, orderDate, selectedCustomer, note]);
 
-  // 商品削除ハンドラー（モーダル表示）
-  const handleDeleteOrderDetail = useCallback((index: number) => {
-    if (orderDetails.length <= 1) {
-      setErrorModal({
-        isOpen: true,
-        title: '削除エラー',
-        message: '商品は最低1つ必要です'
-      });
-      return;
-    }
-    
-    const orderDetail = orderDetails[index];
-    const productName = orderDetail?.productName || '';
-    const description = orderDetail?.description || '';
-    
-    setDeleteModal({
-      isOpen: true,
-      targetIndex: index,
-      productName: productName,
-      description: description
-    });
-  }, [orderDetails]);
-
   // 削除確定ハンドラー
   const handleConfirmDelete = useCallback(() => {
     const { targetIndex } = deleteModal;
@@ -634,63 +598,11 @@ export default function OrderCreatePage() {
     }
   }, [selectedCustomer]);
 
-  // 注文追加ハンドラー
-  const handleAddOrder = useCallback(async () => {
-    if (isSubmitting || !validationResult.isValid) return;
-    
-    setIsSubmitting(true);
-    
-    try {
-      // OrderDetailCreateからPrismaの型に変換
-      const orderDetailsForCreate = orderDetails.map(detail => ({
-        productName: detail.productName,
-        unitPrice: detail.unitPrice,
-        quantity: typeof detail.quantity === 'number' ? detail.quantity : 1,
-        description: detail.description || null
-      }));
-
-      const orderData: OrderCreateData = {
-        orderDetails: orderDetailsForCreate,
-        orderDate,
-        customerId: selectedCustomer?.id || '',
-        note: note || null
-      };
-      
-      // 実際のAPI呼び出しをここで行う
-      // console.log('注文データ:', orderData);
-      // console.log('選択された顧客:', selectedCustomer);
-      
-      // 成功時の処理
-      setShowSuccessModal(true);
-      
-    } catch {
-      // エラーハンドリング
-      setErrorModal({
-        isOpen: true,
-        title: '注文追加エラー',
-        message: '注文の追加に失敗しました。もう一度お試しください。'
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [orderDetails, orderDate, selectedCustomer, note, isSubmitting, validationResult.isValid]);
-
   // 成功モーダルを閉じる際の処理
   const handleCloseSuccessModal = useCallback(() => {
     setShowSuccessModal(false);
     router.push('/Home/OrderList');
   }, [router]);
-
-  // 無効な理由を表示するハンドラー
-  const handleShowValidationErrors = useCallback(() => {
-    if (!validationResult.isValid) {
-      setErrorModal({
-        isOpen: true,
-        title: '入力エラー',
-        message: validationResult.errors.join('\n')
-      });
-    }
-  }, [validationResult]);
 
   // 選択中の顧客に応じた商品リストを取得
   const customerProducts = useMemo(() => {
