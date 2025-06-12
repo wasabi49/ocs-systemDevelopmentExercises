@@ -139,7 +139,7 @@ const StoreSelection: React.FC<StoreSelectionProps> = ({
       </div>
 
       {/* Main Content */}
-      <div className="mx-auto max-w-6xl px-6 py-8">
+      <div className="mx-auto max-w-6xl px-6 py-4">
         {storeList.length === 0 ? (
           <div className="text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-gray-200 bg-gray-50">

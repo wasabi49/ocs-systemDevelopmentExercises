@@ -42,7 +42,7 @@ const OrderListClient: React.FC<OrderListClientProps> = ({ initialOrders }) => {
 
   // 注文追加ページへ遷移する関数
   const handleAddOrder = (): void => {
-    router.push('/Home/OrderList/Create');
+    router.push('/Home/OrderList/Add');
   };
 
   // ソート処理

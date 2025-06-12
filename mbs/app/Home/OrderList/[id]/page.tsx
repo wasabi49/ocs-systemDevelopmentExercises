@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -391,7 +390,7 @@ const OrderDetailPage: React.FC = () => {
 
   
   const displayOrderDetails: OrderDetailWithDelivery[] = orderData.orderDetails.map((detail) => {
-    const deliveryInfo = getDeliveryInfo(detail.id);
+    const deliveryInfo = getDeliveryInfo(detail.id, detail.quantity);
     return {
       ...detail,
       ...deliveryInfo,
