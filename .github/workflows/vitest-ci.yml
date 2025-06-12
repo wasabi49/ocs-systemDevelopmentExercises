@@ -30,7 +30,7 @@ jobs:
 
       # 依存関係をインストール
       - name: Install dependencies
-        run: npm ci # npmのベストプラクティス
+        run: npm ci
 
       # Vitest テストを実行
       - name: Run Vitest tests

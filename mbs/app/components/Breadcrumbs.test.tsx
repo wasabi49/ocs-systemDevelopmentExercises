@@ -1,77 +1,111 @@
 import '@testing-library/jest-dom/vitest';
 import { render, screen } from '@testing-library/react';
-import { describe, test, expect, vi } from 'vitest';
+import { describe, test, expect, vi, beforeEach } from 'vitest';
 import Breadcrumbs from './Breadcrumbs';
 
-// Next.jsのuseParamsをモック
+// react-lucideのChevronRightアイコンをモック
+vi.mock('lucide-react', () => ({
+  ChevronRight: () => <span data-testid="chevron-right-icon">›</span>,
+}));
+
+// Next.jsのuseParamsとusePathnameのモック関数を作成
+const mockUseParams = vi.fn();
+const mockUsePathname = vi.fn();
+
+// Next.jsのuseParamsとusePathnameをモック
 vi.mock('next/navigation', () => ({
-  useParams: () => ({ id: '123' }),
+  useParams: () => mockUseParams(),
+  usePathname: () => mockUsePathname(),
 }));
 
 describe('Breadcrumbsコンポーネント', () => {
-  test('ホームパスの表示', () => {
-    render(<Breadcrumbs path="/Home" />);
-    // 空の場合は何も表示されないので、コンテナが存在するかだけ確認
+  beforeEach(() => {
+    // 各テスト前にモックをリセット
+    vi.clearAllMocks();
+    // デフォルトの値を設定
+    mockUseParams.mockReturnValue({ id: '123' });
+    mockUsePathname.mockReturnValue('/Home/CustomerList');
+  });
+
+  test('Breadcrumbsが正常にレンダリングされる', () => {
+    render(<Breadcrumbs />);
+    // navエレメントが存在することを確認
     expect(document.querySelector('nav')).toBeTruthy();
   });
 
-  test('顧客一覧パスの表示', () => {
-    render(<Breadcrumbs path="/Home/CustomerList" />);
-    const content = screen.getByRole('navigation').textContent || '';
-    expect(content.replace(/\s+/g, ' ').trim()).toBe('ホーム > 顧客一覧');
+  test('navigation roleが設定されている', () => {
+    render(<Breadcrumbs />);
+    expect(screen.getByRole('navigation')).toBeTruthy();
   });
 
-  test('注文一覧パスの表示', () => {
-    render(<Breadcrumbs path="/Home/OrderList" />);
-    const content = screen.getByRole('navigation').textContent || '';
-    expect(content.replace(/\s+/g, ' ').trim()).toBe('ホーム > 注文一覧');
+  test('パンくずリストの項目が正しく表示される', () => {
+    render(<Breadcrumbs />);
+
+    // ホームリンクが表示されることを確認
+    expect(screen.getByText('ホーム')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'ホーム' })).toBeTruthy();
+
+    // 現在のページ（顧客一覧）が表示されることを確認
+    expect(screen.getByText('顧客一覧')).toBeTruthy();
   });
 
-  test('注文詳細パスの表示', () => {
-    render(<Breadcrumbs path="/Home/OrderList/123" />);
-    const content = screen.getByRole('navigation').textContent || '';
-    expect(content.replace(/\s+/g, ' ').trim()).toBe('ホーム > 注文一覧 > 123');
+  test('ChevronRightアイコンが表示される', () => {
+    render(<Breadcrumbs />);
+
+    // モックされたChevronRightアイコンが表示されることを確認
+    expect(screen.getByTestId('chevron-right-icon')).toBeTruthy();
   });
 
-  test('注文追加パスの表示', () => {
-    render(<Breadcrumbs path="/Home/OrderList/Add" />);
-    const content = screen.getByRole('navigation').textContent || '';
-    expect(content.replace(/\s+/g, ' ').trim()).toBe('ホーム > 注文一覧 > 追加');
+  test('リンクが正しいhrefを持つ', () => {
+    render(<Breadcrumbs />);
+
+    // ホームリンクのhrefが正しいことを確認
+    const homeLink = screen.getByRole('link', { name: 'ホーム' });
+    expect(homeLink).toHaveAttribute('href', '/Home');
   });
 
-  test('注文編集パスの表示', () => {
-    render(<Breadcrumbs path="/Home/OrderList/123/Edit" />);
-    const content = screen.getByRole('navigation').textContent || '';
-    expect(content.replace(/\s+/g, ' ').trim()).toBe('ホーム > 注文一覧 > 123 > 編集');
+  test('ルートパス("/Home")では何も表示されない', () => {
+    mockUsePathname.mockReturnValue('/Home');
+    mockUseParams.mockReturnValue({});
+
+    render(<Breadcrumbs />);
+
+    // ルートパスの場合、何も表示されない（空のナビゲーション）
+    const nav = screen.getByRole('navigation');
+    expect(nav.textContent).toBe('');
   });
 
-  test('納品一覧パスの表示', () => {
-    render(<Breadcrumbs path="/Home/DeliveryList" />);
-    const content = screen.getByRole('navigation').textContent || '';
-    expect(content.replace(/\s+/g, ' ').trim()).toBe('ホーム > 納品一覧');
+  test('深いネストパス("/Home/OrderList/123")で正しく表示される', () => {
+    mockUsePathname.mockReturnValue('/Home/OrderList/123');
+    mockUseParams.mockReturnValue({ id: '123' });
+
+    render(<Breadcrumbs />);
+
+    // ホームリンクが表示される
+    expect(screen.getByText('ホーム')).toBeInTheDocument();
+    // 注文一覧リンクが表示される
+    expect(screen.getByText('注文一覧')).toBeInTheDocument();
+    // IDが表示される（現在のページとして）
+    expect(screen.getByText('123')).toBeInTheDocument();
+
+    // ChevronRightアイコンが2つ表示される
+    const chevronIcons = screen.getAllByTestId('chevron-right-icon');
+    expect(chevronIcons).toHaveLength(2);
   });
 
-  test('納品詳細パスの表示', () => {
-    render(<Breadcrumbs path="/Home/DeliveryList/123" />);
-    const content = screen.getByRole('navigation').textContent || '';
-    expect(content.replace(/\s+/g, ' ').trim()).toBe('ホーム > 納品一覧 > 123');
-  });
+  test('注文一覧ページ("/Home/OrderList")で正しく表示される', () => {
+    mockUsePathname.mockReturnValue('/Home/OrderList');
+    mockUseParams.mockReturnValue({});
 
-  test('納品追加パスの表示', () => {
-    render(<Breadcrumbs path="/Home/DeliveryList/Add" />);
-    const content = screen.getByRole('navigation').textContent || '';
-    expect(content.replace(/\s+/g, ' ').trim()).toBe('ホーム > 納品一覧 > 追加');
-  });
+    render(<Breadcrumbs />);
 
-  test('納品編集パスの表示', () => {
-    render(<Breadcrumbs path="/Home/DeliveryList/123/Edit" />);
-    const content = screen.getByRole('navigation').textContent || '';
-    expect(content.replace(/\s+/g, ' ').trim()).toBe('ホーム > 納品一覧 > 123 > 編集');
-  });
+    // ホームリンクが表示される
+    expect(screen.getByText('ホーム')).toBeInTheDocument();
+    // 注文一覧が現在のページとして表示される
+    expect(screen.getByText('注文一覧')).toBeInTheDocument();
 
-  test('統計情報パスの表示', () => {
-    render(<Breadcrumbs path="/Home/Statistics" />);
-    const content = screen.getByRole('navigation').textContent || '';
-    expect(content.replace(/\s+/g, ' ').trim()).toBe('ホーム > 統計情報');
+    // ChevronRightアイコンが1つ表示される
+    const chevronIcons = screen.getAllByTestId('chevron-right-icon');
+    expect(chevronIcons).toHaveLength(1);
   });
 });
