@@ -355,7 +355,7 @@ const generateTempOrderDetailId = (index: number): string => {
 
 // 商品リストポップアップコンポーネント
 const ProductListModal = ({ isOpen, onClose, products, router}: { isOpen: boolean; onClose: () => void; products: { id: string; name: string; quantity: number }[]; router: ReturnType<typeof useRouter>; pathname: string }) => {
-  const [checked, setChecked] = useState<boolean[]>([]);
+  const [checked, setChecked] = useState<(boolean | number)[]>([]);
   const [added, setAdded] = useState(false);
 
   useEffect(() => {
@@ -426,7 +426,7 @@ const ProductListModal = ({ isOpen, onClose, products, router}: { isOpen: boolea
                       {p.id && (
                         <input
                           type="checkbox"
-                          checked={checked[idx] || false}
+                          checked={typeof checked[idx] === 'boolean' ? checked[idx] : false}
                           onChange={e => {
                             const arr = [...checked];
                             arr[idx] = e.target.checked;
@@ -441,15 +441,15 @@ const ProductListModal = ({ isOpen, onClose, products, router}: { isOpen: boolea
                       {p.id ? (
                         <select
                           className="border rounded px-1 py-0.5 text-xs sm:text-sm"
-                          value={p.quantity ?? p.quantity}
+                          value={checked[idx] && typeof checked[idx] === 'number' ? checked[idx] : ''}
                           onChange={e => {
                             const value = Number(e.target.value);
                             const arr = [...checked];
-                            arr[idx] = true;
+                            arr[idx] = value;
                             setChecked(arr);
-                            p.quantity = value;
                           }}
                         >
+                          <option value="" disabled>0</option>
                           {Array.from({ length: p.quantity }, (_, i) => (
                             <option key={i + 1} value={i + 1}>{i + 1}</option>
                           ))}
@@ -721,21 +721,21 @@ export default function OrderCreatePage() {
           </div>
           
           {/* 商品リストへボタンと注意文言 */}
-          <div className="flex justify-center items-center mt-6 gap-2">
+          <div className="flex justify-center items-center mt-2 gap-2">
             {/* バリデーションエラー表示（モバイル用） */}
-          {!validationResult.isValid && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <div className="text-red-700 text-xs sm:text-sm font-semibold mb-2">以下の項目を確認してください：</div>
-              <ul className="text-red-600 text-xs space-y-1">
-                {validationResult.errors.map((error, index) => (
-                  <li key={index} className="flex items-start">
-                    <span className="mr-1">•</span>
-                    <span>{error}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+            {!validationResult.isValid && (
+              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div className="text-red-700 text-xs sm:text-sm font-semibold mb-2">以下の項目を確認してください：</div>
+                <ul className="text-red-600 text-xs space-y-1">
+                  {validationResult.errors.map((error, index) => (
+                    <li key={index} className="flex items-start">
+                      <span className="mr-1">•</span>
+                      <span>{error}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <button
               className="font-bold py-3 px-6 sm:px-8 rounded-lg text-sm sm:text-base shadow-lg border-2 transition-all duration-200 bg-blue-600 hover:bg-blue-700 text-white border-blue-700 cursor-pointer disabled:bg-gray-400 disabled:text-gray-600 disabled:border-gray-500 disabled:cursor-not-allowed"
               onClick={() => setShowProductListModal(true)}
