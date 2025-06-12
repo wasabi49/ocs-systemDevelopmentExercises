@@ -311,15 +311,19 @@ const OrderDetailPage: React.FC = () => {
   const orderData = generateOrderData();
 
   // 納品情報を取得する関数（複数納品対応）
-  const getDeliveryInfo = (orderDetailId: string) => {
+  const getDeliveryInfo = (orderDetailId: string, orderQuantity: number) => {
     // 注文明細IDに基づいて納品情報を生成（ダミーロジック）
     const seed = parseInt(orderDetailId.slice(-1)) || 0;
     const deliveryCount = Math.floor(seed / 2) + 1; // 1-4個の納品
     const allocations = [];
     let totalDelivered = 0;
 
-    for (let i = 0; i < deliveryCount && i < 3; i++) {
+    // 実際の注文数量を基準に納品を生成
+    const maxDeliverable = orderQuantity;
+
+    for (let i = 0; i < deliveryCount && totalDelivered < maxDeliverable; i++) {
       const deliveryDate = new Date(2025, 0, 1 + i * 7); // 7日間隔
+
       const allocatedQuantity = Math.floor((seed + i) * 1.5) + 5; // 5-15個程度
       const deliveryId = `D${String(seed + i + 1).padStart(6, '0')}`;
       const deliveryDetailId = `${deliveryId}-${String(i + 1).padStart(2, '0')}`;
@@ -333,13 +337,48 @@ const OrderDetailPage: React.FC = () => {
       totalDelivered += allocatedQuantity;
     }
 
-    // 注文数量を想定（ダミー）
-    const orderQuantity = Math.floor(seed * 2) + 10; // 10-25個程度
+    // ステータス判定を実際の数量で行う
     let status = '未納品';
     if (totalDelivered >= orderQuantity) {
       status = '完了';
     } else if (totalDelivered > 0) {
       status = '一部納品';
+    }
+
+    // 一定確率で未納品状態を作る
+    if (seed % 4 === 0) {
+      // 25%の確率で未納品
+      return {
+        deliveryAllocations: [],
+        totalDelivered: 0,
+        deliveryStatus: '未納品'
+      };
+    } else if (seed % 4 === 1) {
+      // 25%の確率で一部納品（最後の配送を未完了にする）
+      if (allocations.length > 1) {
+        // 最後の配送を削除して一部納品状態にする
+        const partialAllocations = allocations.slice(0, -1);
+        const partialTotal = partialAllocations.reduce((sum, alloc) => sum + alloc.allocatedQuantity, 0);
+        
+        return {
+          deliveryAllocations: partialAllocations,
+          totalDelivered: partialTotal,
+          deliveryStatus: '一部納品'
+        };
+      } else {
+        // 配送が1つしかない場合は、その配送を部分的にする
+        const partialQuantity = Math.floor(allocations[0].allocatedQuantity * 0.7);
+        const partialAllocations = [{
+          ...allocations[0],
+          allocatedQuantity: partialQuantity
+        }];
+        
+        return {
+          deliveryAllocations: partialAllocations,
+          totalDelivered: partialQuantity,
+          deliveryStatus: '一部納品'
+        };
+      }
     }
 
     return {
@@ -349,7 +388,7 @@ const OrderDetailPage: React.FC = () => {
     };
   };
 
-  // 表示用データに納品情報を追加
+  
   const displayOrderDetails: OrderDetailWithDelivery[] = orderData.orderDetails.map((detail) => {
     const deliveryInfo = getDeliveryInfo(detail.id);
     return {
@@ -357,6 +396,7 @@ const OrderDetailPage: React.FC = () => {
       ...deliveryInfo,
     };
   });
+
 
   // 空行を追加（合計10行になるよう調整）
   while (displayOrderDetails.length < 10) {
