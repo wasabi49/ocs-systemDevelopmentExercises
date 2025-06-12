@@ -1,134 +1,35 @@
-'use client';
+import React from 'react';
+import { redirect } from 'next/navigation';
+import { fetchCustomers } from '@/app/actions/customerActions';
+import CustomerListClient from './components/CustomerListClient';
 
-import React, { useState } from 'react';
-import MessageDialog from './components/Modal';
-import SearchFilter from '../../components/Search';
-import { useFilteredOrders } from '../../hooks/useFilteredOrders';
-
-type Order = {
+// 顧客データの型定義
+type Customer = {
   id: string;
   customerName: string;
   managerName: string;
+  storeName: string;
 };
 
-// データをページごとに分割
-const chunkOrders = (orders: Order[], chunkSize = 15): Order[][] => {
-  const chunks: Order[][] = [];
-  for (let i = 0; i < orders.length; i += chunkSize) {
-    chunks.push(orders.slice(i, i + chunkSize));
+// Server Component
+export default async function CustomerListPage() {
+  // サーバーサイドでデータ取得（storeIdはCookieから自動取得）
+  const result = await fetchCustomers();
+
+  // 店舗選択が必要な場合はリダイレクト
+  if (result.status === 'store_required' || result.status === 'store_invalid') {
+    redirect('/stores');
   }
-  return chunks;
-};
 
-export default function CustormerListPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [searchKeyword, setSearchKeyword] = useState('');
-  const [searchField, setSearchField] = useState('all');
-  const [isOpen, setIsOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(0);
+  let customers: Customer[] = [];
 
-  const handleImport = (data: string[][]) => {
-    const dataRows = data.slice(1); // ヘッダー除外
+  if (result.status === 'success') {
+    customers = result.data;
+  } else {
+    console.error('初期データの取得に失敗:', result.error);
+    // エラー時は空配列を渡す
+    customers = [];
+  }
 
-    const mappedOrders: Order[] = dataRows.map((row, i) => ({
-      id: (i + 1).toString(),
-      customerName: row[0] ?? '',
-      managerName: row[1] ?? '',
-    }));
-
-    setOrders(mappedOrders);
-    setCurrentPage(0);
-    setIsOpen(false);
-  };
-
-  // 検索ロジック（カスタムフック）
-  const filteredOrders = useFilteredOrders(orders, searchKeyword, searchField);
-  const chunkedOrders = chunkOrders(filteredOrders);
-  const currentOrders = chunkedOrders[currentPage] || [];
-
-  const handleNextPage = () => {
-    if (currentPage < chunkedOrders.length - 1) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const handlePreviousPage = () => {
-    if (currentPage > 0) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  return (
-    <>
-      <MessageDialog open={isOpen} onCancel={() => setIsOpen(false)} onOk={handleImport} />
-
-      <div className="mb-4 flex flex-col items-center justify-center gap-2 sm:gap-4">
-        <div className="mt-6 flex flex-wrap items-center justify-start gap-4">
-          {/* CSVインポートボタン */}
-          <button
-            onClick={() => setIsOpen(true)}
-            className="rounded bg-yellow-400 px-4 py-2 font-bold text-black hover:bg-yellow-500"
-          >
-            CSVインポート
-          </button>
-        </div>
-
-        {/* 検索フィルター */}
-        <SearchFilter
-          keyword={searchKeyword}
-          onKeywordChange={setSearchKeyword}
-          searchField={searchField}
-          onSearchFieldChange={setSearchField}
-        />
-
-        {/* 顧客リスト表示 */}
-        <div className="mb-6">
-          <h2 className="mb-2 text-lg font-bold">
-            顧客リスト（{currentPage * 15 + 1}〜{currentPage * 15 + currentOrders.length}件）
-          </h2>
-          <table className="w-full border-collapse text-center text-sm">
-            <thead className="bg-blue-300">
-              <tr>
-                <th className="border px-2 py-1">顧客ID</th>
-                <th className="border px-2 py-1">顧客名</th>
-                <th className="border px-2 py-1">担当者</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentOrders.map((order, rowIndex) => (
-                <tr
-                  key={order.id}
-                  className={`${rowIndex % 2 === 0 ? 'bg-blue-100' : 'bg-white'} h-8`}
-                >
-                  <td className="border px-2 py-1">{order.id}</td>
-                  <td className="border px-2 py-1">{order.customerName}</td>
-                  <td className="border px-2 py-1">{order.managerName}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* ページネーション */}
-        <div className="mt-4 w-full">
-          <div className="mx-auto flex max-w-2xl justify-between px-4">
-            <button
-              onClick={handlePreviousPage}
-              disabled={currentPage === 0}
-              className="rounded bg-gray-500 px-4 py-2 text-white disabled:opacity-50"
-            >
-              前のページ
-            </button>
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage >= chunkedOrders.length - 1}
-              className="rounded bg-gray-500 px-4 py-2 text-white disabled:opacity-50"
-            >
-              次のページ
-            </button>
-          </div>
-        </div>
-      </div>
-    </>
-  );
+  return <CustomerListClient initialCustomers={customers} />;
 }

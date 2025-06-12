@@ -8,9 +8,10 @@ services:
       - DATABASE_URL=${DATABASE_URL}
     ports:
       - ${APP_PORT}:3000
+      - ${PRISMA_STUDIO_PORT}:5555
     volumes:
       - ./mbs:/mbs
-    command: sh -c "npm install && npm run dev"
+    command: sh -c "npm install && npx prisma migrate deploy && npx prisma generate &&  npm run dev"
 
   db:
     image: postgres:17.4
