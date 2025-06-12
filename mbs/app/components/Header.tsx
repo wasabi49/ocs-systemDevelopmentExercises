@@ -41,7 +41,7 @@ const Header = () => {
     { href: '/Home/CustomerList', label: '顧客管理', icon: Users },
     { href: '/Home/OrderList', label: '注文管理', icon: ShoppingCart },
     { href: '/Home/DeliveryList', label: '納品管理', icon: Truck },
-    { href: '/Home/Statisticalinfo', label: '統計情報', icon: BarChart3 },
+    { href: '/Home/Statistics', label: '統計情報', icon: BarChart3 },
     { href: '/stores', label: '店舗選択', icon: Store },
   ];
 
