@@ -165,7 +165,7 @@ const OrderDetailPage: React.FC = () => {
 
   const [orderData, setOrderData] = useState<OrderWithRelations | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [] = useState<Set<string>>(new Set());
 
   // ダミーデータを使用してデータを生成する関数
   const fetchOrderDetail = useCallback(async (): Promise<void> => {

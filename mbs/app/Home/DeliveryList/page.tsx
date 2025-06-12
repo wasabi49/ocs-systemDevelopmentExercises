@@ -54,10 +54,6 @@ export default function DeliveryListPage() {
     setDeliveries(sorted);
   };
 
-  const handleSearch = () => {
-    console.log('検索確定：', searchKeyword);
-  };
-
   const filteredDeliveries = deliveries.filter((delivery) => {
     if (searchField === 'すべて') {
       return (
