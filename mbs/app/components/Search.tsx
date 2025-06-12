@@ -20,6 +20,8 @@ export type SearchProps = {
   actionButtonLabel?: string;
   // アクションボタンのクリックハンドラー
   onActionButtonClick?: () => void;
+  // アクションボタンの無効化状態
+  actionButtonDisabled?: boolean;
 };
 
 /**
@@ -35,14 +37,16 @@ export default function Search({
   placeholder = '検索キーワードを入力',
   actionButtonLabel,
   onActionButtonClick,
+  actionButtonDisabled = false,
 }: SearchProps) {
   return (
     <div className="mb-4 flex w-full flex-row items-center justify-center gap-2 sm:gap-4">
       {/* アクションボタン（注文追加など） */}
       {actionButtonLabel && onActionButtonClick && (
         <button
-          className="h-[48px] flex-shrink-0 rounded-md border border-black bg-yellow-400 px-3 text-xs font-bold whitespace-nowrap text-black hover:bg-yellow-500 sm:px-4 sm:text-sm"
+          className="h-[48px] flex-shrink-0 rounded-md border border-black bg-yellow-400 px-3 text-xs font-bold whitespace-nowrap text-black hover:bg-yellow-500 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4 sm:text-sm"
           onClick={onActionButtonClick}
+          disabled={actionButtonDisabled}
           type="button"
         >
           {actionButtonLabel}
