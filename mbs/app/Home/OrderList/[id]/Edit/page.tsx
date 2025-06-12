@@ -508,14 +508,13 @@ export default function OrderEditPage() {
       // 備考を設定
       setNote(`${customer.name}からの注文`);
 
-      // 商品明細を生成（編集可能）
+      // 商品明細を生成（編集可能、数量は常に1に変更）
       const detailCount = Math.floor(getSeededRandom(orderSeed) * 3) + 2;
       const generatedDetails: OrderDetailEdit[] = [];
 
       for (let i = 1; i <= detailCount; i++) {
         const productIndex = Math.floor(getSeededRandom(orderSeed + i) * fallbackProducts.length);
         const product = fallbackProducts[productIndex];
-        const quantity = Math.floor(getSeededRandom(orderSeed + i + 100) * 10) + 1;
 
         const orderDetailId = `${orderId}-${String(i).padStart(2, '0')}`;
         const deliveryInfo = getDeliveryInfo(orderDetailId);
@@ -524,7 +523,7 @@ export default function OrderEditPage() {
           id: orderDetailId,
           productName: product.name,
           unitPrice: product.price,
-          quantity: i === 1 ? '' : quantity, // 最初の項目は数量を空にする
+          quantity: 1, // 数量は常に1に設定
           description: `${customer.name}向け商品`,
           deliveryStatus: deliveryInfo.deliveryStatus
         });
@@ -593,7 +592,7 @@ export default function OrderEditPage() {
     const newOrderDetail: OrderDetailEdit = {
       id: generateTempOrderDetailId(orderDetails.length),
       productName: '',
-      quantity: '',
+      quantity: 1, // 初期値を1に変更
       unitPrice: 0,
       description: '',
       deliveryStatus: '' // 新規商品は納品状況なし
@@ -813,10 +812,9 @@ export default function OrderEditPage() {
                       </td>
                       <td className="border border-black px-1 sm:px-2 py-1">
                         <input 
-                          type="number" 
+                          type="text" 
                           className="w-full px-1 py-1 text-xs sm:text-sm text-right"
                           value={orderDetail.quantity}
-                          min="1"
                           onChange={(e) => {
                             const value = e.target.value;
                             if (value === '') {
@@ -826,7 +824,7 @@ export default function OrderEditPage() {
                               handleEditOrderDetail(index, 'quantity', Math.max(1, quantity));
                             }
                           }}
-                          placeholder=""
+                          placeholder="1"
                         />
                       </td>
                       <td className="border border-black px-1 sm:px-2 py-1">
