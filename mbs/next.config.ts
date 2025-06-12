@@ -5,6 +5,14 @@ const nextConfig: NextConfig = {
   compiler: {
     styledComponents: true,
   },
+  experimental: {
+    serverActions: {
+      allowedOrigins: [
+        'localhost:3000',
+        'github.dev'
+      ]
+    }
+  }
 };
 
 export default nextConfig;
