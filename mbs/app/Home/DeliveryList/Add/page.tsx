@@ -353,9 +353,6 @@ const generateTempOrderDetailId = (index: number): string => {
   return `TEMP-${String(index + 1).padStart(2, '0')}`;
 };
 
-// 数値フォーマットヘルパー
-const formatNumber = (num: number) => num.toLocaleString();
-
 // 商品リストポップアップコンポーネント
 const ProductListModal = ({ isOpen, onClose, products, router}: { isOpen: boolean; onClose: () => void; products: { id: string; name: string; quantity: number }[]; router: ReturnType<typeof useRouter>; pathname: string }) => {
   const [checked, setChecked] = useState<boolean[]>([]);
