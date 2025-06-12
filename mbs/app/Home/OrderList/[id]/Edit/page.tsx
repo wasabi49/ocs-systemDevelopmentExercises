@@ -778,7 +778,7 @@ export default function OrderEditPage() {
                         <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-md">必須</span>
                       </div>
                     </th>
-                    <th className="border border-black px-1 sm:px-2 py-2 bg-blue-500 text-white" style={{width: '12%'}}>
+                    <th className="border border-black px-1 sm:px-2 py-2 bg-blue-500 text-white" style={{width: '8%'}}>
                       <span className="text-xs sm:text-sm">数量</span>
                     </th>
                     <th className="border border-black px-1 sm:px-2 py-2 bg-blue-500 text-white" style={{width: '15%'}}>
@@ -787,7 +787,7 @@ export default function OrderEditPage() {
                     <th className="border border-black px-1 sm:px-2 py-2 bg-blue-500 text-white" style={{width: '15%'}}>
                       <span className="text-xs sm:text-sm">納品状況</span>
                     </th>
-                    <th className="border border-black px-1 sm:px-2 py-2 bg-blue-500 text-white" style={{width: '23%'}}>
+                    <th className="border border-black px-1 sm:px-2 py-2 bg-blue-500 text-white" style={{width: '27%'}}>
                       <div className="flex items-center justify-center gap-1">
                         <span className="text-xs sm:text-sm">摘要</span>
                         <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-md">必須</span>
