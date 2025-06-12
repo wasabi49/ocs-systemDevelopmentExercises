@@ -55,20 +55,30 @@ const Header = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* ロゴと店舗表示 */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <Link
               href="/Home"
               className="group flex items-center space-x-2 text-white transition-all duration-200 hover:text-blue-100"
             >
-              <Home className="h-8 w-8 transition-transform group-hover:scale-110" />
-              <span className="text-2xl font-bold tracking-tight">MBS</span>
+              <Home className="h-6 w-6 transition-transform group-hover:scale-110 sm:h-8 sm:w-8" />
+              <span className="text-xl font-bold tracking-tight sm:text-2xl">MBS</span>
             </Link>
 
-            {/* 選択中の店舗表示 */}
+            {/* 選択中の店舗表示 - デスクトップ */}
             {selectedStore && !isStoreSelectionPage && (
               <div className="hidden items-center space-x-2 rounded-lg bg-white/10 px-3 py-1 sm:flex">
                 <Store className="h-4 w-4 text-white" />
                 <span className="text-sm font-medium text-white">{selectedStore.name}</span>
+              </div>
+            )}
+
+            {/* 選択中の店舗表示 - モバイル */}
+            {selectedStore && !isStoreSelectionPage && (
+              <div className="flex items-center space-x-1 rounded bg-white/10 px-2 py-1 sm:hidden">
+                <Store className="h-3 w-3 flex-shrink-0 text-white" />
+                <span className="max-w-20 truncate text-xs font-medium text-white">
+                  {selectedStore.name}
+                </span>
               </div>
             )}
           </div>
@@ -104,7 +114,6 @@ const Header = () => {
             </nav>
           )}
         </div>
-
       </div>
 
       {/* モバイルナビゲーションメニュー */}
