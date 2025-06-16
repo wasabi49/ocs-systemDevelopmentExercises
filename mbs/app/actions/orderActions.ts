@@ -38,6 +38,7 @@ export async function fetchOrders() {
         isDeleted: false,
         customer: {
           storeId: storeId,
+          isDeleted: false, // 削除されていない顧客のみ
         },
       },
       include: {
@@ -84,7 +85,11 @@ export async function fetchOrderById(id: string) {
         isDeleted: false,
       },
       include: {
-        customer: true,
+        customer: {
+          where: {
+            isDeleted: false, // 削除されていない顧客のみ
+          },
+        },
       },
     });
 
@@ -92,6 +97,14 @@ export async function fetchOrderById(id: string) {
       return {
         success: false,
         error: '注文が見つかりませんでした',
+      };
+    }
+
+    // 顧客が削除されている場合のチェック
+    if (!order.customer) {
+      return {
+        success: false,
+        error: '関連する顧客データが削除されているため、注文情報を表示できません',
       };
     }
 

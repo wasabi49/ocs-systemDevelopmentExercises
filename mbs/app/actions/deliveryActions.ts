@@ -38,6 +38,7 @@ export async function fetchDeliveries() {
         isDeleted: false,
         customer: {
           storeId: storeId,
+          isDeleted: false, // 削除されていない顧客のみ
         },
       },
       include: {
@@ -79,7 +80,11 @@ export async function fetchDeliveryById(id: string) {
         isDeleted: false,
       },
       include: {
-        customer: true, // 顧客情報を含める
+        customer: {
+          where: {
+            isDeleted: false, // 削除されていない顧客のみ
+          },
+        },
         deliveryDetails: {
           where: { isDeleted: false },
         },
@@ -90,6 +95,14 @@ export async function fetchDeliveryById(id: string) {
       return {
         success: false,
         error: '納品が見つかりませんでした',
+      };
+    }
+
+    // 顧客が削除されている場合のチェック
+    if (!delivery.customer) {
+      return {
+        success: false,
+        error: '関連する顧客データが削除されているため、納品情報を表示できません',
       };
     }
 

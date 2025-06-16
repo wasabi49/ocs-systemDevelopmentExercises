@@ -53,7 +53,7 @@ export default function DeliveryTable({ deliveries, onSort, renderSortIcons }: P
             <td className="max-w-[70px] min-w-[60px] truncate border px-1 py-0.5 text-[10px] sm:px-2 sm:py-1 sm:text-xs md:px-3 md:py-1.5 md:text-sm">
               {delivery.id ? (
                 <Link
-                  href={`/delivery/${delivery.id}`}
+                  href={`/Home/DeliveryList/${delivery.id}`}
                   className="text-blue-600 underline decoration-blue-600"
                 >
                   {delivery.id}
