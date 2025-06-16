@@ -538,7 +538,7 @@ const OrderDetailPage: React.FC = () => {
                   </div>
                   <div className="flex">
                     <div className="w-2/5 bg-slate-100 p-3 font-medium text-gray-700">合計金額</div>
-                    <div className="w-2/5 p-3 font-mono break-all text-left">
+                    <div className="w-3/5 p-3 font-mono break-all text-left">
                     {formatJPY(totalAmount)}
                     </div>
                   </div>
