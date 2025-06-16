@@ -83,7 +83,7 @@ const DeleteConfirmModal = ({
 
           <p className="mb-4 text-sm text-gray-600">以下の納品を削除してもよろしいですか？</p>
 
-          {/* 削除対象注文の情報表示 */}
+          {/* 削除対象納品の情報表示 */}
           <div className="mb-6 rounded-lg bg-gray-50 p-4">
             <div className="space-y-3 text-left">
               <div>
@@ -395,7 +395,7 @@ const OrderDetailPage: React.FC = () => {
 
   // ハンドラー関数
   const handleEdit = () => {
-    router.push(`/Home/OrderList/${orderId}/Edit`);
+    router.push(`/Home/DeliveryList/${orderId}/Edit`);
   };
 
   const handleDelete = () => {
@@ -405,7 +405,7 @@ const OrderDetailPage: React.FC = () => {
   const handleDeleteConfirm = () => {
     setShowDeleteModal(false);
     alert('注文を削除しました（デモのため実際の削除は行われていません）');
-    router.push('/Home/OrderList');
+    router.push('/Home/DeliveryList');
   };
 
   const handleDeleteCancel = () => {
