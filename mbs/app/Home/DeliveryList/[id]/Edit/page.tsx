@@ -436,7 +436,19 @@ const ProductListModal = ({ isOpen, onClose, products, router}: { isOpen: boolea
                       )}
                     </td>
                     <td className="border border-gray-400 px-1 py-1 text-center font-mono text-xs sm:px-2 sm:py-2">{p.id}</td>
-                    <td className="border border-gray-400 px-1 py-1 text-left sm:px-2 sm:py-2">{p.name}</td>
+                    <td className="border border-gray-400 px-1 py-1 text-left sm:px-2 sm:py-2">
+                      {p.id ? (
+                        <input
+                          type="text"
+                          className="w-full border rounded px-1 py-0.5"
+                          value={p.name}
+                          onChange={e => {
+                            displayedProducts[idx].name = e.target.value;
+                            // products配列も更新したい場合は、親からsetProductsを渡して管理するのが理想
+                          }}
+                        />
+                      ) : ''}
+                    </td>
                     <td className="border border-gray-400 px-1 py-1 text-center font-medium sm:px-2 sm:py-2">
                       {p.id ? (
                         <select
