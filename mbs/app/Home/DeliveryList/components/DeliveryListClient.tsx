@@ -8,8 +8,6 @@ import Pagination from '@/app/components/Pagination';
 import DeliveryTable, { Delivery } from '../DeliveryTable';
 import {useRouter} from 'next/navigation';
 
-
-
 // Delivery型を再エクスポート
 export type { Delivery };
 
