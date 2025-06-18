@@ -84,6 +84,7 @@ const DeleteConfirmModal = ({
           <p className="mb-4 text-sm text-gray-600">以下の納品を削除してもよろしいですか？</p>
 
           {/* 削除対象納品の情報表示 */}
+
           <div className="mb-6 rounded-lg bg-gray-50 p-4">
             <div className="space-y-3 text-left">
               <div>
@@ -165,7 +166,8 @@ const OrderDetailPage: React.FC = () => {
 
   const [orderData, setOrderData] = useState<OrderWithRelations | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [] = useState<Set<string>>(new Set());
+
 
   // ダミーデータを使用してデータを生成する関数
   const fetchOrderDetail = useCallback(async (): Promise<void> => {
@@ -395,7 +397,9 @@ const OrderDetailPage: React.FC = () => {
 
   // ハンドラー関数
   const handleEdit = () => {
+
     router.push(`/Home/DeliveryList/${orderId}/Edit`);
+
   };
 
   const handleDelete = () => {
@@ -405,7 +409,9 @@ const OrderDetailPage: React.FC = () => {
   const handleDeleteConfirm = () => {
     setShowDeleteModal(false);
     alert('注文を削除しました（デモのため実際の削除は行われていません）');
+
     router.push('/Home/DeliveryList');
+
   };
 
   const handleDeleteCancel = () => {
@@ -538,7 +544,7 @@ const OrderDetailPage: React.FC = () => {
                   </div>
                   <div className="flex">
                     <div className="w-2/5 bg-slate-100 p-3 font-medium text-gray-700">合計金額</div>
-                    <div className="w-2/5 p-3 font-mono break-all text-left">
+                    <div className="w-3/5 p-3 font-mono break-all text-left">
                     {formatJPY(totalAmount)}
                     </div>
                   </div>
@@ -631,3 +637,4 @@ const OrderDetailPage: React.FC = () => {
 };
 
 export default OrderDetailPage;
+

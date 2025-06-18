@@ -1,57 +1,96 @@
 import React from 'react';
 
-type SearchFilterProps = {
+/**
+ * 検索コンポーネントのProps
+ */
+export type SearchProps = {
+  // 検索キーワード
   keyword: string;
+  // 検索キーワード変更ハンドラー
   onKeywordChange: (value: string) => void;
+  // 選択された検索フィールド
   searchField: string;
+  // 検索フィールド変更ハンドラー
   onSearchFieldChange: (value: string) => void;
+  // 検索フィールドのオプション
+  searchFieldOptions: { value: string; label: string }[];
+  // 検索プレースホルダー
+  placeholder?: string;
+  // アクションボタン（注文追加など）のラベル
+  actionButtonLabel?: string;
+  // アクションボタンのクリックハンドラー
+  onActionButtonClick?: () => void;
+  // アクションボタンの無効化状態
+  actionButtonDisabled?: boolean;
 };
 
-export default function SearchFilter({
+/**
+ * 検索コンポーネント
+ * 検索フィールド選択、検索キーワード入力、アクションボタンを提供
+ */
+export default function Search({
   keyword,
   onKeywordChange,
   searchField,
   onSearchFieldChange,
-}: SearchFilterProps) {
+  searchFieldOptions,
+  placeholder = '検索キーワードを入力',
+  actionButtonLabel,
+  onActionButtonClick,
+  actionButtonDisabled = false,
+}: SearchProps) {
   return (
-    <div className="flex flex-wrap items-center justify-start gap-4">
-      {/* 検索対象のプルダウン */}
+    <div className="mb-4 flex w-full flex-row items-center justify-center gap-2 sm:gap-4">
+      {/* アクションボタン（注文追加など） */}
+      {actionButtonLabel && onActionButtonClick && (
+        <button
+          className="h-[48px] flex-shrink-0 rounded-md border border-black bg-yellow-400 px-3 text-xs font-bold whitespace-nowrap text-black hover:bg-yellow-500 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4 sm:text-sm"
+          onClick={onActionButtonClick}
+          disabled={actionButtonDisabled}
+          type="button"
+        >
+          {actionButtonLabel}
+        </button>
+      )}
+
+      {/* 検索フィールド選択 */}
       <select
-        className="rounded border p-2"
         value={searchField}
         onChange={(e) => onSearchFieldChange(e.target.value)}
+        className="h-[48px] w-24 flex-shrink-0 rounded-md border border-black px-2 py-2 text-xs sm:w-32 sm:text-sm"
       >
-        <option value="all">すべて検索</option>
-        <option value="id">顧客ID</option>
-        <option value="customerName">顧客名</option>
-        <option value="managerName">担当者</option>
+        {searchFieldOptions.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
       </select>
 
       {/* 検索キーワード入力 */}
-      <div className="relative">
-        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+      <div className="relative flex min-w-0 flex-1 items-center">
+        <div className="absolute left-2 z-10 text-gray-500">
           <svg
-            className="h-4 w-4 text-gray-400"
-            aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
-            viewBox="0 0 20 20"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="h-4 w-4 sm:h-5 sm:w-5"
           >
             <path
-              stroke="currentColor"
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth="2"
-              d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
             />
           </svg>
         </div>
         <input
           type="text"
-          placeholder="例：I-12345"
+          placeholder={placeholder}
           value={keyword}
           onChange={(e) => onKeywordChange(e.target.value)}
-          className="w-64 rounded border p-2 pl-10"
+          className="h-[48px] w-full rounded-md border border-black bg-white py-2 pr-3 pl-8 text-xs focus:border-orange-500 focus:outline-none sm:text-sm"
+          aria-label="検索フィールド"
         />
       </div>
     </div>
