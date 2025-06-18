@@ -1,7 +1,6 @@
 import { fetchDeliveries } from '@/app/actions/deliveryActions';
 import DeliveryListClient, { Delivery } from './components/DeliveryListClient';
 
-
 export default async function DeliveryListPage() {
   // サーバーサイドで初期データを取得
   const result = await fetchDeliveries();
