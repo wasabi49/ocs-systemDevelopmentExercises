@@ -449,7 +449,7 @@ const ProductListModal = ({ isOpen, onClose, products, router}: { isOpen: boolea
                             setChecked(arr);
                           }}
                         >
-                          <option value="" disabled>0</option>
+                          <option value="" >0</option>
                           {Array.from({ length: p.quantity }, (_, i) => (
                             <option key={i + 1} value={i + 1}>{i + 1}</option>
                           ))}
