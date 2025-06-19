@@ -35,74 +35,20 @@ type OrderDetailCreate = {
 // 定数定義
 const MAX_PRODUCTS = 20;
 
-// ダミーの顧客データ（Prismaの型に準拠）
-const DUMMY_CUSTOMERS: Customer[] = [
-  { 
-    id: 'C-00001', 
-    storeId: 'store-001',
-    name: '大阪情報専門学校',
-    contactPerson: '山田太郎',
-    address: '大阪府大阪市北区',
-    phone: '06-1234-5678',
-    deliveryCondition: '通常2-3営業日以内',
-    note: '学校関連の納品は事前に連絡が必要',
-    updatedAt: new Date('2025-01-01'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00002', 
-    storeId: 'store-001',
-    name: '株式会社スマートソリューションズ',
-    contactPerson: '佐藤次郎',
-    address: '大阪府大阪市中央区',
-    phone: '06-2345-6789',
-    deliveryCondition: '当日納品対応可',
-    note: '重要顧客、優先対応',
-    updatedAt: new Date('2025-01-02'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00003', 
-    storeId: 'store-001',
-    name: '株式会社SCC',
-    contactPerson: '田中三郎',
-    address: '大阪府吹田市',
-    phone: '06-3456-7890',
-    deliveryCondition: '午前中指定',
-    note: '大口顧客',
-    updatedAt: new Date('2025-01-03'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00004', 
-    storeId: 'store-001',
-    name: '株式会社くら寿司',
-    contactPerson: '鈴木四郎',
-    address: '大阪府堺市',
-    phone: '072-456-7890',
-    deliveryCondition: '食品関連は温度管理必須',
-    note: '衛生管理に特に注意',
-    updatedAt: new Date('2025-01-04'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00005', 
-    storeId: 'store-001',
-    name: '株式会社大阪テクノロジー',
-    contactPerson: '伊藤五郎',
-    address: '大阪府東大阪市',
-    phone: '06-5678-9012',
-    deliveryCondition: '平日10:00-18:00',
-    note: 'IT関連機器専門',
-    updatedAt: new Date('2025-01-05'),
-    isDeleted: false,
-    deletedAt: null
+// 顧客データ取得関数
+const fetchCustomers = async (): Promise<Customer[]> => {
+  try {
+    const response = await fetch('/api/customers');
+    const result = await response.json();
+    if (result.success) {
+      return result.customers;
+    }
+    return [];
+  } catch (error) {
+    console.error('顧客データ取得エラー:', error);
+    return [];
   }
-];
+};
 
 // ユーティリティ関数
 const formatJPY = (amount: number): string => {
@@ -411,6 +357,7 @@ export default function OrderCreatePage() {
   const router = useRouter();
 
   // 状態管理
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [orderDetails, setOrderDetails] = useState<OrderDetailCreate[]>([
     { 
       id: generateTempOrderDetailId(0), 
@@ -459,16 +406,25 @@ export default function OrderCreatePage() {
     message: ''
   });
 
-  // 顧客検索フィルター（メモ化）
+  // 顧客データを取得するuseEffect
+  useEffect(() => {
+    const loadCustomers = async () => {
+      const customerData = await fetchCustomers();
+      setCustomers(customerData);
+    };
+    loadCustomers();
+  }, []);
+
+  // 顧客検索フィルター（実際のデータを使用）
   const filteredCustomers = useMemo(() => {
     if (customerSearchTerm.trim() === '') {
-      return DUMMY_CUSTOMERS;
+      return customers;
     }
-    return DUMMY_CUSTOMERS.filter(c => 
+    return customers.filter(c => 
       c.name.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
       (c.contactPerson || '').toLowerCase().includes(customerSearchTerm.toLowerCase())
     );
-  }, [customerSearchTerm]);
+  }, [customerSearchTerm, customers]);
 
   // バリデーション状態の計算（メモ化）
   const validationResult = useMemo(() => {
@@ -595,39 +551,87 @@ export default function OrderCreatePage() {
     }
   }, [selectedCustomer]);
 
-  // 注文追加ハンドラー
+  // 注文追加ハンドラー（実際のAPI呼び出し版）
   const handleAddOrder = useCallback(async () => {
     if (isSubmitting || !validationResult.isValid) return;
 
     setIsSubmitting(true);
 
     try {
-      // OrderDetailCreateからPrismaの型に変換
+      // OrderDetailCreateからAPIの型に変換
       const orderDetailsForCreate = orderDetails.map(detail => ({
         productName: detail.productName,
-        unitPrice: detail.unitPrice,
+        unitPrice: detail.unitPrice, // Float型として送信
         quantity: typeof detail.quantity === 'number' ? detail.quantity : 1,
         description: detail.description || null
       }));
 
-      // 実際のAPI呼び出しで使用するデータ
-      console.log('注文データ:', {
+      // API呼び出し用のデータ作成
+      const apiData = {
         orderDetails: orderDetailsForCreate,
-        orderDate,
+        orderDate: orderDate.toISOString(), // Dateオブジェクトを文字列に変換
         customerId: selectedCustomer?.id || '',
         note: note || null
+      };
+
+      console.log('送信する注文データ:', apiData);
+
+      // 実際のAPI呼び出し
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(apiData),
       });
-      console.log('選択された顧客:', selectedCustomer);
 
-      // 成功時の処理
-      setShowSuccessModal(true);
+      const result = await response.json();
 
-    } catch {
-      // エラーハンドリング
+      if (!response.ok) {
+        throw new Error(result.error || 'APIエラーが発生しました');
+      }
+
+      if (result.success) {
+        console.log('注文が正常に作成されました:', result.data);
+        
+        // 成功時は入力フォームをリセット
+        setOrderDetails([
+          { 
+            id: generateTempOrderDetailId(0), 
+            productName: '', 
+            quantity: '', 
+            unitPrice: 0, 
+            description: '' 
+          }
+        ]);
+        setSelectedCustomer(null);
+        setCustomerSearchTerm('');
+        setNote('');
+        setOrderDate(new Date());
+        
+        // 成功モーダルを表示
+        setShowSuccessModal(true);
+      } else {
+        // APIからのエラーメッセージを表示
+        setErrorModal({
+          isOpen: true,
+          title: '注文追加エラー',
+          message: result.error || '注文の追加に失敗しました。'
+        });
+      }
+
+    } catch (error) {
+      // ネットワークエラーや予期しないエラーの処理
+      console.error('注文作成中にエラーが発生:', error);
+      
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : '注文の追加に失敗しました。もう一度お試しください。';
+      
       setErrorModal({
         isOpen: true,
         title: '注文追加エラー',
-        message: '注文の追加に失敗しました。もう一度お試しください。'
+        message: errorMessage
       });
     } finally {
       setIsSubmitting(false);
