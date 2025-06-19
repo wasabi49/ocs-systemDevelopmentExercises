@@ -9,8 +9,8 @@ interface OrderWithCustomer extends Order {
   customerContactPerson: string;
 }
 
-// Server Component
-const OrderListPage: React.FC = async () => {
+// Server Component - default export
+export default async function OrderListPage() {
   // サーバーサイドでデータ取得
   const result = await fetchOrders();
 
@@ -36,9 +36,5 @@ const OrderListPage: React.FC = async () => {
     orders = [];
   }
 
-  return (
-    <OrderListClient initialOrders={orders} />
-  );
-};
-
-export default OrderListPage;
+  return <OrderListClient initialOrders={orders} />;
+}
