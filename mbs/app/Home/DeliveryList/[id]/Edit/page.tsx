@@ -440,21 +440,7 @@ const ProductListModal = ({ isOpen, onClose, products, router}: { isOpen: boolea
                       )}
                     </td>
                     <td className="border border-gray-400 px-1 py-1 text-center font-mono text-xs sm:px-2 sm:py-2">{p.id}</td>
-                    <td className="border border-gray-400 px-1 py-1 text-left sm:px-2 sm:py-2">
-                      {p.id ? (
-                        <input
-                          type="text"
-                          className="w-full border rounded px-1 py-0.5 text-xs sm:text-sm"
-                          value={p.name}
-                          onChange={e => {
-                            displayedProducts[idx].name = e.target.value;
-                            // checkedやproductsの状態も更新したい場合は、props経由でコールバックを受け取る形に拡張可能
-                            // 今回はローカルなdisplayedProductsのみ反映
-                            setChecked(arr => [...arr]); // 再描画用
-                          }}
-                        />
-                      ) : ''}
-                    </td>
+                    <td className="border border-gray-400 px-1 py-1 text-left sm:px-2 sm:py-2">{p.name}</td>
                     <td className="border border-gray-400 px-1 py-1 text-center font-medium sm:px-2 sm:py-2">
                       {p.id ? (
                         <select
