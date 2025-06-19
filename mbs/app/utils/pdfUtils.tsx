@@ -7,24 +7,24 @@ import { Document, Page, Text, View, StyleSheet, pdf, Font } from '@react-pdf/re
 import path from 'path';
 import fs from 'fs';
 
-// 日本語フォントを登録（サーバーサイド対応）
+// 日本語フォント登録状態
 let fontRegistered = false;
 let fontAvailable = false;
 
-const registerJapaneseFont = () => {
+/**
+ * publicフォルダの日本語フォントを登録する関数
+ */
+const registerJapaneseFont = (): boolean => {
   if (fontRegistered) return fontAvailable;
 
   try {
     const fontPath = path.join(process.cwd(), 'public', 'NotoSansJP-VariableFont_wght.ttf');
-    console.log('フォントパス:', fontPath);
 
     // フォントファイルが存在するかチェック
     if (fs.existsSync(fontPath)) {
       // フォントファイルをBase64として読み込み
-      console.log('フォントファイルを読み込み中...');
       const fontBuffer = fs.readFileSync(fontPath);
       const fontBase64 = `data:font/truetype;base64,${fontBuffer.toString('base64')}`;
-      console.log('Base64変換完了 (長さ:', fontBase64.length, ')');
 
       Font.register({
         family: 'NotoSansJP',
@@ -33,17 +33,7 @@ const registerJapaneseFont = () => {
 
       fontRegistered = true;
       fontAvailable = true;
-      console.log('日本語フォントが正常に登録されました (Base64形式)');
-
-      // 登録されたフォントを確認
-      try {
-        const registeredFonts = Font.getHyphenationCallback
-          ? 'Font.getHyphenationCallback available'
-          : 'Standard registration';
-        console.log('フォント登録確認:', registeredFonts);
-      } catch (e) {
-        console.log('フォント確認中にエラー:', e);
-      }
+      console.log('日本語フォント (Noto Sans JP) が正常に登録されました');
     } else {
       console.warn('フォントファイルが見つかりません:', fontPath);
       fontRegistered = true;
@@ -413,15 +403,11 @@ export async function generateOrderPdfBuffer(orderData: OrderData): Promise<Buff
   console.log('PDF生成開始');
   console.log('注文データ:', JSON.stringify(orderData, null, 2));
 
-  // フォント登録を試行（ただし失敗しても続行）
-  let useCustomFont = false;
-  try {
-    useCustomFont = registerJapaneseFont();
-    console.log('カスタムフォント使用:', useCustomFont);
-  } catch (fontError) {
-    console.warn('カスタムフォント登録に失敗、デフォルトフォントを使用:', fontError);
-    useCustomFont = false;
-  }
+  // 日本語フォント登録を試行
+  const fontRegistered = registerJapaneseFont();
+  const useCustomFont = fontRegistered;
+
+  console.log('日本語フォント使用:', useCustomFont);
 
   const pdfDoc = <OrderPDF orderData={orderData} useCustomFont={useCustomFont} />;
 
@@ -453,7 +439,7 @@ export async function generateOrderPdfBuffer(orderData: OrderData): Promise<Buff
         });
       } else {
         // Uint8Arrayなど他の型の場合
-        pdfBuffer = Buffer.from(pdfData as Uint8Array);
+        pdfBuffer = Buffer.from(pdfData as unknown as Uint8Array);
       }
     }
 

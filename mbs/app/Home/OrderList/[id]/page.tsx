@@ -1,6 +1,15 @@
 import React from 'react';
 import { fetchOrderWithDetails } from '@/app/actions/orderActions';
 import OrderDetailClient from './components/OrderDetailClient';
+import type { Prisma } from '@/app/generated/prisma';
+
+// Prismaの型を使用
+type OrderWithRelations = Prisma.OrderGetPayload<{
+  include: {
+    customer: true;
+    orderDetails: true;
+  };
+}>;
 
 // Props型定義
 interface OrderDetailPageProps {
@@ -14,9 +23,14 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
   // サーバーサイドでデータ取得
   const result = await fetchOrderWithDetails(orderId);
 
-  if (!result.success) {
+  if (!result.success || !result.data) {
     return <OrderDetailClient orderId={orderId} initialOrderData={null} error={result.error} />;
   }
 
-  return <OrderDetailClient orderId={orderId} initialOrderData={result.data} />;
+  return (
+    <OrderDetailClient
+      orderId={orderId}
+      initialOrderData={result.data as unknown as OrderWithRelations}
+    />
+  );
 }
