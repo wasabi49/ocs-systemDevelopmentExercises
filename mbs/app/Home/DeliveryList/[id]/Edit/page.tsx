@@ -426,10 +426,14 @@ const ProductListModal = ({ isOpen, onClose, products, router}: { isOpen: boolea
                       {p.id && (
                         <input
                           type="checkbox"
-                          checked={typeof checked[idx] === 'boolean' ? checked[idx] : false}
+                          checked={typeof checked[idx] === 'boolean' ? checked[idx] : (typeof checked[idx] === 'number' && checked[idx] > 0)}
                           onChange={e => {
                             const arr = [...checked];
-                            arr[idx] = e.target.checked;
+                            if (e.target.checked) {
+                              arr[idx] = typeof arr[idx] === 'number' && arr[idx] > 0 ? arr[idx] : 1;
+                            } else {
+                              arr[idx] = '';
+                            }
                             setChecked(arr);
                           }}
                         />
@@ -440,11 +444,13 @@ const ProductListModal = ({ isOpen, onClose, products, router}: { isOpen: boolea
                       {p.id ? (
                         <input
                           type="text"
-                          className="w-full border rounded px-1 py-0.5"
+                          className="w-full border rounded px-1 py-0.5 text-xs sm:text-sm"
                           value={p.name}
                           onChange={e => {
                             displayedProducts[idx].name = e.target.value;
-                            // products配列も更新したい場合は、親からsetProductsを渡して管理するのが理想
+                            // checkedやproductsの状態も更新したい場合は、props経由でコールバックを受け取る形に拡張可能
+                            // 今回はローカルなdisplayedProductsのみ反映
+                            setChecked(arr => [...arr]); // 再描画用
                           }}
                         />
                       ) : ''}
@@ -453,6 +459,7 @@ const ProductListModal = ({ isOpen, onClose, products, router}: { isOpen: boolea
                       {p.id ? (
                         <select
                           className="border rounded px-1 py-0.5 text-xs sm:text-sm"
+                          style={{ minWidth: "60px" }}
                           value={checked[idx] && typeof checked[idx] === 'number' ? checked[idx] : ''}
                           onChange={e => {
                             const value = Number(e.target.value);
@@ -461,7 +468,7 @@ const ProductListModal = ({ isOpen, onClose, products, router}: { isOpen: boolea
                             setChecked(arr);
                           }}
                         >
-                          <option value="" disabled>0</option>
+                          <option value="" >0</option>
                           {Array.from({ length: p.quantity }, (_, i) => (
                             <option key={i + 1} value={i + 1}>{i + 1}</option>
                           ))}
@@ -482,10 +489,10 @@ const ProductListModal = ({ isOpen, onClose, products, router}: { isOpen: boolea
             disabled={!isAnyChecked}
             onClick={() => setAdded(true)}
           >
-            納品を更新
+            追加
           </button>
           {added && (
-            <div className="text-green-600 font-bold text-sm mt-2">更新完了</div>
+            <div className="text-green-600 font-bold text-sm mt-2">追加完了</div>
           )}
         </div>
       </div>
