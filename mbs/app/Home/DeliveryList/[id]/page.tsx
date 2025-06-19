@@ -167,7 +167,6 @@ const OrderDetailPage: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [] = useState<Set<string>>(new Set());
 
-
   // ダミーデータを使用してデータを生成する関数
   const fetchOrderDetail = useCallback(async (): Promise<void> => {
     try {
