@@ -19,7 +19,6 @@ type Props = {
 
 export default function DeliveryTable({ deliveries, onSort, renderSortIcons }: Props) {
   return (
-
     <table className="w-full min-w-0 border-collapse text-center text-[10px] sm:text-xs md:text-sm">
       <thead className="bg-blue-300">
         <tr>

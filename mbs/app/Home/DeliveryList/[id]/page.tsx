@@ -84,7 +84,6 @@ const DeleteConfirmModal = ({
           <p className="mb-4 text-sm text-gray-600">以下の納品を削除してもよろしいですか？</p>
 
           {/* 削除対象納品の情報表示 */}
-
           <div className="mb-6 rounded-lg bg-gray-50 p-4">
             <div className="space-y-3 text-left">
               <div>
@@ -167,7 +166,6 @@ const OrderDetailPage: React.FC = () => {
   const [orderData, setOrderData] = useState<OrderWithRelations | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [] = useState<Set<string>>(new Set());
-
 
   // ダミーデータを使用してデータを生成する関数
   const fetchOrderDetail = useCallback(async (): Promise<void> => {
