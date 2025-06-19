@@ -426,10 +426,14 @@ const ProductListModal = ({ isOpen, onClose, products, router}: { isOpen: boolea
                       {p.id && (
                         <input
                           type="checkbox"
-                          checked={typeof checked[idx] === 'boolean' ? checked[idx] : false}
+                          checked={typeof checked[idx] === 'boolean' ? checked[idx] : (typeof checked[idx] === 'number' && checked[idx] > 0)}
                           onChange={e => {
                             const arr = [...checked];
-                            arr[idx] = e.target.checked;
+                            if (e.target.checked) {
+                              arr[idx] = typeof arr[idx] === 'number' && arr[idx] > 0 ? arr[idx] : 1;
+                            } else {
+                              arr[idx] = '';
+                            }
                             setChecked(arr);
                           }}
                         />
@@ -441,6 +445,7 @@ const ProductListModal = ({ isOpen, onClose, products, router}: { isOpen: boolea
                       {p.id ? (
                         <select
                           className="border rounded px-1 py-0.5 text-xs sm:text-sm"
+                          style={{ minWidth: "60px" }}
                           value={checked[idx] && typeof checked[idx] === 'number' ? checked[idx] : ''}
                           onChange={e => {
                             const value = Number(e.target.value);
