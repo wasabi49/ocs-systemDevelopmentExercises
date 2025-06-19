@@ -411,10 +411,11 @@ const OrderDetailClient: React.FC<OrderDetailClientProps> = ({
     };
   });
 
-  // 空行を追加（合計10行になるよう調整）
-  while (displayOrderDetails.length < 10) {
+  // 空行を追加（最小20行になるよう調整、10行表示でスクロール対応）
+  const minRows = 20;
+  while (displayOrderDetails.length < minRows) {
     displayOrderDetails.push({
-      id: '',
+      id: `empty-${displayOrderDetails.length}`,
       orderId: '',
       productName: '',
       unitPrice: 0,
@@ -457,39 +458,105 @@ const OrderDetailClient: React.FC<OrderDetailClientProps> = ({
   const handlePdfExport = async () => {
     try {
       setIsPdfGenerating(true);
+      console.log('PDF生成開始 - 注文ID:', orderId);
 
       // Server ActionでPDF生成
       const result = await generateOrderPdf(orderId);
+      console.log('PDF生成結果:', result);
 
-      if (!result.success || !result.data) {
+      if (!result.success) {
+        console.error('PDF生成失敗:', result.error);
         throw new Error(result.error || 'PDF生成に失敗しました');
       }
 
-      // Base64データをBlobに変換
-      const byteCharacters = atob(result.data.pdfData);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      if (!result.data || !result.data.pdfData) {
+        console.error('PDFデータが空です:', result.data);
+        throw new Error('PDFデータが取得できませんでした');
       }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'application/pdf' });
 
-      // ダウンロード用のリンクを作成
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = result.data.filename;
+      console.log('PDFファイル名:', result.data.filename);
+      console.log('PDFデータサイズ (Base64):', result.data.pdfData.length);
 
-      // ダウンロードを実行
-      document.body.appendChild(link);
-      link.click();
+      // Base64データをBlobに変換
+      try {
+        // Base64データの妥当性チェック
+        if (!result.data.pdfData || typeof result.data.pdfData !== 'string') {
+          throw new Error('Base64データが不正です');
+        }
 
-      // クリーンアップ
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+        // Base64データのフォーマットチェック
+        const base64Pattern = /^[A-Za-z0-9+/]*={0,2}$/;
+        if (!base64Pattern.test(result.data.pdfData)) {
+          throw new Error('Base64データの形式が不正です');
+        }
+
+        console.log('Base64デコード開始...');
+        let byteCharacters: string;
+        try {
+          byteCharacters = atob(result.data.pdfData);
+        } catch (decodeError) {
+          console.error('Base64デコードエラー:', decodeError);
+          throw new Error('Base64デコードに失敗しました');
+        }
+        console.log('Base64デコード完了、バイトサイズ:', byteCharacters.length);
+
+        if (byteCharacters.length === 0) {
+          throw new Error('デコード後のデータが空です');
+        }
+
+        // Uint8Arrayに変換
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+
+        // PDFの署名をチェック
+        if (
+          byteArray.length < 4 ||
+          byteArray[0] !== 0x25 ||
+          byteArray[1] !== 0x50 ||
+          byteArray[2] !== 0x44 ||
+          byteArray[3] !== 0x46
+        ) {
+          console.warn('PDFファイルの署名が見つかりません。続行します...');
+        }
+
+        const blob = new Blob([byteArray], { type: 'application/pdf' });
+        console.log('Blob作成完了、サイズ:', blob.size);
+
+        if (blob.size === 0) {
+          throw new Error('作成されたBlobのサイズが0です');
+        }
+
+        // ダウンロード用のリンクを作成
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = result.data.filename;
+        link.style.display = 'none';
+
+        console.log('ダウンロードリンク作成完了');
+
+        // ダウンロードを実行
+        document.body.appendChild(link);
+        link.click();
+        console.log('ダウンロード実行完了');
+
+        // クリーンアップ
+        setTimeout(() => {
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          console.log('クリーンアップ完了');
+        }, 100);
+      } catch (conversionError) {
+        console.error('PDF変換エラー:', conversionError);
+        throw new Error('PDFの変換処理に失敗しました');
+      }
     } catch (error) {
       console.error('PDF出力エラー:', error);
-      alert('PDF出力に失敗しました。しばらく時間をおいて再度お試しください。');
+      const errorMessage = error instanceof Error ? error.message : '不明なエラーが発生しました';
+      alert(`PDF出力に失敗しました: ${errorMessage}`);
     } finally {
       setIsPdfGenerating(false);
     }
@@ -561,11 +628,12 @@ const OrderDetailClient: React.FC<OrderDetailClientProps> = ({
               <div className="bg-blue-500 p-3 text-white">
                 <h2 className="text-base font-semibold sm:text-lg">注文明細一覧</h2>
               </div>
-              <div className="overflow-x-auto">
+              {/* 10行表示（約420px）+ スクロールでテーブルコンテナ */}
+              <div className="h-[420px] overflow-x-auto overflow-y-auto border-b">
                 <table className="w-full min-w-[800px] border-collapse text-center text-xs sm:text-sm">
-                  <thead className="bg-blue-300">
+                  <thead className="sticky top-0 z-10 bg-blue-300">
                     <tr>
-                      <th className="w-[12%] border border-gray-400 px-2 py-2 font-semibold sm:px-3 sm:py-3">
+                      <th className="w-[10%] border border-gray-400 px-2 py-2 font-semibold sm:px-3 sm:py-3">
                         注文明細ID
                       </th>
                       <th className="w-[18%] border border-gray-400 px-2 py-2 font-semibold sm:px-3 sm:py-3">
@@ -577,7 +645,7 @@ const OrderDetailClient: React.FC<OrderDetailClientProps> = ({
                       <th className="w-[5%] border border-gray-400 px-2 py-2 font-semibold sm:px-3 sm:py-3">
                         数量
                       </th>
-                      <th className="w-[10%] border border-gray-400 px-2 py-2 font-semibold sm:px-3 sm:py-3">
+                      <th className="w-[12%] border border-gray-400 px-2 py-2 font-semibold sm:px-3 sm:py-3">
                         納品状況
                       </th>
                       <th className="w-[28%] border border-gray-400 px-2 py-2 font-semibold sm:px-3 sm:py-3">
@@ -587,27 +655,29 @@ const OrderDetailClient: React.FC<OrderDetailClientProps> = ({
                   </thead>
                   <tbody>
                     {displayOrderDetails.map((item, index) => (
-                      <React.Fragment key={index}>
+                      <React.Fragment key={item.id || `row-${index}`}>
                         <tr
                           className={`${
                             index % 2 === 0 ? 'bg-blue-50' : 'bg-white'
-                          } transition-colors hover:bg-blue-100`}
+                          } h-10 transition-colors hover:bg-blue-100`}
                         >
-                          <td className="border border-gray-400 px-2 py-2 font-mono text-xs sm:px-3 sm:py-3">
-                            <div className="truncate">{item.id}</div>
+                          <td className="border border-gray-400 px-2 py-2 align-middle font-mono text-xs sm:px-3">
+                            <div className="truncate">
+                              {item.id && !item.id.startsWith('empty-') ? item.id : ''}
+                            </div>
                           </td>
-                          <td className="border border-gray-400 px-2 py-2 text-left text-xs sm:px-3 sm:py-3 sm:text-sm">
+                          <td className="border border-gray-400 px-2 py-2 text-left align-middle text-xs sm:px-3 sm:text-sm">
                             <div className="leading-tight break-words">{item.productName}</div>
                           </td>
-                          <td className="border border-gray-400 px-2 py-2 text-right text-xs font-medium sm:px-3 sm:py-3 sm:text-sm">
+                          <td className="border border-gray-400 px-2 py-2 text-right align-middle text-xs font-medium sm:px-3 sm:text-sm">
                             {item.unitPrice > 0 ? formatJPY(item.unitPrice) : ''}
                           </td>
-                          <td className="border border-gray-400 px-2 py-2 text-right text-xs font-medium sm:px-3 sm:py-3 sm:text-sm">
+                          <td className="border border-gray-400 px-2 py-2 text-right align-middle text-xs font-medium sm:px-3 sm:text-sm">
                             {item.quantity > 0 ? item.quantity.toLocaleString() : ''}
                           </td>
-                          <td className="border border-gray-400 px-2 py-2 text-center text-xs sm:px-3 sm:py-3 sm:text-sm">
+                          <td className="border border-gray-400 px-2 py-2 text-center align-middle text-xs sm:px-3 sm:text-sm">
                             {item.deliveryStatus && (
-                              <div className="flex flex-col items-center justify-center gap-1">
+                              <div className="flex flex-row items-center justify-center gap-2">
                                 <span
                                   className={`rounded-full px-2 py-1 text-xs font-semibold ${
                                     item.deliveryStatus === '完了'
@@ -636,7 +706,7 @@ const OrderDetailClient: React.FC<OrderDetailClientProps> = ({
                               </div>
                             )}
                           </td>
-                          <td className="border border-gray-400 px-2 py-2 text-left text-xs sm:px-3 sm:py-3 sm:text-sm">
+                          <td className="border border-gray-400 px-2 py-2 text-left align-middle text-xs sm:px-3 sm:text-sm">
                             <div className="leading-tight break-words">{item.description}</div>
                           </td>
                         </tr>
