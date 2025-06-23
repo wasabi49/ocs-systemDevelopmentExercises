@@ -1,0 +1,45 @@
+name: ESLint
+
+on:
+  pull_request:
+    branches: [main, dev, kimura, manato]
+  # 手動実行用
+  workflow_dispatch:
+
+jobs:
+  eslint:
+    name: Run ESLint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: "mbs/package-lock.json" # サブディレクトリのロックファイルを指定
+
+      - name: Install dependencies
+        run: |
+          cd mbs
+          npm ci
+
+      - name: Run ESLint
+        run: |
+          cd mbs
+          npm run lint
+
+      # ESLintの結果をPRにアノテーションとして表示
+      - name: Annotate ESLint Results
+        if: always()
+        uses: reviewdog/action-eslint@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-review
+          eslint_flags: "."
+          fail_level: error
+          workdir: mbs
+          level: warning
