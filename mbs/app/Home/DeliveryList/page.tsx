@@ -12,4 +12,5 @@ export default async function DeliveryListPage() {
   }
 
   return <DeliveryListClient initialDeliveries={initialDeliveries} />;
+
 }
