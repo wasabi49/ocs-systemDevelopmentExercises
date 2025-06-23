@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useTransition } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import type { OrderDetail, Prisma } from '@/app/generated/prisma';
 
@@ -24,6 +24,67 @@ interface OrderDetailWithDelivery extends OrderDetail {
   deliveryStatus?: string;
 }
 
+// API関数
+const fetchOrderDetail = async (orderId: string): Promise<{
+  success: boolean;
+  data?: OrderWithRelations;
+  error?: string;
+}> => {
+  try {
+    const response = await fetch(`/api/orders/${orderId}`);
+    const result = await response.json();
+    
+    if (response.ok && result.success) {
+      return {
+        success: true,
+        data: result.data
+      };
+    } else {
+      return {
+        success: false,
+        error: result.error || 'データの取得に失敗しました'
+      };
+    }
+  } catch (error) {
+    console.error('API呼び出しエラー:', error);
+    return {
+      success: false,
+      error: 'ネットワークエラーが発生しました'
+    };
+  }
+};
+
+const deleteOrderAPI = async (orderId: string): Promise<{
+  success: boolean;
+  message?: string;
+  error?: string;
+}> => {
+  try {
+    const response = await fetch(`/api/orders/${orderId}`, {
+      method: 'DELETE'
+    });
+    const result = await response.json();
+    
+    if (response.ok && result.success) {
+      return {
+        success: true,
+        message: result.message || '注文が正常に削除されました'
+      };
+    } else {
+      return {
+        success: false,
+        error: result.error || '削除に失敗しました'
+      };
+    }
+  } catch (error) {
+    console.error('削除API呼び出しエラー:', error);
+    return {
+      success: false,
+      error: 'ネットワークエラーが発生しました'
+    };
+  }
+};
+
 // 日本円のフォーマット関数
 const formatJPY = (amount: number): string => {
   return new Intl.NumberFormat('ja-JP', {
@@ -35,7 +96,7 @@ const formatJPY = (amount: number): string => {
 // 日付フォーマット関数
 const formatDate = (date: Date | string): string => {
   const dateObj = date instanceof Date ? date : new Date(date);
-  return dateObj.toISOString().split('T')[0]; // YYYY-MM-DD形式
+  return dateObj.toISOString().split('T')[0];
 };
 
 // 削除確認モーダルコンポーネント
@@ -44,11 +105,13 @@ const DeleteConfirmModal = ({
   onClose,
   onConfirm,
   orderData,
+  isDeleting,
 }: {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
   orderData: OrderWithRelations | null;
+  isDeleting: boolean;
 }) => {
   if (!isOpen || !orderData) return null;
 
@@ -142,16 +205,74 @@ const DeleteConfirmModal = ({
             <button
               onClick={onClose}
               className="flex-1 rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-200"
+              disabled={isDeleting}
             >
               キャンセル
             </button>
             <button
               onClick={onConfirm}
-              className="flex-1 rounded-lg bg-red-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-red-700"
+              className="flex-1 rounded-lg bg-red-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-red-700 disabled:opacity-50"
+              disabled={isDeleting}
             >
-              削除
+              {isDeleting ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                  削除中...
+                </div>
+              ) : (
+                '削除'
+              )}
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// エラーモーダルコンポーネント
+const ErrorModal = ({
+  isOpen,
+  onClose,
+  title,
+  message,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  message: string;
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-brightness-50">
+      <div className="w-full max-w-sm scale-100 transform rounded-2xl bg-white shadow-xl transition-all duration-50">
+        <div className="p-6 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+            <svg
+              className="h-8 w-8 text-red-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </div>
+
+          <h3 className="mb-2 text-xl font-bold text-gray-900">{title}</h3>
+          <div className="mb-6 text-sm text-gray-600 whitespace-pre-line">{message}</div>
+
+          <button
+            onClick={onClose}
+            className="w-full rounded-lg bg-red-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-red-700"
+          >
+            OK
+          </button>
         </div>
       </div>
     </div>
@@ -163,244 +284,68 @@ const OrderDetailPage: React.FC = () => {
   const router = useRouter();
   const orderId = (params?.id as string) || '';
 
+  const [orderData, setOrderData] = useState<OrderWithRelations | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
-
-  // ダミーデータを生成する関数
-  const generateOrderData = (): OrderWithRelations => {
-    console.log('=== 注文明細ダミーデータを使用します ===', orderId);
-
-    // seed.tsの20顧客データ
-    const fallbackCustomers = [
-      { id: 'C-00001', name: '大阪情報専門学校', contactPerson: '山田太郎' },
-      { id: 'C-00002', name: '株式会社スマートソリューションズ', contactPerson: '佐藤次郎' },
-      { id: 'C-00003', name: '株式会社SCC', contactPerson: '田中三郎' },
-      { id: 'C-00004', name: '株式会社くら寿司', contactPerson: '鈴木四郎' },
-      { id: 'C-00005', name: '株式会社大阪テクノロジー', contactPerson: '伊藤五郎' },
-      { id: 'C-00006', name: '関西医科大学', contactPerson: '高橋六郎' },
-      { id: 'C-00007', name: 'グローバル貿易株式会社', contactPerson: '中村七海' },
-      { id: 'C-00008', name: '大阪市立図書館', contactPerson: '小林八雲' },
-      { id: 'C-00009', name: '近畿大学', contactPerson: '松本九十' },
-      { id: 'C-00010', name: '株式会社関西出版', contactPerson: '渡辺十郎' },
-      { id: 'C-00011', name: 'さくら幼稚園', contactPerson: '斎藤春子' },
-      { id: 'C-00012', name: '大阪府立高校', contactPerson: '加藤夏子' },
-      { id: 'C-00013', name: '株式会社大阪エンジニアリング', contactPerson: '山本秋雄' },
-      { id: 'C-00014', name: '関西料理学校', contactPerson: '木村冬彦' },
-      { id: 'C-00015', name: '大阪アート美術館', contactPerson: '井上春夫' },
-      { id: 'C-00016', name: '関西経済研究所', contactPerson: '佐々木夏子' },
-      { id: 'C-00017', name: '大阪音楽院', contactPerson: '山下秋男' },
-      { id: 'C-00018', name: '関西健康センター', contactPerson: '中島冬美' },
-      { id: 'C-00019', name: '大阪ITスクール', contactPerson: '田村春樹' },
-      { id: 'C-00020', name: '関西メディカルセンター', contactPerson: '小川夏菜' },
-    ];
-
-    // 注文IDから顧客を決定（O000001→C-00001のようにマッピング）
-    const getCustomerByOrderId = (orderIdParam: string) => {
-      // 注文IDから数値部分を抽出（O000001 → 1）
-      const orderNumber = parseInt(orderIdParam.replace(/^O0*/, '')) || 1;
-      // 顧客インデックスを計算（1-20の範囲で循環）
-      const customerIndex = (orderNumber - 1) % 20;
-      const selectedCustomer = fallbackCustomers[customerIndex];
-
-      return {
-        id: selectedCustomer.id,
-        storeId: 'store-001',
-        name: selectedCustomer.name,
-        contactPerson: selectedCustomer.contactPerson,
-        address: '大阪府大阪市内',
-        phone: `06-${1000 + customerIndex}-${5678 + customerIndex}`,
-        deliveryCondition: '営業時間内配送',
-        note: `${selectedCustomer.name}向け配送`,
-        updatedAt: new Date(),
-        isDeleted: false,
-        deletedAt: null,
-      };
-    };
-
-    // seed.tsの商品データ（全30種類）
-    const fallbackProducts = [
-      // 既存の商品
-      { name: '世界の名著シリーズ', price: 12000 },
-      { name: '現代文学全集', price: 15000 },
-      { name: 'プログラミング入門書', price: 5000 },
-      { name: 'ビジネス戦略ガイド', price: 3000 },
-      { name: '英語学習教材セット', price: 8500 },
-      { name: '日本の歴史図鑑', price: 5000 },
-      { name: '子供向け絵本セット', price: 3000 },
-      { name: 'デザイン年鑑', price: 8000 },
-      { name: '美術全集', price: 30000 },
-      { name: '専門用語辞典', price: 5000 },
-      // 新しい商品
-      { name: 'AI入門ガイド', price: 6500 },
-      { name: 'データサイエンス実践書', price: 7800 },
-      { name: '世界経済年鑑', price: 9200 },
-      { name: '健康医学事典', price: 11000 },
-      { name: '料理レシピ大全', price: 4500 },
-      { name: '建築デザイン集', price: 15800 },
-      { name: '写真集・日本の風景', price: 12500 },
-      { name: 'クラシック名曲解説', price: 6800 },
-      { name: '現代アート図録', price: 18000 },
-      { name: '日本文学選集', price: 9800 },
-      { name: '科学実験図鑑', price: 7200 },
-      { name: '世界遺産ガイド', price: 5600 },
-      { name: 'プログラミング言語辞典', price: 8900 },
-      { name: 'ビジネスマナー教本', price: 3200 },
-      { name: '子育てハンドブック', price: 4100 },
-      { name: '心理学入門', price: 5300 },
-      { name: '環境問題資料集', price: 6700 },
-      { name: '宇宙科学図鑑', price: 9500 },
-      { name: 'スポーツトレーニング指南', price: 4800 },
-      { name: '日本の伝統工芸', price: 11200 },
-    ];
-
-    // 注文IDベースのシード値を生成（一貫したデータ生成のため）
-    const getSeededRandom = (seed: number) => {
-      const x = Math.sin(seed) * 10000;
-      return x - Math.floor(x);
-    };
-
-    // 注文IDから数値シードを生成
-    const orderSeed = parseInt(orderId.replace(/\D/g, '')) || 1;
-
-    // 選択された顧客
-    const selectedCustomer = getCustomerByOrderId(orderId);
-
-    // 注文明細を決定的に生成（Math.randomの代わりにシード値を使用）
-    const generateOrderDetails = () => {
-      const details = [];
-      const detailCount = Math.floor(getSeededRandom(orderSeed) * 3) + 2; // 2-4個の商品
-
-      for (let i = 1; i <= detailCount; i++) {
-        const productIndex = Math.floor(getSeededRandom(orderSeed + i) * fallbackProducts.length);
-        const product = fallbackProducts[productIndex];
-        const quantity = Math.floor(getSeededRandom(orderSeed + i + 100) * 10) + 1;
-
-        details.push({
-          id: `${orderId}-${String(i).padStart(2, '0')}`,
-          orderId: orderId,
-          productName: product.name,
-          unitPrice: product.price,
-          quantity: quantity,
-          description: `${selectedCustomer.name}向け商品`,
-          updatedAt: new Date(),
-          isDeleted: false,
-          deletedAt: null,
-        });
-      }
-
-      return details;
-    };
-
-    const fallbackOrderData: OrderWithRelations = {
-      id: orderId,
-      customerId: selectedCustomer.id,
-      orderDate: new Date('2025-01-01'),
-      note: `${selectedCustomer.name}からの注文`,
-      status: getSeededRandom(orderSeed + 1000) > 0.5 ? '完了' : '未完了',
-      updatedAt: new Date(),
-      isDeleted: false,
-      deletedAt: null,
-      customer: selectedCustomer,
-      orderDetails: generateOrderDetails(),
-    };
-
-    return fallbackOrderData;
-  };
-
-  // 注文データを直接生成（useEffectを使用しない）
-  const orderData = generateOrderData();
-
-  // 納品情報を取得する関数（複数納品対応）
-  const getDeliveryInfo = (orderDetailId: string, orderQuantity: number) => {
-    // 注文明細IDに基づいて納品情報を生成（ダミーロジック）
-    const seed = parseInt(orderDetailId.slice(-1)) || 0;
-    const deliveryCount = Math.floor(seed / 2) + 1; // 1-4個の納品
-    const allocations = [];
-    let totalDelivered = 0;
-
-    // 実際の注文数量を基準に納品を生成
-    const maxDeliverable = orderQuantity;
-
-    for (let i = 0; i < deliveryCount && totalDelivered < maxDeliverable; i++) {
-      const deliveryDate = new Date(2025, 0, 1 + i * 7); // 7日間隔
-
-      const allocatedQuantity = Math.floor((seed + i) * 1.5) + 5; // 5-15個程度
-      const deliveryId = `D${String(seed + i + 1).padStart(6, '0')}`;
-      const deliveryDetailId = `${deliveryId}-${String(i + 1).padStart(2, '0')}`;
-
-      allocations.push({
-        deliveryDetailId,
-        deliveryDate: deliveryDate.toISOString().split('T')[0],
-        allocatedQuantity,
-        deliveryId,
-      });
-      totalDelivered += allocatedQuantity;
-    }
-
-    // ステータス判定を実際の数量で行う
-    let status = '未納品';
-    if (totalDelivered >= orderQuantity) {
-      status = '完了';
-    } else if (totalDelivered > 0) {
-      status = '一部納品';
-    }
-
-    // 一定確率で未納品状態を作る
-    if (seed % 4 === 0) {
-      // 25%の確率で未納品
-      return {
-        deliveryAllocations: [],
-        totalDelivered: 0,
-        deliveryStatus: '未納品'
-      };
-    } else if (seed % 4 === 1) {
-      // 25%の確率で一部納品（最後の配送を未完了にする）
-      if (allocations.length > 1) {
-        // 最後の配送を削除して一部納品状態にする
-        const partialAllocations = allocations.slice(0, -1);
-        const partialTotal = partialAllocations.reduce((sum, alloc) => sum + alloc.allocatedQuantity, 0);
-        
-        return {
-          deliveryAllocations: partialAllocations,
-          totalDelivered: partialTotal,
-          deliveryStatus: '一部納品'
-        };
-      } else {
-        // 配送が1つしかない場合は、その配送を部分的にする
-        const partialQuantity = Math.floor(allocations[0].allocatedQuantity * 0.7);
-        const partialAllocations = [{
-          ...allocations[0],
-          allocatedQuantity: partialQuantity
-        }];
-        
-        return {
-          deliveryAllocations: partialAllocations,
-          totalDelivered: partialQuantity,
-          deliveryStatus: '一部納品'
-        };
-      }
-    }
-
-    return {
-      deliveryAllocations: allocations,
-      totalDelivered,
-      deliveryStatus: status,
-    };
-  };
-
-  
-  const displayOrderDetails: OrderDetailWithDelivery[] = orderData.orderDetails.map((detail) => {
-    const deliveryInfo = getDeliveryInfo(detail.id, detail.quantity);
-    return {
-      ...detail,
-      ...deliveryInfo,
-    };
+  const [isDeleting, startDeleteTransition] = useTransition();
+  const [errorModal, setErrorModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    title: '',
+    message: ''
   });
 
+  // 注文データを取得
+  useEffect(() => {
+    const fetchOrderData = async () => {
+      if (!orderId) {
+        setErrorModal({
+          isOpen: true,
+          title: 'エラー',
+          message: '注文IDが指定されていません。'
+        });
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const result = await fetchOrderDetail(orderId);
+
+        if (result.success && result.data) {
+          setOrderData(result.data);
+        } else {
+          setErrorModal({
+            isOpen: true,
+            title: 'データ取得エラー',
+            message: result.error || 'データの取得に失敗しました'
+          });
+        }
+      } catch (error) {
+        console.error('注文データ取得エラー:', error);
+        setErrorModal({
+          isOpen: true,
+          title: 'データ取得エラー',
+          message: 'データの取得に失敗しました。'
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrderData();
+  }, [orderId]);
+
+  // 注文詳細を表示用データに変換
+  const displayOrderDetails: OrderDetailWithDelivery[] = orderData?.orderDetails || [];
 
   // 空行を追加（合計10行になるよう調整）
-  while (displayOrderDetails.length < 10) {
-    displayOrderDetails.push({
+  const paddedOrderDetails = [...displayOrderDetails];
+  while (paddedOrderDetails.length < 10) {
+    paddedOrderDetails.push({
       id: '',
       orderId: '',
       productName: '',
@@ -417,10 +362,10 @@ const OrderDetailPage: React.FC = () => {
   }
 
   // 合計金額計算
-  const totalAmount = orderData.orderDetails.reduce(
+  const totalAmount = orderData?.orderDetails.reduce(
     (sum, detail) => sum + detail.unitPrice * detail.quantity,
     0,
-  );
+  ) || 0;
 
   // ハンドラー関数
   const handleEdit = () => {
@@ -432,9 +377,38 @@ const OrderDetailPage: React.FC = () => {
   };
 
   const handleDeleteConfirm = () => {
-    setShowDeleteModal(false);
-    alert('注文を削除しました（デモのため実際の削除は行われていません）');
-    router.push('/Home/OrderList');
+    startDeleteTransition(async () => {
+      try {
+        const result = await deleteOrderAPI(orderId);
+
+        if (result.success) {
+          setShowDeleteModal(false);
+          setErrorModal({
+            isOpen: true,
+            title: '削除完了',
+            message: result.message || '注文を正常に削除しました。'
+          });
+          
+          // 少し待ってから一覧画面に戻る
+          setTimeout(() => {
+            router.push('/Home/OrderList');
+          }, 1500);
+        } else {
+          setErrorModal({
+            isOpen: true,
+            title: '削除エラー',
+            message: result.error || '注文の削除に失敗しました'
+          });
+        }
+      } catch (error) {
+        console.error('注文削除エラー:', error);
+        setErrorModal({
+          isOpen: true,
+          title: '削除エラー',
+          message: '注文の削除に失敗しました。'
+        });
+      }
+    });
   };
 
   const handleDeleteCancel = () => {
@@ -442,7 +416,11 @@ const OrderDetailPage: React.FC = () => {
   };
 
   const handlePdfExport = () => {
-    alert('PDFを出力しています（デモのため実際の出力は行われていません）');
+    setErrorModal({
+      isOpen: true,
+      title: 'PDF出力',
+      message: 'PDF出力機能は現在開発中です。'
+    });
   };
 
   // 行の展開/折りたたみハンドラー
@@ -455,6 +433,49 @@ const OrderDetailPage: React.FC = () => {
     }
     setExpandedRows(newExpanded);
   };
+
+  const handleCloseErrorModal = () => {
+    setErrorModal({
+      isOpen: false,
+      title: '',
+      message: ''
+    });
+  };
+
+  // ローディング表示
+  if (loading) {
+    return (
+      <div className="container mx-auto max-w-7xl px-2 py-4 sm:px-4 sm:py-6 lg:px-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+            <span className="text-lg text-gray-600">読み込み中...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // データが見つからない場合
+  if (!orderData) {
+    return (
+      <div className="container mx-auto max-w-7xl px-2 py-4 sm:px-4 sm:py-6 lg:px-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="text-6xl text-gray-300 mb-4">📋</div>
+            <h2 className="text-xl font-semibold text-gray-700 mb-2">注文が見つかりません</h2>
+            <p className="text-gray-500 mb-4">指定された注文ID「{orderId}」は存在しないか、削除されています。</p>
+            <button
+              onClick={() => router.push('/Home/OrderList')}
+              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              注文一覧に戻る
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -523,7 +544,7 @@ const OrderDetailPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {displayOrderDetails.map((item, index) => (
+                    {paddedOrderDetails.map((item, index) => (
                       <React.Fragment key={index}>
                         <tr
                           className={`${
@@ -718,7 +739,7 @@ const OrderDetailPage: React.FC = () => {
           <button
             onClick={handleDelete}
             className="w-32 rounded-lg border border-red-700 bg-red-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-red-700 sm:w-auto sm:px-6 sm:text-base"
-            disabled={showDeleteModal}
+            disabled={showDeleteModal || isDeleting}
           >
             削除
           </button>
@@ -737,6 +758,15 @@ const OrderDetailPage: React.FC = () => {
         onClose={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
         orderData={orderData}
+        isDeleting={isDeleting}
+      />
+
+      {/* エラーモーダル */}
+      <ErrorModal
+        isOpen={errorModal.isOpen}
+        onClose={handleCloseErrorModal}
+        title={errorModal.title}
+        message={errorModal.message}
       />
     </>
   );

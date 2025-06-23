@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Customer } from '@/app/generated/prisma';
+import { useStore } from '@/app/contexts/StoreContext';
 
 // 注文作成時のデータ型定義（Prismaの型をベースに）
 type OrderCreateData = {
@@ -355,23 +356,17 @@ const generateTempOrderDetailId = (index: number): string => {
 // メインコンポーネント
 export default function OrderCreatePage() {
   const router = useRouter();
+  const { selectedStore } = useStore(); // 店舗情報を取得
 
   // 状態管理
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [orderDetails, setOrderDetails] = useState<OrderDetailCreate[]>([
     { 
       id: generateTempOrderDetailId(0), 
-      productName: 'IT情報コンサルメント', 
-      quantity: 2, 
-      unitPrice: 3500, 
-      description: '' 
-    },
-    { 
-      id: generateTempOrderDetailId(1), 
       productName: '', 
       quantity: '', 
-      unitPrice: 2400, 
-      description: '9784813299035' 
+      unitPrice: 0, 
+      description: '' 
     }
   ]);
   const [orderDate, setOrderDate] = useState<Date>(new Date());
@@ -665,6 +660,22 @@ export default function OrderCreatePage() {
 
   return (
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
+      {/* 店舗情報表示 */}
+      {selectedStore && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center gap-2">
+            <span className="text-blue-600">🏪</span>
+            <span className="text-sm font-medium text-blue-800">
+              現在の店舗: <span className="font-bold">{selectedStore.name}</span>
+            </span>
+            <span className="text-xs text-blue-600">({selectedStore.id})</span>
+          </div>
+          <p className="text-xs text-blue-600 mt-1">
+            この店舗の顧客のみが表示されます
+          </p>
+        </div>
+      )}
+
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
         {/* 商品選択エリア（左側） */}
         <div className="w-full lg:w-1/2">
