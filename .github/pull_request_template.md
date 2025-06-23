@@ -1,10 +1,13 @@
 <!-- I want to review in Japanese. -->
+<!-- for GitHub Copilot review rule -->
 
-必ず日本語でレビューしてください
+<details>
+<summary>for GitHub Copilot review rule</summary>
 
-[must] → かならず変更してね  
-[imo] → 自分の意見だとこうだけど修正必須ではないよ(in my opinion)  
-[nits] → ささいな指摘(nitpick) 
-[ask] → 質問  
-[fyi] → 参考情報
+### お願い
+
+- Pull Request Overview、Reviewed Changes、コメントは全て必ず日本語で書いてください
+
+</details>
+<!-- for GitHub Copilot review rule -->
 <!-- I want to review in Japanese. -->
