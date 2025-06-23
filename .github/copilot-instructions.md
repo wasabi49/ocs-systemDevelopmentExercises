@@ -8,7 +8,7 @@
 
 - Pull Request Overview、Reviewed Changes、コメントは全て必ず日本語で書いてください
 
-### 内容
+### プレフィックス
 [must] → かならず変更してね  
 [imo] → 自分の意見だとこうだけど修正必須ではないよ(in my opinion)  
 [nits] → ささいな指摘(nitpick) 
