@@ -253,7 +253,7 @@ export default function StatisticsListClient({ statisticsData }: StatisticsListC
                   <td className="truncate border px-1 py-0.5 text-[10px] sm:px-2 sm:py-1 sm:text-xs md:px-3 md:py-1.5 md:text-sm">
                     {item.customerId === '' ? '' : item.averageLeadTime.toFixed(1)}
                   </td>
-                  <td className="truncate border px-1 py-0.5 text-right text-[10px] font-medium sm:px-2 sm:py-1 sm:text-xs md:px-3 md:py-1.5 md:text-sm">
+                  <td className="truncate border px-1 py-0.5 text-[10px] font-medium sm:px-2 sm:py-1 sm:text-xs md:px-3 md:py-1.5 md:text-sm">
                     {item.customerId === '' ? '' : formatCurrency(item.totalSales)}
                   </td>
                 </tr>
