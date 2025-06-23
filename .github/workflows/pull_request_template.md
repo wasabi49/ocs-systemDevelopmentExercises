@@ -4,4 +4,5 @@
 [nits] → ささいな指摘(nitpick) 
 [ask] → 質問  
 [fyi] → 参考情報
+日本語でお願いします
 <!-- I want to review in Japanese. -->
