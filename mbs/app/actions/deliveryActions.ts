@@ -133,3 +133,105 @@ export async function fetchDeliveryById(id: string) {
     };
   }
 }
+
+/**
+ * 指定されたIDの納品を削除するServer Action
+ * @param id 納品ID
+ * @returns 削除結果
+ */
+export async function deleteDeliveryById(id: string) {
+  try {
+    const storeId = await getStoreIdFromCookie();
+
+    if (!storeId) {
+      return {
+        success: false,
+        error: '店舗を選択してください',
+      };
+    }
+
+    // 納品の存在確認と店舗の権限チェック
+    const delivery = await prisma.delivery.findFirst({
+      where: {
+        id: id,
+        isDeleted: false,
+        customer: {
+          storeId: storeId,
+          isDeleted: false,
+        },
+      },
+      include: {
+        deliveryDetails: {
+          where: { isDeleted: false },
+          include: {
+            deliveryAllocations: {
+              where: { isDeleted: false },
+            },
+          },
+        },
+      },
+    });
+
+    if (!delivery) {
+      return {
+        success: false,
+        error: '納品が見つからないか、削除権限がありません',
+      };
+    }
+
+    // トランザクション内で関連データを論理削除
+    await prisma.$transaction(async (prisma) => {
+      const now = new Date();
+
+      // 納品割当を論理削除
+      for (const detail of delivery.deliveryDetails) {
+        if (detail.deliveryAllocations.length > 0) {
+          await prisma.deliveryAllocation.updateMany({
+            where: {
+              deliveryDetailId: detail.id,
+              isDeleted: false,
+            },
+            data: {
+              isDeleted: true,
+              deletedAt: now,
+            },
+          });
+        }
+      }
+
+      // 納品明細を論理削除
+      if (delivery.deliveryDetails.length > 0) {
+        await prisma.deliveryDetail.updateMany({
+          where: {
+            deliveryId: id,
+            isDeleted: false,
+          },
+          data: {
+            isDeleted: true,
+            deletedAt: now,
+          },
+        });
+      }
+
+      // 納品を論理削除
+      await prisma.delivery.update({
+        where: { id: id },
+        data: {
+          isDeleted: true,
+          deletedAt: now,
+        },
+      });
+    });
+
+    return {
+      success: true,
+      message: '納品を削除しました',
+    };
+  } catch (error) {
+    console.error('納品削除に失敗しました:', error);
+    return {
+      success: false,
+      error: '納品削除に失敗しました',
+    };
+  }
+}
