@@ -2,7 +2,7 @@
 sequenceDiagram
     participant User as ユーザー
     participant Page as DeliveryListPage
-    participant API as /api/deliverys
+    participant API as /api/deliveries
     participant Router as Next Router
 
     Note over User, Page: 初期化・データ取得
