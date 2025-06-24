@@ -201,24 +201,28 @@ export async function importCustomersFromCSV(csvData: string[][], storeId?: stri
     }
 
     const dataRows = csvData.slice(1); // ヘッダー行を除く
-    
+
     // 有効行の判定：最低限、店舗名と顧客名が必要
     // かつ、ヘッダー行のような文字列を除外
     const validRows = dataRows.filter((row) => {
       if (row.length < 3) return false;
-      
+
       const storeName = row[1]?.toString().trim();
       const customerName = row[2]?.toString().trim();
-      
+
       // 空の値をチェック
       if (!storeName || !customerName) return false;
-      
+
       // ヘッダー行のような値を除外
-      if (storeName === '店舗名' || customerName === '顧客名' || 
-          storeName === 'storeName' || customerName === 'customerName') {
+      if (
+        storeName === '店舗名' ||
+        customerName === '顧客名' ||
+        storeName === 'storeName' ||
+        customerName === 'customerName'
+      ) {
         return false;
       }
-      
+
       return true;
     });
 
@@ -444,6 +448,69 @@ export async function fetchCustomersAction() {
       error: '顧客データの取得中にエラーが発生しました',
       data: [],
       needsStoreSelection: false,
+    };
+  }
+}
+
+/**
+ * 店舗の全顧客を取得（納品編集画面用）
+ * @returns 顧客一覧
+ */
+export async function fetchAllCustomers() {
+  try {
+    const storeId = await getStoreIdFromCookie();
+
+    if (!storeId) {
+      return {
+        status: 'store_required' as const,
+        error: '店舗を選択してください',
+      };
+    }
+
+    const customers = await prisma.customer.findMany({
+      where: {
+        storeId: storeId,
+        isDeleted: false,
+      },
+      select: {
+        id: true,
+        name: true,
+        contactPerson: true,
+        address: true,
+        phone: true,
+        deliveryCondition: true,
+        note: true,
+        updatedAt: true,
+        storeId: true,
+        isDeleted: true,
+        deletedAt: true,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+
+    return {
+      status: 'success' as const,
+      data: customers.map((customer) => ({
+        id: customer.id,
+        storeId: customer.storeId,
+        name: customer.name,
+        contactPerson: customer.contactPerson,
+        address: customer.address,
+        phone: customer.phone,
+        deliveryCondition: customer.deliveryCondition,
+        note: customer.note,
+        updatedAt: customer.updatedAt.toISOString(),
+        isDeleted: customer.isDeleted,
+        deletedAt: customer.deletedAt?.toISOString() || null,
+      })),
+    };
+  } catch (error) {
+    console.error('顧客データの取得に失敗しました:', error);
+    return {
+      status: 'error' as const,
+      error: '顧客データの取得に失敗しました',
     };
   }
 }

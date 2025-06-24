@@ -1,5 +1,5 @@
 import { PrismaClient } from '../app/generated/prisma';
-import type { Order, Delivery } from '../app/generated/prisma';
+import type { Order, Delivery, Customer } from '../app/generated/prisma';
 
 const prisma = new PrismaClient();
 
@@ -638,7 +638,7 @@ async function main() {
 
   // 統計データの作成
   await Promise.all(
-    customers.map((customer) =>
+    customers.map((customer: Customer) =>
       prisma.statistics.create({
         data: {
           customerId: customer.id,
@@ -787,92 +787,15 @@ async function main() {
 
   console.log(`Created ${orderDetails.length} order details`);
 
-  // 納品データの作成（60件の顧客に対して各20件ずつ = 1200件）
+  // 正しいビジネスフローに従った納品データの作成
+  console.log('Creating deliveries following correct business flow...');
+  
   const deliveries: Delivery[] = [];
-  let deliveryCounter = 1;
-
-  // 各顧客に対して20件の納品を作成（60顧客 × 20件 = 1200件の納品）
-  for (const customer of customers) {
-    for (let j = 1; j <= 20; j++) {
-      const deliveryDate = new Date(
-        2024 + Math.floor(Math.random() * 2), // 2024年または2025年
-        Math.floor(Math.random() * 12), // 0-11月
-        Math.floor(Math.random() * 28) + 1, // 1-28日
-      );
-
-      const totalQuantity = Math.floor(Math.random() * 50) + 10; // 10-59個
-      const totalAmount = Math.floor(Math.random() * 500000) + 50000; // 5万円-55万円
-
-      const delivery = await prisma.delivery.create({
-        data: {
-          id: `D${String(deliveryCounter).padStart(7, '0')}`,
-          customerId: customer.id,
-          deliveryDate: deliveryDate,
-          note: `${customer.name}への納品${j}件目 - ${deliveryDate.toLocaleDateString('ja-JP')}`,
-          totalAmount: totalAmount,
-          totalQuantity: totalQuantity,
-        },
-      });
-
-      deliveries.push(delivery);
-      deliveryCounter++;
-    }
-  }
-
-  console.log(`Created ${deliveries.length} deliveries for ${customers.length} customers`);
-
-  // 納品明細データの作成
   const deliveryDetails = [];
-  for (const delivery of deliveries) {
-    // 各納品に1-15個の商品を追加
-    const itemCount = Math.floor(Math.random() * 15) + 1;
-    let totalAmount = 0;
-    let totalQuantity = 0;
-
-    // 同じ商品を重複して選ばないようにする
-    const selectedProducts: typeof products = [];
-    for (let j = 1; j <= itemCount; j++) {
-      let product: (typeof products)[0];
-      do {
-        product = products[Math.floor(Math.random() * products.length)];
-      } while (selectedProducts.some((p) => p.name === product.name));
-      selectedProducts.push(product);
-
-      const quantity = Math.floor(Math.random() * 10) + 1; // 1-10個
-      const amount = product.price * quantity;
-
-      totalAmount += amount;
-      totalQuantity += quantity;
-
-      const deliveryDetail = await prisma.deliveryDetail.create({
-        data: {
-          id: `${delivery.id}-${String(j).padStart(2, '0')}`,
-          deliveryId: delivery.id,
-          productName: product.name,
-          unitPrice: product.price,
-          quantity: quantity,
-        },
-      });
-
-      deliveryDetails.push(deliveryDetail);
-    }
-
-    // 納品の合計金額と数量を更新
-    await prisma.delivery.update({
-      where: { id: delivery.id },
-      data: { totalAmount, totalQuantity },
-    });
-  }
-
-  console.log(`Created ${deliveryDetails.length} delivery details`);
-
-  // 納品割当データの作成（注文明細と納品明細の関連付け）
-  // 同じ顧客の注文明細と納品明細を優先的に関連付け、同じ商品名のものを対応させる
-  console.log('Creating delivery allocations...');
-
+  let deliveryCounter = 1;
   let allocationCount = 0;
 
-  // 顧客ごとに処理
+  // 顧客ごとに処理（注文に基づいて納品を作成）
   for (const customer of customers) {
     // 該当顧客の注文明細を取得
     const customerOrderDetails = orderDetails.filter((od) => {
@@ -880,16 +803,8 @@ async function main() {
       return order?.customerId === customer.id;
     });
 
-    // 該当顧客の納品明細を取得
-    const customerDeliveryDetails = deliveryDetails.filter((dd) => {
-      const delivery = deliveries.find((d) => d.id === dd.deliveryId);
-      return delivery?.customerId === customer.id;
-    });
-
-    // 商品名ごとにグループ化
+    // 顧客の注文明細を商品名ごとにグループ化
     const orderDetailsByProduct = new Map<string, typeof customerOrderDetails>();
-    const deliveryDetailsByProduct = new Map<string, typeof customerDeliveryDetails>();
-
     customerOrderDetails.forEach((od) => {
       if (!orderDetailsByProduct.has(od.productName)) {
         orderDetailsByProduct.set(od.productName, []);
@@ -897,108 +812,142 @@ async function main() {
       orderDetailsByProduct.get(od.productName)!.push(od);
     });
 
-    customerDeliveryDetails.forEach((dd) => {
-      if (!deliveryDetailsByProduct.has(dd.productName)) {
-        deliveryDetailsByProduct.set(dd.productName, []);
-      }
-      deliveryDetailsByProduct.get(dd.productName)!.push(dd);
-    });
+    // 顧客に対して複数回の納品を作成（10-15回の納品）
+    const deliveryCount = Math.floor(Math.random() * 6) + 10; // 10-15回
+    
+    for (let j = 1; j <= deliveryCount; j++) {
+      // 3. 納品を作成
+      const deliveryDate = new Date(
+        2024 + Math.floor(Math.random() * 2), // 2024年または2025年
+        Math.floor(Math.random() * 12), // 0-11月
+        Math.floor(Math.random() * 28) + 1, // 1-28日
+      );
 
-    // 同じ商品名の注文明細と納品明細を関連付け
-    for (const [productName, orderDets] of orderDetailsByProduct) {
-      const deliveryDets = deliveryDetailsByProduct.get(productName);
+      const delivery = await prisma.delivery.create({
+        data: {
+          id: `D${String(deliveryCounter).padStart(7, '0')}`,
+          customerId: customer.id,
+          deliveryDate: deliveryDate,
+          note: `${customer.name}への納品${j}件目 - ${deliveryDate.toLocaleDateString('ja-JP')}`,
+          totalAmount: 0, // 後で更新
+          totalQuantity: 0, // 後で更新
+        },
+      });
 
-      if (deliveryDets && deliveryDets.length > 0) {
-        // 各注文明細に対して納品明細を割り当て
-        for (const orderDetail of orderDets) {
-          // ランダムに1-3個の納品明細を選択（複数納品に分かれることを想定）
-          const assignmentCount = Math.min(Math.floor(Math.random() * 3) + 1, deliveryDets.length);
+      deliveries.push(delivery);
 
-          const selectedDeliveryDetails = deliveryDets
-            .sort(() => Math.random() - 0.5)
-            .slice(0, assignmentCount);
+      // 4. 納品明細を作成（未納品の注文明細のみを対象）
+      let deliveryTotalAmount = 0;
+      let deliveryTotalQuantity = 0;
+      let deliveryDetailCounter = 1;
 
-          let remainingOrderQuantity = orderDetail.quantity;
+      // 1-5個の異なる商品を納品対象として選択
+      const productNames = Array.from(orderDetailsByProduct.keys())
+        .sort(() => Math.random() - 0.5)
+        .slice(0, Math.floor(Math.random() * 5) + 1);
 
-          for (const deliveryDetail of selectedDeliveryDetails) {
-            if (remainingOrderQuantity <= 0) break;
+      for (const productName of productNames) {
+        const orderDetsForProduct = orderDetailsByProduct.get(productName)!;
 
-            // 既に割り当てが存在するか確認
-            const existingAllocation = await prisma.deliveryAllocation.findUnique({
-              where: {
-                orderDetailId_deliveryDetailId: {
-                  orderDetailId: orderDetail.id,
-                  deliveryDetailId: deliveryDetail.id,
-                },
+        // この商品の未納品数量を計算
+        let totalUndeliveredQuantity = 0;
+        let availableOrderDetails = [];
+
+        for (const orderDetail of orderDetsForProduct) {
+          // 既に納品済みの数量を計算（allocationから）
+          const existingAllocations = await prisma.deliveryAllocation.findMany({
+            where: {
+              orderDetailId: orderDetail.id,
+            },
+            select: {
+              allocatedQuantity: true,
+            },
+          });
+
+          const totalAllocated = existingAllocations.reduce(
+            (sum, alloc) => sum + alloc.allocatedQuantity,
+            0,
+          );
+
+          const remainingQuantity = orderDetail.quantity - totalAllocated;
+
+          if (remainingQuantity > 0) {
+            availableOrderDetails.push({
+              orderDetail,
+              remainingQuantity,
+            });
+            totalUndeliveredQuantity += remainingQuantity;
+          }
+        }
+
+        // 未納品がある場合のみ納品明細を作成
+        if (totalUndeliveredQuantity > 0 && availableOrderDetails.length > 0) {
+          // 納品数量を決定（未納品数量の一部または全部）
+          const maxDeliveryQuantity = Math.min(totalUndeliveredQuantity, Math.floor(Math.random() * 8) + 1);
+          
+          if (maxDeliveryQuantity > 0) {
+            const product = products.find(p => p.name === productName)!;
+
+            // 納品明細を作成
+            const deliveryDetail = await prisma.deliveryDetail.create({
+              data: {
+                id: `${delivery.id}-${String(deliveryDetailCounter).padStart(2, '0')}`,
+                deliveryId: delivery.id,
+                productName: productName,
+                unitPrice: product.price,
+                quantity: maxDeliveryQuantity,
               },
             });
 
-            if (!existingAllocation) {
-              // 割り当て数量を決定（注文数量と納品数量の小さい方、または残り数量）
-              const maxAllocation = Math.min(
-                remainingOrderQuantity,
-                deliveryDetail.quantity,
-                Math.floor(
-                  Math.random() * Math.min(orderDetail.quantity, deliveryDetail.quantity),
-                ) + 1,
+            deliveryDetails.push(deliveryDetail);
+            deliveryDetailCounter++;
+
+            deliveryTotalAmount += product.price * maxDeliveryQuantity;
+            deliveryTotalQuantity += maxDeliveryQuantity;
+
+            // 5. 納品明細の数量を対応する注文明細に割り当て
+            let remainingDeliveryQuantity = maxDeliveryQuantity;
+
+            for (const { orderDetail, remainingQuantity } of availableOrderDetails) {
+              if (remainingDeliveryQuantity <= 0) break;
+
+              // 配分可能な数量を決定
+              const allocatedQuantity = Math.min(remainingDeliveryQuantity, remainingQuantity);
+
+              if (allocatedQuantity > 0) {
+                await prisma.deliveryAllocation.create({
+                  data: {
+                    orderDetailId: orderDetail.id,
+                    deliveryDetailId: deliveryDetail.id,
+                    allocatedQuantity: allocatedQuantity,
+                  },
+                });
+
+                remainingDeliveryQuantity -= allocatedQuantity;
+                allocationCount++;
+              }
+            }
+
+            // すべての納品数量が配分されたかチェック
+            if (remainingDeliveryQuantity > 0) {
+              console.warn(
+                `Warning: DeliveryDetail ${deliveryDetail.id} has ${remainingDeliveryQuantity} unallocated items for product ${productName}`,
               );
-
-              const allocatedQuantity = Math.max(1, maxAllocation);
-
-              await prisma.deliveryAllocation.create({
-                data: {
-                  orderDetailId: orderDetail.id,
-                  deliveryDetailId: deliveryDetail.id,
-                  allocatedQuantity,
-                },
-              });
-
-              remainingOrderQuantity -= allocatedQuantity;
-              allocationCount++;
             }
           }
         }
       }
-    }
 
-    // 商品名が一致しない場合の追加的な割り当て（10%の確率で異なる商品同士も関連付け）
-    if (
-      Math.random() < 0.1 &&
-      customerOrderDetails.length > 0 &&
-      customerDeliveryDetails.length > 0
-    ) {
-      const randomOrderDetail =
-        customerOrderDetails[Math.floor(Math.random() * customerOrderDetails.length)];
-      const randomDeliveryDetail =
-        customerDeliveryDetails[Math.floor(Math.random() * customerDeliveryDetails.length)];
-
-      // 既に割り当てが存在するか確認
-      const existingAllocation = await prisma.deliveryAllocation.findUnique({
-        where: {
-          orderDetailId_deliveryDetailId: {
-            orderDetailId: randomOrderDetail.id,
-            deliveryDetailId: randomDeliveryDetail.id,
-          },
+      // 納品の合計金額と数量を更新
+      await prisma.delivery.update({
+        where: { id: delivery.id },
+        data: { 
+          totalAmount: deliveryTotalAmount, 
+          totalQuantity: deliveryTotalQuantity 
         },
       });
 
-      if (!existingAllocation) {
-        const allocatedQuantity = Math.min(
-          randomOrderDetail.quantity,
-          randomDeliveryDetail.quantity,
-          Math.floor(Math.random() * 3) + 1,
-        );
-
-        await prisma.deliveryAllocation.create({
-          data: {
-            orderDetailId: randomOrderDetail.id,
-            deliveryDetailId: randomDeliveryDetail.id,
-            allocatedQuantity,
-          },
-        });
-
-        allocationCount++;
-      }
+      deliveryCounter++;
     }
   }
 
