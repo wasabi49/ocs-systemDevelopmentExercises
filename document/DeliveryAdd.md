@@ -4,31 +4,30 @@ sequenceDiagram
     participant UI as 納品追加画面
     participant Validation as バリデーション
     participant ProductModal as 商品リスト
-    participant Modal as モーダル
     participant Router as ルーター
 
     User->>UI: 納品追加画面アクセス
-    UI->>UI: 初期状態設定<br/>(デフォルト商品2件、今日の日付)
+    Note right of UI: 内部処理： <br/> 初期状態設定<br/>(デフォルト商品2件、今日の日付)
     
         Note over User, UI: 顧客選択フロー
         User->>UI: 顧客検索フィールドクリック
         UI->>User: ドロップダウン表示
-        UI->>UI: ダミー顧客データフィルタリング
+        Note right of UI: 内部処理： <br/> ダミー顧客データフィルタリング
         User->>UI: 顧客選択
         UI->>User: 選択された顧客情報設定
-        UI->>UI: 検索文字列を顧客名に設定
+        Note right of UI: 内部処理： <br/> 検索文字列を顧客名に設定
     
         Note over User, UI: 基本情報入力
         User->>UI: 納品日変更
-        UI->>UI: 納品日状態更新
+        UI->>User: 納品日状態更新
         User->>UI: 備考入力
-        UI->>UI: 備考状態更新
+        UI->>User: 備考状態更新
 
         Note over User, Validation: バリデーション
         UI->>Validation: リアルタイムバリデーション実行
         alt バリデーションエラー
             Validation->>UI: エラー内容返却
-            UI->>UI: エラー表示
+            Validation->>UI: エラー表示
         else バリデーション成功
             Validation->>UI: 成功
         end
@@ -43,9 +42,9 @@ sequenceDiagram
             
             loop 商品選択
                 User->>ProductModal: 商品チェックボックス選択
-                ProductModal->>ProductModal: 選択状態更新
+                ProductModal->>User: 選択状態更新
                 User->>ProductModal: 数量選択
-                ProductModal->>ProductModal: 数量状態更新
+                ProductModal->>User: 数量状態更新
             end
             
             alt 商品未選択
@@ -56,17 +55,6 @@ sequenceDiagram
                 ProductModal->>Router: 1秒後にDeliveryListに遷移
                 Router->>Router: ページ遷移実行
             end
-        end
-
-        Note over User, Modal: エラー・成功処理
-        alt エラー発生時
-            UI->>Modal: エラーモーダル表示
-            User->>Modal: OKボタンクリック
-            Modal->>UI: モーダル非表示
-        else 成功時
-            UI->>Modal: 成功モーダル表示
-            User->>Modal: OKボタンクリック
-            Modal->>Router: 納品リストページに遷移
         end
 
         Note over User, UI: その他の操作
