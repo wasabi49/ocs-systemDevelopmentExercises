@@ -4,6 +4,10 @@ on:
     branches:
       - main
       - dev
+      - kimura
+      - manato
+  # 手動実行用
+  workflow_dispatch:
 
 jobs:
   test:
@@ -14,26 +18,22 @@ jobs:
     steps:
       # リポジトリをチェックアウト
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       # Node.js をセットアップ
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: "./mbs/package-lock.json"
 
       # 依存関係をインストール
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       # Vitest テストを実行
       - name: Run Vitest tests
-        run: npm run test:json
-
-      # テスト結果をアップロード
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        with:
-          name: vitest-results
-          path: ./mbs/vitest-results.json
-          if-no-files-found: warn
+        id: vitest
+        run: |
+          npm run test:ci
