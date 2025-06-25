@@ -339,14 +339,25 @@ const OrderDetailPage: React.FC = () => {
     fetchOrderData();
   }, [orderId]);
 
-  // 注文詳細を表示用データに変換
-  const displayOrderDetails: OrderDetailWithDelivery[] = orderData?.orderDetails || [];
+  // 注文詳細を表示用データに変換（納品状況の詳細計算）
+  const displayOrderDetails: OrderDetailWithDelivery[] = orderData?.orderDetails.map(detail => {
+    // 現在は納品機能がまだ実装されていないため、すべて「未納品」として表示
+    const totalDelivered = 0;
+    const deliveryStatus = '未納品';
+
+    return {
+      ...detail,
+      deliveryAllocations: [], // 将来的にここに納品データが入る
+      totalDelivered,
+      deliveryStatus
+    };
+  }) || [];
 
   // 空行を追加（合計10行になるよう調整）
   const paddedOrderDetails = [...displayOrderDetails];
   while (paddedOrderDetails.length < 10) {
     paddedOrderDetails.push({
-      id: '',
+      id: `empty-${paddedOrderDetails.length}`,
       orderId: '',
       productName: '',
       unitPrice: 0,
@@ -564,7 +575,7 @@ const OrderDetailPage: React.FC = () => {
                             {item.quantity > 0 ? item.quantity.toLocaleString() : ''}
                           </td>
                           <td className="border border-gray-400 px-2 py-1 text-center sm:px-3 sm:py-2">
-                            {item.deliveryStatus && (
+                            {item.productName && (
                               <div className="flex items-center justify-center gap-2">
                                 <span
                                   className={`rounded-full px-2 py-1 text-xs font-semibold ${
@@ -579,18 +590,16 @@ const OrderDetailPage: React.FC = () => {
                                 >
                                   {item.deliveryStatus}
                                 </span>
-                                {item.deliveryAllocations &&
-                                  item.deliveryAllocations.length > 0 && (
-                                    <button
-                                      onClick={() => toggleRowExpansion(item.id)}
-                                      className="text-xs font-medium text-blue-600 hover:text-blue-800"
-                                      title={
-                                        expandedRows.has(item.id) ? '詳細を閉じる' : '詳細を表示'
-                                      }
-                                    >
-                                      {expandedRows.has(item.id) ? '▲' : '▼'}
-                                    </button>
-                                  )}
+                                {/* 商品がある場合は常に詳細を表示可能 */}
+                                <button
+                                  onClick={() => toggleRowExpansion(item.id)}
+                                  className="text-xs font-medium text-blue-600 hover:text-blue-800"
+                                  title={
+                                    expandedRows.has(item.id) ? '詳細を閉じる' : '詳細を表示'
+                                  }
+                                >
+                                  {expandedRows.has(item.id) ? '▲' : '▼'}
+                                </button>
                               </div>
                             )}
                           </td>
@@ -600,15 +609,14 @@ const OrderDetailPage: React.FC = () => {
                         </tr>
 
                         {/* 展開時の詳細情報 */}
-                        {expandedRows.has(item.id) &&
-                          item.deliveryAllocations &&
-                          item.deliveryAllocations.length > 0 && (
-                            <tr className="bg-gray-50">
-                              <td colSpan={6} className="border border-gray-400 px-4 py-3">
-                                <div className="text-sm">
-                                  <div className="mb-2 font-medium text-gray-700">
-                                    納品明細 ({item.totalDelivered || 0}/{item.quantity} 個)
-                                  </div>
+                        {expandedRows.has(item.id) && item.productName && (
+                          <tr className="bg-gray-50">
+                            <td colSpan={6} className="border border-gray-400 px-4 py-3">
+                              <div className="text-sm">
+                                <div className="mb-2 font-medium text-gray-700">
+                                  納品明細 ({item.totalDelivered || 0}/{item.quantity} 個)
+                                </div>
+                                {item.deliveryAllocations && item.deliveryAllocations.length > 0 ? (
                                   <div className="space-y-1">
                                     {item.deliveryAllocations.map((allocation, allocIndex) => (
                                       <div
@@ -632,10 +640,15 @@ const OrderDetailPage: React.FC = () => {
                                       </div>
                                     ))}
                                   </div>
-                                </div>
-                              </td>
-                            </tr>
-                          )}
+                                ) : (
+                                  <div className="rounded bg-white px-3 py-2 text-xs text-gray-500">
+                                    まだ納品されていません
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
                       </React.Fragment>
                     ))}
                   </tbody>
