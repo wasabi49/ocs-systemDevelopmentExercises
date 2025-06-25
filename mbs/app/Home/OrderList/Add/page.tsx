@@ -261,16 +261,24 @@ const ErrorModal = ({
 // 成功ポップアップコンポーネント
 const SuccessModal = ({ 
   isOpen, 
-  onClose 
+  onClose,
+  orderData
 }: {
   isOpen: boolean;
   onClose: () => void;
+  orderData?: {
+    order: {
+      id: string;
+      orderDate: string;
+    };
+    orderDetails: any[];
+  } | null;
 }) => {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-brightness-50">
-      <div className="w-full max-w-sm scale-100 transform rounded-2xl bg-white shadow-xl transition-all duration-50">
+      <div className="w-full max-w-md scale-100 transform rounded-2xl bg-white shadow-xl transition-all duration-50">
         <div className="p-6 text-center">
           {/* 成功アイコン */}
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
@@ -290,13 +298,50 @@ const SuccessModal = ({
           </div>
 
           <h3 className="mb-2 text-xl font-bold text-gray-900">注文追加完了</h3>
+          
+          {orderData && (
+            <div className="mb-4 rounded-lg bg-green-50 border border-green-200 p-4">
+              <div className="space-y-2 text-left">
+                <div>
+                  <div className="flex items-center mb-1">
+                    <span className="mr-2 h-2 w-2 flex-shrink-0 rounded-full bg-green-500"></span>
+                    <span className="text-sm font-medium text-green-800">注文ID</span>
+                  </div>
+                  <p className="ml-4 font-mono text-sm font-bold text-green-900">
+                    {orderData.order.id}
+                  </p>
+                </div>
+                
+                <div>
+                  <div className="flex items-center mb-1">
+                    <span className="mr-2 h-2 w-2 flex-shrink-0 rounded-full bg-blue-500"></span>
+                    <span className="text-sm font-medium text-green-800">商品数</span>
+                  </div>
+                  <p className="ml-4 text-sm font-semibold text-green-900">
+                    {orderData.orderDetails.length}点
+                  </p>
+                </div>
+                
+                <div>
+                  <div className="flex items-center mb-1">
+                    <span className="mr-2 h-2 w-2 flex-shrink-0 rounded-full bg-purple-500"></span>
+                    <span className="text-sm font-medium text-green-800">注文日</span>
+                  </div>
+                  <p className="ml-4 text-sm font-semibold text-green-900">
+                    {new Date(orderData.order.orderDate).toLocaleDateString('ja-JP')}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <p className="mb-6 text-sm text-gray-600">注文が正常に追加されました。</p>
 
           <button
             onClick={onClose}
             className="w-full rounded-lg bg-green-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-green-700"
           >
-            OK
+            注文一覧へ
           </button>
         </div>
       </div>
@@ -376,6 +421,7 @@ export default function OrderCreatePage() {
   const [note, setNote] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
+  const [successOrderData, setSuccessOrderData] = useState<any>(null); // 成功時の注文データ
 
   // 削除モーダル関連の状態
   const [deleteModal, setDeleteModal] = useState<{
@@ -589,6 +635,9 @@ export default function OrderCreatePage() {
       if (result.success) {
         console.log('注文が正常に作成されました:', result.data);
         
+        // 成功時の注文データを保存
+        setSuccessOrderData(result.data);
+        
         // 成功時は入力フォームをリセット
         setOrderDetails([
           { 
@@ -636,6 +685,7 @@ export default function OrderCreatePage() {
   // 成功モーダルを閉じる際の処理
   const handleCloseSuccessModal = useCallback(() => {
     setShowSuccessModal(false);
+    setSuccessOrderData(null);
     router.push('/Home/OrderList');
   }, [router]);
 
@@ -947,6 +997,7 @@ export default function OrderCreatePage() {
       <SuccessModal
         isOpen={showSuccessModal}
         onClose={handleCloseSuccessModal}
+        orderData={successOrderData}
       />
 
       {/* 削除確認モーダル */}
