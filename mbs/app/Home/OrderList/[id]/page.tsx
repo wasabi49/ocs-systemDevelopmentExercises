@@ -341,9 +341,10 @@ const OrderDetailPage: React.FC = () => {
 
   // 注文詳細を表示用データに変換（納品状況の詳細計算）
   const displayOrderDetails: OrderDetailWithDelivery[] = orderData?.orderDetails.map(detail => {
-    // 現在は納品機能がまだ実装されていないため、すべて「未納品」として表示
-    const totalDelivered = 0;
-    const deliveryStatus = '未納品';
+    // 実際のデータベースから納品状況を取得して判定
+    // 注文のステータスが「完了」の場合は「完了」、そうでなければ「未納品」
+    const totalDelivered = orderData.status === '完了' ? detail.quantity : 0;
+    const deliveryStatus = orderData.status === '完了' ? '完了' : '未納品';
 
     return {
       ...detail,
@@ -353,24 +354,8 @@ const OrderDetailPage: React.FC = () => {
     };
   }) || [];
 
-  // 空行を追加（合計10行になるよう調整）
-  const paddedOrderDetails = [...displayOrderDetails];
-  while (paddedOrderDetails.length < 10) {
-    paddedOrderDetails.push({
-      id: `empty-${paddedOrderDetails.length}`,
-      orderId: '',
-      productName: '',
-      unitPrice: 0,
-      quantity: 0,
-      description: '',
-      updatedAt: new Date(),
-      isDeleted: false,
-      deletedAt: null,
-      deliveryAllocations: [],
-      totalDelivered: 0,
-      deliveryStatus: '',
-    });
-  }
+  // 空行の追加は行わず、実際のデータのみ表示
+  const paddedOrderDetails = displayOrderDetails;
 
   // 合計金額計算
   const totalAmount = orderData?.orderDetails.reduce(
@@ -616,7 +601,26 @@ const OrderDetailPage: React.FC = () => {
                                 <div className="mb-2 font-medium text-gray-700">
                                   納品明細 ({item.totalDelivered || 0}/{item.quantity} 個)
                                 </div>
-                                {item.deliveryAllocations && item.deliveryAllocations.length > 0 ? (
+                                {item.deliveryStatus === '完了' ? (
+                                  <div className="rounded bg-white px-3 py-2 text-xs">
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex gap-4">
+                                        <span className="font-mono text-green-600">
+                                          {item.id}
+                                        </span>
+                                        <span className="text-gray-600">
+                                          {formatDate(orderData?.orderDate || new Date())}
+                                        </span>
+                                        <span className="font-medium text-green-600">
+                                          {item.quantity}個 完納
+                                        </span>
+                                      </div>
+                                      <span className="text-green-600 font-semibold">
+                                        ✓ 納品完了
+                                      </span>
+                                    </div>
+                                  </div>
+                                ) : item.deliveryAllocations && item.deliveryAllocations.length > 0 ? (
                                   <div className="space-y-1">
                                     {item.deliveryAllocations.map((allocation, allocIndex) => (
                                       <div
