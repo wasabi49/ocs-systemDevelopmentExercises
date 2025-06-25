@@ -12,7 +12,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./mbs:/app
-    command: sh -c "npm ci && npx prisma generate && npm run build && npm start"
+    command: sh -c "npm i --include=dev && npx prisma generate && npm run build && npm start"
 
   db:
     image: postgres:17.4
