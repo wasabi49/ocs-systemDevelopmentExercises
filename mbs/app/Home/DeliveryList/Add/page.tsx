@@ -2,14 +2,20 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Customer } from '@/app/generated/prisma';
+import type { Customer, OrderDetail, Order, Delivery } from '@/app/generated/prisma';
 import {
   fetchUndeliveredOrderDetailsForCreate,
   createDelivery,
 } from '@/app/actions/deliveryActions';
 import { fetchAllCustomers } from '@/app/actions/customerActions';
 
-// 未納品注文明細の型定義
+// APIで返されるCustomer型（日付が文字列で返される）
+type CustomerData = Omit<Customer, 'updatedAt' | 'deletedAt'> & {
+  updatedAt: string;
+  deletedAt: string | null;
+};
+
+// APIで返される未納品注文明細型（日付が文字列で返される）
 type UndeliveredOrderDetail = {
   orderDetailId: string;
   orderId: string;
@@ -129,8 +135,8 @@ const CustomerDropdown = ({
   onSelect,
   onClose,
 }: {
-  customers: Customer[];
-  onSelect: (customer: Customer) => void;
+  customers: CustomerData[];
+  onSelect: (customer: CustomerData) => void;
   onClose: () => void;
 }) => {
   useEffect(() => {
@@ -146,22 +152,22 @@ const CustomerDropdown = ({
   }, [onClose]);
 
   return (
-    <div className="customer-dropdown absolute left-0 right-0 mt-1 bg-white border rounded shadow-lg z-10 max-h-48 overflow-y-auto">
+    <div className="customer-dropdown absolute right-0 left-0 z-10 mt-1 max-h-48 overflow-y-auto rounded border bg-white shadow-lg">
       {customers.length > 0 ? (
         customers.map((customer) => (
           <div
             key={customer.id}
-            className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-xs sm:text-sm border-b last:border-b-0"
+            className="cursor-pointer border-b px-3 py-2 text-xs last:border-b-0 hover:bg-gray-100 sm:text-sm"
             onClick={() => onSelect(customer)}
           >
             <div className="font-semibold">{customer.name}</div>
-            <div className="text-gray-500 text-xs">
+            <div className="text-xs text-gray-500">
               {customer.contactPerson || '担当者未設定'} | {customer.phone}
             </div>
           </div>
         ))
       ) : (
-        <div className="px-3 py-2 text-gray-500 text-xs sm:text-sm">顧客が見つかりません</div>
+        <div className="px-3 py-2 text-xs text-gray-500 sm:text-sm">顧客が見つかりません</div>
       )}
     </div>
   );
@@ -207,11 +213,14 @@ const UndeliveredProductsModal = ({
         .filter(([, quantity]) => quantity > 0)
         .map(([orderDetailId, allocatedQuantity]) => {
           const detail = orderDetails.find((d) => d.orderDetailId === orderDetailId);
+          if (!detail) {
+            throw new Error(`注文明細が見つかりません: ${orderDetailId}`);
+          }
           return {
             orderDetailId,
             allocatedQuantity,
-            unitPrice: detail!.unitPrice,
-            productName: detail!.productName,
+            unitPrice: detail.unitPrice,
+            productName: detail.productName,
           };
         });
 
@@ -235,102 +244,140 @@ const UndeliveredProductsModal = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
       style={{ background: 'rgba(0, 0, 0, 0.6)' }}
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-5xl rounded-lg bg-white p-4 shadow-lg"
+        className="relative flex w-full max-w-4xl flex-col rounded-lg bg-white shadow-lg sm:max-w-5xl"
         style={{
-          maxHeight: '80vh',
+          maxHeight: '90vh',
           minWidth: 320,
-          width: '95vw',
+          width: '98vw',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         <button
-          className="absolute top-2 right-2 text-3xl font-bold text-red-600 hover:text-red-800 focus:outline-none"
+          className="absolute top-2 right-2 z-20 text-3xl font-bold text-red-600 hover:text-red-800 focus:outline-none"
           onClick={onClose}
           aria-label="閉じる"
         >
           ×
         </button>
-        <h2 className="mb-4 text-lg font-bold">未納品商品リスト（注文別）</h2>
-        <div className="mb-4 text-sm text-gray-600">
-          ※同じ商品でも異なる注文の場合は別行で表示されます
-          <br />
-          ※完全に納品済みの注文明細は表示されません
-        </div>
 
-        {/* 選択状況の表示 */}
-        <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-3">
-          <div className="text-sm font-medium text-blue-800">
-            選択状況: {totalSelectedQuantity}個 / 合計金額: ¥{totalSelectedAmount.toLocaleString()}
+        {/* ヘッダー部分 */}
+        <div className="flex-shrink-0 border-b border-gray-200 p-2 sm:p-4">
+          <h2 className="text-base font-bold sm:text-lg">未納品商品リスト（注文別）</h2>
+          <div className="mt-2 text-xs text-gray-600 sm:text-sm">
+            ※同じ商品でも異なる注文の場合は別行で表示されます
+            <br />
+            ※完全に納品済みの注文明細は表示されません
+          </div>
+
+          {/* 選択状況の表示 */}
+          <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-2 sm:p-3">
+            <div className="text-xs font-medium text-blue-800 sm:text-sm">
+              選択状況: {totalSelectedQuantity}個 / 合計金額: ¥
+              {totalSelectedAmount.toLocaleString()}
+            </div>
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <div style={{ maxHeight: '55vh', overflowY: 'auto' }}>
-            <table className="w-full border-collapse text-center text-xs sm:text-sm">
+        {/* テーブル部分 */}
+        <div className="flex-1 overflow-hidden p-2 sm:p-4">
+          <div className="h-144 overflow-auto">
+            <table
+              className="border-collapse text-center text-xs sm:text-sm"
+              style={{ minWidth: '700px' }}
+            >
               <thead className="sticky top-0 z-10 bg-blue-300">
-                <tr style={{ height: '44px' }}>
-                  <th className="border border-gray-400 px-1 py-1 font-semibold sm:px-2 sm:py-2">
+                <tr style={{ height: '36px' }}>
+                  <th
+                    className="border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm"
+                    style={{ width: '90px' }}
+                  >
                     注文ID
                   </th>
-                  <th className="border border-gray-400 px-1 py-1 font-semibold sm:px-2 sm:py-2">
+                  <th
+                    className="border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm"
+                    style={{ width: '80px' }}
+                  >
                     注文日
                   </th>
-                  <th className="border border-gray-400 px-1 py-1 font-semibold sm:px-2 sm:py-2">
+                  <th
+                    className="border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm"
+                    style={{ width: '150px' }}
+                  >
                     商品名
                   </th>
-                  <th className="border border-gray-400 px-1 py-1 font-semibold sm:px-2 sm:py-2">
+                  <th
+                    className="border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm"
+                    style={{ width: '70px' }}
+                  >
                     単価
                   </th>
-                  <th className="border border-gray-400 px-1 py-1 font-semibold sm:px-2 sm:py-2">
+                  <th
+                    className="border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm"
+                    style={{ width: '60px' }}
+                  >
                     注文数量
                   </th>
-                  <th className="border border-gray-400 px-1 py-1 font-semibold sm:px-2 sm:py-2">
+                  <th
+                    className="border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm"
+                    style={{ width: '60px' }}
+                  >
                     既納品数量
                   </th>
-                  <th className="border border-gray-400 px-1 py-1 font-semibold sm:px-2 sm:py-2">
+                  <th
+                    className="border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm"
+                    style={{ width: '60px' }}
+                  >
                     残り数量
                   </th>
-                  <th className="border border-gray-400 px-1 py-1 font-semibold sm:px-2 sm:py-2">
+                  <th
+                    className="border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm"
+                    style={{ width: '90px' }}
+                  >
                     今回納品数量
                   </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="h-82 w-82">
                 {orderDetails.map((detail) => (
                   <tr
                     key={detail.orderDetailId}
                     className="h-10 transition-colors hover:bg-blue-100 sm:h-12"
                   >
-                    <td className="border border-gray-400 px-1 py-1 text-center font-mono text-xs sm:px-2 sm:py-2">
+                    <td className="border border-gray-400 px-1 py-1 text-center font-mono text-xs sm:px-2 sm:py-2 sm:text-sm">
                       {detail.orderId}
                     </td>
-                    <td className="border border-gray-400 px-1 py-1 text-center text-xs sm:px-2 sm:py-2">
-                      {new Date(detail.orderDate).toLocaleDateString('ja-JP')}
+                    <td className="border border-gray-400 px-1 py-1 text-center text-xs sm:px-2 sm:py-2 sm:text-sm">
+                      {new Date(detail.orderDate).toLocaleDateString('ja-JP', {
+                        month: '2-digit',
+                        day: '2-digit',
+                      })}
                     </td>
                     <td className="border border-gray-400 px-1 py-1 text-left sm:px-2 sm:py-2">
-                      {detail.productName}
+                      <div className="text-xs sm:text-sm">{detail.productName}</div>
                       {detail.description && (
-                        <div className="mt-1 text-xs text-gray-500">{detail.description}</div>
+                        <div className="mt-1 hidden text-xs text-gray-500 sm:block">
+                          {detail.description}
+                        </div>
                       )}
                     </td>
-                    <td className="border border-gray-400 px-1 py-1 text-right sm:px-2 sm:py-2">
-                      ¥{detail.unitPrice.toLocaleString()}
+                    <td className="border border-gray-400 px-1 py-1 text-right text-xs sm:px-2 sm:py-2 sm:text-sm">
+                      ¥{(detail.unitPrice / 1000).toFixed(0)}k
                     </td>
-                    <td className="border border-gray-400 px-1 py-1 text-center sm:px-2 sm:py-2">
+                    <td className="border border-gray-400 px-1 py-1 text-center text-xs sm:px-2 sm:py-2 sm:text-sm">
                       {detail.totalQuantity}
                     </td>
-                    <td className="border border-gray-400 px-1 py-1 text-center sm:px-2 sm:py-2">
+                    <td className="border border-gray-400 px-1 py-1 text-center text-xs sm:px-2 sm:py-2 sm:text-sm">
                       {detail.allocatedInOtherDeliveries}
                     </td>
-                    <td className="border border-gray-400 px-1 py-1 text-center font-semibold text-green-600 sm:px-2 sm:py-2">
+                    <td className="border border-gray-400 px-1 py-1 text-center text-xs font-semibold text-green-600 sm:px-2 sm:py-2 sm:text-sm">
                       {detail.remainingQuantity}
                     </td>
-                    <td className="border border-gray-400 px-1 py-1 sm:px-2 sm:py-2">
+                    <td className="border border-gray-400 px-1 py-1 text-center sm:px-2 sm:py-2">
                       <input
                         type="number"
                         min="0"
@@ -339,7 +386,7 @@ const UndeliveredProductsModal = ({
                         onChange={(e) =>
                           handleQuantityChange(detail.orderDetailId, parseInt(e.target.value) || 0)
                         }
-                        className="w-16 rounded border border-gray-300 px-1 py-1 text-center text-xs sm:w-20"
+                        className="w-12 rounded border border-gray-300 px-1 py-1 text-center text-xs sm:w-16 sm:px-2 sm:text-sm"
                       />
                     </td>
                   </tr>
@@ -350,10 +397,10 @@ const UndeliveredProductsModal = ({
         </div>
 
         {/* フッターボタン */}
-        <div className="mt-4 flex justify-end gap-3">
+        <div className="flex flex-shrink-0 justify-end gap-2 border-t border-gray-200 p-2 sm:gap-3 sm:p-4">
           <button
             onClick={onClose}
-            className="rounded-lg border border-gray-300 bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-200"
+            className="rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-200 sm:px-4 sm:text-sm"
             disabled={isSaving}
           >
             キャンセル
@@ -361,7 +408,7 @@ const UndeliveredProductsModal = ({
           <button
             onClick={handleSave}
             disabled={isSaving || totalSelectedQuantity === 0}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-blue-700 disabled:bg-gray-400"
+            className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white shadow-lg transition-colors hover:bg-blue-700 disabled:bg-gray-400 sm:px-4 sm:text-sm"
           >
             {isSaving ? '保存中...' : '納品作成'}
           </button>
@@ -373,8 +420,8 @@ const UndeliveredProductsModal = ({
 
 export default function DeliveryAddPage() {
   const router = useRouter();
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [customers, setCustomers] = useState<CustomerData[]>([]);
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerData | null>(null);
   const [customerSearchTerm, setCustomerSearchTerm] = useState('');
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [deliveryDate, setDeliveryDate] = useState<Date>(new Date());
@@ -418,12 +465,12 @@ export default function DeliveryAddPage() {
   // 顧客検索でフィルタリング
   const filteredCustomers = useMemo(() => {
     return customers.filter((customer) =>
-      customer.name.toLowerCase().includes(customerSearchTerm.toLowerCase())
+      customer.name.toLowerCase().includes(customerSearchTerm.toLowerCase()),
     );
   }, [customers, customerSearchTerm]);
 
   // 顧客選択ハンドラー
-  const handleSelectCustomer = useCallback(async (customer: Customer) => {
+  const handleSelectCustomer = useCallback(async (customer: CustomerData) => {
     setSelectedCustomer(customer);
     setCustomerSearchTerm(customer.name);
     setShowCustomerDropdown(false);
@@ -433,7 +480,11 @@ export default function DeliveryAddPage() {
       setIsLoading(true);
       const result = await fetchUndeliveredOrderDetailsForCreate(customer.id);
       if (result.success) {
-        setOrderDetails(result.orderDetails || []);
+        setOrderDetails(
+          result.orderDetails?.filter(
+            (detail): detail is UndeliveredOrderDetail => detail !== null,
+          ) || [],
+        );
       } else {
         setErrorModal({
           isOpen: true,
@@ -465,7 +516,7 @@ export default function DeliveryAddPage() {
         setOrderDetails([]);
       }
     },
-    [selectedCustomer]
+    [selectedCustomer],
   );
 
   // 納品保存ハンドラー
@@ -497,7 +548,7 @@ export default function DeliveryAddPage() {
             deliveryDate,
             note: note.trim() || undefined,
           },
-          allocations
+          allocations,
         );
 
         if (result.success) {
@@ -519,7 +570,7 @@ export default function DeliveryAddPage() {
         setIsLoading(false);
       }
     },
-    [selectedCustomer, deliveryDate, note]
+    [selectedCustomer, deliveryDate, note],
   );
 
   // 成功モーダルを閉じる際の処理
@@ -529,23 +580,25 @@ export default function DeliveryAddPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen py-12 flex items-center justify-center bg-gray-50">
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 max-w-2xl">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">新規納品作成</h1>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12">
+      <div className="container mx-auto max-w-2xl px-2 py-4 sm:px-4 sm:py-6">
+        <div className="rounded-lg bg-white p-6 shadow-lg">
+          <h1 className="mb-6 text-2xl font-bold text-gray-900">新規納品作成</h1>
 
           {/* 顧客情報 */}
           <div className="mb-6">
-            <div className="bg-blue-500 text-white p-2 font-semibold text-sm sm:text-base">
+            <div className="bg-blue-500 p-2 text-sm font-semibold text-white sm:text-base">
               顧客情報
             </div>
-            <div className="p-3 border-x border-b border-gray-300">
-              <div className="flex flex-col sm:flex-row sm:items-center mb-2 gap-2">
-                <label className="text-xs sm:text-sm flex items-center gap-2 whitespace-nowrap">
+            <div className="border-x border-b border-gray-300 p-3">
+              <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center">
+                <label className="flex items-center gap-2 text-xs whitespace-nowrap sm:text-sm">
                   顧客
-                  <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-md">必須</span>
+                  <span className="rounded-md bg-orange-500 px-2 py-1 text-xs text-white">
+                    必須
+                  </span>
                 </label>
-                <div className="flex-1 relative">
+                <div className="relative flex-1">
                   <div className="flex items-center">
                     <div className="absolute left-2 text-gray-400">
                       <svg
@@ -565,7 +618,7 @@ export default function DeliveryAddPage() {
                     </div>
                     <input
                       type="text"
-                      className="w-full pl-8 pr-2 py-2 rounded text-xs sm:text-sm border"
+                      className="w-full rounded border py-2 pr-2 pl-8 text-xs sm:text-sm"
                       value={customerSearchTerm}
                       onChange={handleCustomerSearchChange}
                       onClick={() => setShowCustomerDropdown(true)}
@@ -583,11 +636,11 @@ export default function DeliveryAddPage() {
                 </div>
               </div>
 
-              <div className="text-gray-600 text-xs mt-1">
+              <div className="mt-1 text-xs text-gray-600">
                 選択された顧客:{' '}
                 <span className="font-semibold">{selectedCustomer?.name || '未選択'}</span>
                 {selectedCustomer && (
-                  <div className="text-gray-500 text-xs mt-1">
+                  <div className="mt-1 text-xs text-gray-500">
                     担当者: {selectedCustomer.contactPerson || '担当者未設定'} | ID:{' '}
                     {selectedCustomer.id}
                   </div>
@@ -598,13 +651,13 @@ export default function DeliveryAddPage() {
 
           {/* 納品日 */}
           <div className="mb-6">
-            <div className="bg-blue-500 text-white p-2 font-semibold text-sm sm:text-base">
+            <div className="bg-blue-500 p-2 text-sm font-semibold text-white sm:text-base">
               納品日
             </div>
-            <div className="p-3 border-x border-b border-gray-300">
+            <div className="border-x border-b border-gray-300 p-3">
               <input
                 type="date"
-                className="w-full px-2 py-2 rounded text-xs sm:text-sm border"
+                className="w-full rounded border px-2 py-2 text-xs sm:text-sm"
                 value={formatDateForInput(deliveryDate)}
                 onChange={(e) => setDeliveryDate(formatDateFromInput(e.target.value))}
               />
@@ -613,10 +666,12 @@ export default function DeliveryAddPage() {
 
           {/* 備考 */}
           <div className="mb-6">
-            <div className="bg-blue-500 text-white p-2 font-semibold text-sm sm:text-base">備考</div>
-            <div className="p-3 border-x border-b border-gray-300">
+            <div className="bg-blue-500 p-2 text-sm font-semibold text-white sm:text-base">
+              備考
+            </div>
+            <div className="border-x border-b border-gray-300 p-3">
               <textarea
-                className="w-full px-2 py-2 rounded text-xs sm:text-sm border"
+                className="w-full rounded border px-2 py-2 text-xs sm:text-sm"
                 rows={3}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
@@ -628,22 +683,22 @@ export default function DeliveryAddPage() {
           {/* 未納品商品情報表示 */}
           {selectedCustomer && (
             <div className="mb-6">
-              <div className="bg-green-500 text-white p-2 font-semibold text-sm sm:text-base">
+              <div className="bg-green-500 p-2 text-sm font-semibold text-white sm:text-base">
                 未納品商品情報
               </div>
-              <div className="p-3 border-x border-b border-gray-300">
+              <div className="border-x border-b border-gray-300 p-3">
                 {isLoading ? (
-                  <div className="text-center py-4">
+                  <div className="py-4 text-center">
                     <div className="text-sm text-gray-600">未納品注文明細を取得中...</div>
                   </div>
                 ) : orderDetails.length > 0 ? (
                   <div>
-                    <div className="text-sm text-gray-600 mb-3">
+                    <div className="mb-3 text-sm text-gray-600">
                       この顧客には {orderDetails.length} 件の未納品商品があります
                     </div>
                     <button
                       onClick={() => setShowProductModal(true)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm"
+                      className="rounded bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
                       disabled={isLoading}
                     >
                       納品商品を選択
@@ -662,7 +717,7 @@ export default function DeliveryAddPage() {
           <div className="flex justify-center gap-4">
             <button
               onClick={() => router.push('/Home/DeliveryList')}
-              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+              className="rounded-lg border border-gray-300 px-6 py-2 text-gray-700 hover:bg-gray-50"
               disabled={isLoading}
             >
               キャンセル
