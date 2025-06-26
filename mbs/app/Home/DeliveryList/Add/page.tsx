@@ -146,22 +146,22 @@ const CustomerDropdown = ({
   }, [onClose]);
 
   return (
-    <div className="customer-dropdown absolute right-0 left-0 z-10 mt-1 max-h-48 overflow-y-auto rounded border bg-white shadow-lg">
+    <div className="customer-dropdown absolute left-0 right-0 mt-1 bg-white border rounded shadow-lg z-10 max-h-48 overflow-y-auto">
       {customers.length > 0 ? (
         customers.map((customer) => (
           <div
             key={customer.id}
-            className="cursor-pointer border-b px-3 py-2 text-xs last:border-b-0 hover:bg-gray-100 sm:text-sm"
+            className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-xs sm:text-sm border-b last:border-b-0"
             onClick={() => onSelect(customer)}
           >
             <div className="font-semibold">{customer.name}</div>
-            <div className="text-xs text-gray-500">
+            <div className="text-gray-500 text-xs">
               {customer.contactPerson || '担当者未設定'} | {customer.phone}
             </div>
           </div>
         ))
       ) : (
-        <div className="px-3 py-2 text-xs text-gray-500 sm:text-sm">顧客が見つかりません</div>
+        <div className="px-3 py-2 text-gray-500 text-xs sm:text-sm">顧客が見つかりません</div>
       )}
     </div>
   );
@@ -418,7 +418,7 @@ export default function DeliveryAddPage() {
   // 顧客検索でフィルタリング
   const filteredCustomers = useMemo(() => {
     return customers.filter((customer) =>
-      customer.name.toLowerCase().includes(customerSearchTerm.toLowerCase()),
+      customer.name.toLowerCase().includes(customerSearchTerm.toLowerCase())
     );
   }, [customers, customerSearchTerm]);
 
@@ -465,7 +465,7 @@ export default function DeliveryAddPage() {
         setOrderDetails([]);
       }
     },
-    [selectedCustomer],
+    [selectedCustomer]
   );
 
   // 納品保存ハンドラー
@@ -497,7 +497,7 @@ export default function DeliveryAddPage() {
             deliveryDate,
             note: note.trim() || undefined,
           },
-          allocations,
+          allocations
         );
 
         if (result.success) {
@@ -519,7 +519,7 @@ export default function DeliveryAddPage() {
         setIsLoading(false);
       }
     },
-    [selectedCustomer, deliveryDate, note],
+    [selectedCustomer, deliveryDate, note]
   );
 
   // 成功モーダルを閉じる際の処理
@@ -529,25 +529,23 @@ export default function DeliveryAddPage() {
   }, [router]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12">
-      <div className="container mx-auto max-w-2xl px-2 py-4 sm:px-4 sm:py-6">
-        <div className="rounded-lg bg-white p-6 shadow-lg">
-          <h1 className="mb-6 text-2xl font-bold text-gray-900">新規納品作成</h1>
+    <div className="min-h-screen py-12 flex items-center justify-center bg-gray-50">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 max-w-2xl">
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">新規納品作成</h1>
 
           {/* 顧客情報 */}
           <div className="mb-6">
-            <div className="bg-blue-500 p-2 text-sm font-semibold text-white sm:text-base">
+            <div className="bg-blue-500 text-white p-2 font-semibold text-sm sm:text-base">
               顧客情報
             </div>
-            <div className="border-x border-b border-gray-300 p-3">
-              <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center">
-                <label className="flex items-center gap-2 text-xs whitespace-nowrap sm:text-sm">
+            <div className="p-3 border-x border-b border-gray-300">
+              <div className="flex flex-col sm:flex-row sm:items-center mb-2 gap-2">
+                <label className="text-xs sm:text-sm flex items-center gap-2 whitespace-nowrap">
                   顧客
-                  <span className="rounded-md bg-orange-500 px-2 py-1 text-xs text-white">
-                    必須
-                  </span>
+                  <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-md">必須</span>
                 </label>
-                <div className="relative flex-1">
+                <div className="flex-1 relative">
                   <div className="flex items-center">
                     <div className="absolute left-2 text-gray-400">
                       <svg
@@ -567,7 +565,7 @@ export default function DeliveryAddPage() {
                     </div>
                     <input
                       type="text"
-                      className="w-full rounded border py-2 pr-2 pl-8 text-xs sm:text-sm"
+                      className="w-full pl-8 pr-2 py-2 rounded text-xs sm:text-sm border"
                       value={customerSearchTerm}
                       onChange={handleCustomerSearchChange}
                       onClick={() => setShowCustomerDropdown(true)}
@@ -585,11 +583,11 @@ export default function DeliveryAddPage() {
                 </div>
               </div>
 
-              <div className="mt-1 text-xs text-gray-600">
+              <div className="text-gray-600 text-xs mt-1">
                 選択された顧客:{' '}
                 <span className="font-semibold">{selectedCustomer?.name || '未選択'}</span>
                 {selectedCustomer && (
-                  <div className="mt-1 text-xs text-gray-500">
+                  <div className="text-gray-500 text-xs mt-1">
                     担当者: {selectedCustomer.contactPerson || '担当者未設定'} | ID:{' '}
                     {selectedCustomer.id}
                   </div>
@@ -600,13 +598,13 @@ export default function DeliveryAddPage() {
 
           {/* 納品日 */}
           <div className="mb-6">
-            <div className="bg-blue-500 p-2 text-sm font-semibold text-white sm:text-base">
+            <div className="bg-blue-500 text-white p-2 font-semibold text-sm sm:text-base">
               納品日
             </div>
-            <div className="border-x border-b border-gray-300 p-3">
+            <div className="p-3 border-x border-b border-gray-300">
               <input
                 type="date"
-                className="w-full rounded border px-2 py-2 text-xs sm:text-sm"
+                className="w-full px-2 py-2 rounded text-xs sm:text-sm border"
                 value={formatDateForInput(deliveryDate)}
                 onChange={(e) => setDeliveryDate(formatDateFromInput(e.target.value))}
               />
@@ -615,12 +613,10 @@ export default function DeliveryAddPage() {
 
           {/* 備考 */}
           <div className="mb-6">
-            <div className="bg-blue-500 p-2 text-sm font-semibold text-white sm:text-base">
-              備考
-            </div>
-            <div className="border-x border-b border-gray-300 p-3">
+            <div className="bg-blue-500 text-white p-2 font-semibold text-sm sm:text-base">備考</div>
+            <div className="p-3 border-x border-b border-gray-300">
               <textarea
-                className="w-full rounded border px-2 py-2 text-xs sm:text-sm"
+                className="w-full px-2 py-2 rounded text-xs sm:text-sm border"
                 rows={3}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
@@ -632,22 +628,22 @@ export default function DeliveryAddPage() {
           {/* 未納品商品情報表示 */}
           {selectedCustomer && (
             <div className="mb-6">
-              <div className="bg-green-500 p-2 text-sm font-semibold text-white sm:text-base">
+              <div className="bg-green-500 text-white p-2 font-semibold text-sm sm:text-base">
                 未納品商品情報
               </div>
-              <div className="border-x border-b border-gray-300 p-3">
+              <div className="p-3 border-x border-b border-gray-300">
                 {isLoading ? (
-                  <div className="py-4 text-center">
+                  <div className="text-center py-4">
                     <div className="text-sm text-gray-600">未納品注文明細を取得中...</div>
                   </div>
                 ) : orderDetails.length > 0 ? (
                   <div>
-                    <div className="mb-3 text-sm text-gray-600">
+                    <div className="text-sm text-gray-600 mb-3">
                       この顧客には {orderDetails.length} 件の未納品商品があります
                     </div>
                     <button
                       onClick={() => setShowProductModal(true)}
-                      className="rounded bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm"
                       disabled={isLoading}
                     >
                       納品商品を選択
@@ -666,7 +662,7 @@ export default function DeliveryAddPage() {
           <div className="flex justify-center gap-4">
             <button
               onClick={() => router.push('/Home/DeliveryList')}
-              className="rounded-lg border border-gray-300 px-6 py-2 text-gray-700 hover:bg-gray-50"
+              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
               disabled={isLoading}
             >
               キャンセル

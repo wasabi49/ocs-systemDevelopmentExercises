@@ -335,10 +335,7 @@ const UndeliveredProductsModal = ({
                           max={maxSelectable}
                           value={selections[detail.orderDetailId] || 0}
                           onChange={(e) =>
-                            handleQuantityChange(
-                              detail.orderDetailId,
-                              parseInt(e.target.value) || 0,
-                            )
+                            handleQuantityChange(detail.orderDetailId, parseInt(e.target.value) || 0)
                           }
                           className="w-16 rounded border border-gray-300 px-1 py-1 text-center text-xs sm:w-20"
                         />
@@ -379,8 +376,8 @@ export default function DeliveryEditPage() {
   const deliveryId = params.id as string;
 
   const [delivery, setDelivery] = useState<DeliveryData | null>(null);
-  // const [deliveryDate, setDeliveryDate] = useState<Date>(new Date());
-  // const [note, setNote] = useState('');
+  const [deliveryDate, setDeliveryDate] = useState<Date>(new Date());
+  const [note, setNote] = useState('');
   const [orderDetails, setOrderDetails] = useState<UndeliveredOrderDetail[]>([]);
   const [showProductModal, setShowProductModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -400,8 +397,8 @@ export default function DeliveryEditPage() {
         const result = await fetchDeliveryForEdit(deliveryId);
         if (result.success && result.delivery) {
           setDelivery(result.delivery as unknown as DeliveryData);
-          // setDeliveryDate(new Date(result.delivery.deliveryDate));
-          // setNote(result.delivery.note || '');
+          setDeliveryDate(new Date(result.delivery.deliveryDate));
+          setNote(result.delivery.note || '');
         } else {
           setErrorModal({
             isOpen: true,
@@ -410,7 +407,6 @@ export default function DeliveryEditPage() {
           });
         }
       } catch (error) {
-        console.error('Fetch delivery error:', error);
         setErrorModal({
           isOpen: true,
           title: 'エラー',
@@ -444,7 +440,6 @@ export default function DeliveryEditPage() {
         });
       }
     } catch (error) {
-      console.error('Fetch undelivered details error:', error);
       setErrorModal({
         isOpen: true,
         title: 'エラー',
@@ -476,7 +471,6 @@ export default function DeliveryEditPage() {
           });
         }
       } catch (error) {
-        console.error('Update allocations error:', error);
         setErrorModal({
           isOpen: true,
           title: 'エラー',
@@ -486,7 +480,7 @@ export default function DeliveryEditPage() {
         setIsSaving(false);
       }
     },
-    [deliveryId],
+    [deliveryId]
   );
 
   // 成功モーダルを閉じる際の処理
@@ -497,7 +491,7 @@ export default function DeliveryEditPage() {
 
   if (isLoading && !delivery) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12">
+      <div className="min-h-screen py-12 flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="text-lg text-gray-600">納品データを読み込み中...</div>
         </div>
@@ -507,12 +501,12 @@ export default function DeliveryEditPage() {
 
   if (!delivery) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12">
+      <div className="min-h-screen py-12 flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="text-lg text-red-600">納品データが見つかりません</div>
           <button
             onClick={() => router.push('/Home/DeliveryList')}
-            className="mt-4 rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             納品一覧に戻る
           </button>
@@ -522,20 +516,20 @@ export default function DeliveryEditPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12">
-      <div className="container mx-auto max-w-2xl px-2 py-4 sm:px-4 sm:py-6">
-        <div className="rounded-lg bg-white p-6 shadow-lg">
-          <h1 className="mb-6 text-2xl font-bold text-gray-900">納品編集 - {delivery.id}</h1>
+    <div className="min-h-screen py-12 flex items-center justify-center bg-gray-50">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 max-w-2xl">
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">納品編集 - {delivery.id}</h1>
 
           {/* 顧客情報 */}
           <div className="mb-6">
-            <div className="bg-blue-500 p-2 text-sm font-semibold text-white sm:text-base">
+            <div className="bg-blue-500 text-white p-2 font-semibold text-sm sm:text-base">
               顧客情報
             </div>
-            <div className="border-x border-b border-gray-300 p-3">
-              <div className="mb-2 text-sm text-gray-600">
+            <div className="p-3 border-x border-b border-gray-300">
+              <div className="text-sm text-gray-600 mb-2">
                 <div className="font-semibold text-gray-900">{delivery.customer.name}</div>
-                <div className="mt-1 text-xs">
+                <div className="text-xs mt-1">
                   担当者: {delivery.customer.contactPerson || '担当者未設定'} | ID:{' '}
                   {delivery.customer.id}
                 </div>
@@ -551,13 +545,13 @@ export default function DeliveryEditPage() {
 
           {/* 納品日 */}
           <div className="mb-6">
-            <div className="bg-blue-500 p-2 text-sm font-semibold text-white sm:text-base">
+            <div className="bg-blue-500 text-white p-2 font-semibold text-sm sm:text-base">
               納品日
             </div>
-            <div className="border-x border-b border-gray-300 p-3">
+            <div className="p-3 border-x border-b border-gray-300">
               <input
                 type="date"
-                className="w-full rounded border px-2 py-2 text-xs sm:text-sm"
+                className="w-full px-2 py-2 rounded text-xs sm:text-sm border"
                 value={formatDateForInput(delivery.deliveryDate)}
                 readOnly
               />
@@ -566,13 +560,13 @@ export default function DeliveryEditPage() {
 
           {/* 現在の納品内容 */}
           <div className="mb-6">
-            <div className="bg-green-500 p-2 text-sm font-semibold text-white sm:text-base">
+            <div className="bg-green-500 text-white p-2 font-semibold text-sm sm:text-base">
               現在の納品内容
             </div>
-            <div className="border-x border-b border-gray-300 p-3">
+            <div className="p-3 border-x border-b border-gray-300">
               {delivery.deliveryDetails.length > 0 ? (
                 <div className="space-y-2">
-                  <div className="grid grid-cols-4 gap-2 border-b pb-2 text-xs font-semibold text-gray-700">
+                  <div className="grid grid-cols-4 gap-2 text-xs font-semibold text-gray-700 pb-2 border-b">
                     <div>商品名</div>
                     <div className="text-right">単価</div>
                     <div className="text-center">数量</div>
@@ -588,19 +582,17 @@ export default function DeliveryEditPage() {
                       </div>
                     </div>
                   ))}
-                  <div className="border-t pt-2">
+                  <div className="pt-2 border-t">
                     <div className="grid grid-cols-4 gap-2 text-sm font-semibold">
                       <div className="col-span-2">合計</div>
                       <div className="text-center">{delivery.totalQuantity}個</div>
-                      <div className="text-right">
-                        ¥{(delivery.totalAmount || 0).toLocaleString()}
-                      </div>
+                      <div className="text-right">¥{delivery.totalAmount.toLocaleString()}</div>
                     </div>
                   </div>
                   <div className="mt-4">
                     <button
                       onClick={handleFetchUndeliveredDetails}
-                      className="rounded bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm"
                       disabled={isLoading || isSaving}
                     >
                       納品内容を変更
@@ -609,10 +601,10 @@ export default function DeliveryEditPage() {
                 </div>
               ) : (
                 <div>
-                  <div className="mb-3 text-sm text-gray-600">現在納品商品はありません</div>
+                  <div className="text-sm text-gray-600 mb-3">現在納品商品はありません</div>
                   <button
                     onClick={handleFetchUndeliveredDetails}
-                    className="rounded bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm"
                     disabled={isLoading || isSaving}
                   >
                     納品商品を追加
@@ -624,11 +616,11 @@ export default function DeliveryEditPage() {
 
           {/* 備考 */}
           <div className="mb-6">
-            <div className="bg-blue-500 p-2 text-sm font-semibold text-white sm:text-base">
-              備考
-            </div>
-            <div className="border-x border-b border-gray-300 p-3">
-              <div className="text-sm text-gray-600">{delivery.note || '備考はありません'}</div>
+            <div className="bg-blue-500 text-white p-2 font-semibold text-sm sm:text-base">備考</div>
+            <div className="p-3 border-x border-b border-gray-300">
+              <div className="text-sm text-gray-600">
+                {delivery.note || '備考はありません'}
+              </div>
             </div>
           </div>
 
@@ -636,7 +628,7 @@ export default function DeliveryEditPage() {
           <div className="flex justify-center gap-4">
             <button
               onClick={() => router.push('/Home/DeliveryList')}
-              className="rounded-lg border border-gray-300 px-6 py-2 text-gray-700 hover:bg-gray-50"
+              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
               disabled={isLoading || isSaving}
             >
               戻る

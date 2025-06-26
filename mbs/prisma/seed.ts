@@ -1,5 +1,5 @@
 import { PrismaClient } from '../app/generated/prisma';
-import type { Order, Delivery, Customer } from '../app/generated/prisma';
+import type { Order, Delivery, Customer, DeliveryAllocation } from '../app/generated/prisma';
 
 const prisma = new PrismaClient();
 
@@ -54,7 +54,6 @@ async function main() {
     }),
   ]);
 
-  console.log(`Created ${stores.length} stores: ${stores.map((s) => s.name).join(', ')}`);
 
   // 顧客データ作成（各店舗20件 × 3店舗 = 60件）
   // 今里店の顧客（20件：法人12件 + 個人8件）
@@ -851,7 +850,7 @@ async function main() {
 
         // この商品の未納品数量を計算
         let totalUndeliveredQuantity = 0;
-        let availableOrderDetails = [];
+        const availableOrderDetails = [];
 
         for (const orderDetail of orderDetsForProduct) {
           // 既に納品済みの数量を計算（allocationから）
@@ -865,7 +864,7 @@ async function main() {
           });
 
           const totalAllocated = existingAllocations.reduce(
-            (sum, alloc) => sum + alloc.allocatedQuantity,
+            (sum: number, alloc: DeliveryAllocation) => sum + alloc.allocatedQuantity,
             0,
           );
 

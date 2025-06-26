@@ -129,7 +129,7 @@ const ImportResultDisplay = ({
           </div>
         </div>
       ) : (
-        <div className="max-h-80 space-y-4 overflow-y-auto">
+        <div className="max-h-80 space-y-4 overflow-y-auto pr-2">
           {/* メインエラーメッセージ */}
           <div className="rounded-lg border border-red-200 bg-gradient-to-r from-red-50 to-pink-50 p-6">
             <div className="flex items-start space-x-3">
@@ -194,10 +194,10 @@ const Modal = ({
       onClick={onCancel}
     >
       <div
-        className="w-full max-w-md rounded-lg bg-white p-4 shadow-lg sm:p-6"
+        className="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-lg bg-white p-4 shadow-lg sm:p-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mb-3 flex items-center justify-between sm:mb-4">
+        <div className="mb-3 flex flex-shrink-0 items-center justify-between sm:mb-4">
           <h3 className="text-base font-semibold text-gray-900 sm:text-lg">{title}</h3>
           <button
             onClick={onCancel}
@@ -206,8 +206,8 @@ const Modal = ({
             ×
           </button>
         </div>
-        <div className="mb-3 sm:mb-4">{children}</div>
-        {footer && <div className="flex justify-center">{footer}</div>}
+        <div className="mb-3 min-h-0 flex-1 overflow-y-auto pr-2 sm:mb-4">{children}</div>
+        {footer && <div className="flex flex-shrink-0 justify-center">{footer}</div>}
       </div>
     </div>
   );
