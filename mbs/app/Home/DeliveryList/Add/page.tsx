@@ -353,6 +353,7 @@ const UndeliveredProductsModal = ({
                     </td>
                     <td className="border border-gray-400 px-1 py-1 text-center text-xs sm:px-2 sm:py-2 sm:text-sm">
                       {new Date(detail.orderDate).toLocaleDateString('ja-JP', {
+                        year: 'numeric',
                         month: '2-digit',
                         day: '2-digit',
                       })}
