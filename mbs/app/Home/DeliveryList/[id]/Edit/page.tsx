@@ -197,19 +197,29 @@ const UndeliveredProductsModal = ({
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const allocations = Object.entries(selections)
-        .filter(([, quantity]) => quantity > 0)
-        .map(([orderDetailId, allocatedQuantity]) => {
-          const detail = orderDetails.find((d) => d.orderDetailId === orderDetailId);
-          return {
-            orderDetailId,
-            allocatedQuantity,
-            unitPrice: detail!.unitPrice,
-            productName: detail!.productName,
-          };
-        });
+      // 変更された項目のみを抽出（0に変更された項目も含む）
+      const allocations: AllocationUpdate[] = [];
 
-      await onSave(allocations);
+      Object.entries(selections).forEach(([orderDetailId, quantity]) => {
+        const detail = orderDetails.find((d) => d.orderDetailId === orderDetailId);
+        if (detail && detail.currentAllocation !== quantity) {
+          // 現在の割り当て量と異なる場合のみ追加
+          allocations.push({
+            orderDetailId,
+            allocatedQuantity: quantity,
+            unitPrice: detail.unitPrice,
+            productName: detail.productName,
+          });
+        }
+      });
+
+      // 変更がある場合のみAPIを呼び出す
+      if (allocations.length > 0) {
+        console.log('変更された項目のみ送信:', allocations);
+        await onSave(allocations);
+      } else {
+        console.log('変更がないため、APIコールをスキップ');
+      }
       onClose();
     } catch (error) {
       console.error('保存エラー:', error);
@@ -225,76 +235,89 @@ const UndeliveredProductsModal = ({
     return sum + (detail ? detail.unitPrice * qty : 0);
   }, 0);
 
+  // 変更があるかどうかを判定
+  const hasChanges = Object.entries(selections).some(([orderDetailId, quantity]) => {
+    const detail = orderDetails.find((d) => d.orderDetailId === orderDetailId);
+    return detail && detail.currentAllocation !== quantity;
+  });
+
   if (!isOpen) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
       style={{ background: 'rgba(0, 0, 0, 0.6)' }}
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-5xl rounded-lg bg-white p-4 shadow-lg"
+        className="relative flex w-full max-w-4xl flex-col rounded-lg bg-white shadow-lg sm:max-w-5xl"
         style={{
-          maxHeight: '80vh',
+          maxHeight: '90vh',
           minWidth: 320,
-          width: '95vw',
+          width: '98vw',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         <button
-          className="absolute top-2 right-2 text-3xl font-bold text-red-600 hover:text-red-800 focus:outline-none"
+          className="absolute top-2 right-2 z-20 text-3xl font-bold text-red-600 hover:text-red-800 focus:outline-none"
           onClick={onClose}
           aria-label="閉じる"
         >
           ×
         </button>
-        <h2 className="mb-4 text-lg font-bold">未納品商品リスト（注文別）</h2>
-        <div className="mb-4 text-sm text-gray-600">
-          ※同じ商品でも異なる注文の場合は別行で表示されます
-          <br />
-          ※完全に納品済みの注文明細は表示されません
-        </div>
 
-        {/* 選択状況の表示 */}
-        <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-3">
-          <div className="text-sm font-medium text-blue-800">
-            選択状況: {totalSelectedQuantity}個 / 合計金額: ¥{totalSelectedAmount.toLocaleString()}
+        {/* ヘッダー部分 */}
+        <div className="flex-shrink-0 border-b border-gray-200 p-2 sm:p-4">
+          <h2 className="text-base font-bold sm:text-lg">未納品商品リスト（注文別）</h2>
+          <div className="mt-2 text-xs text-gray-600 sm:text-sm">
+            ※同じ商品でも異なる注文の場合は別行で表示されます
+            <br />
+            ※完全に納品済みの注文明細は表示されません
+          </div>
+
+          {/* 選択状況の表示 */}
+          <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-2 sm:p-3">
+            <div className="text-xs font-medium text-blue-800 sm:text-sm">
+              選択状況: {totalSelectedQuantity}個 / 合計金額: ¥
+              {totalSelectedAmount.toLocaleString()}
+              {hasChanges && <span className="ml-2 text-orange-600">（変更あり）</span>}
+            </div>
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <div style={{ maxHeight: '55vh', overflowY: 'auto' }}>
+        {/* テーブル部分 */}
+        <div className="flex-1 overflow-hidden p-2 sm:p-4">
+          <div className="h-144 overflow-auto">
             <table className="w-full border-collapse text-center text-xs sm:text-sm">
               <thead className="sticky top-0 z-10 bg-blue-300">
-                <tr style={{ height: '44px' }}>
-                  <th className="border border-gray-400 px-1 py-1 font-semibold sm:px-2 sm:py-2">
+                <tr style={{ height: '36px' }}>
+                  <th className="w-[12%] min-w-[90px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
                     注文ID
                   </th>
-                  <th className="border border-gray-400 px-1 py-1 font-semibold sm:px-2 sm:py-2">
+                  <th className="w-[10%] min-w-[80px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
                     注文日
                   </th>
-                  <th className="border border-gray-400 px-1 py-1 font-semibold sm:px-2 sm:py-2">
+                  <th className="w-[25%] min-w-[150px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
                     商品名
                   </th>
-                  <th className="border border-gray-400 px-1 py-1 font-semibold sm:px-2 sm:py-2">
+                  <th className="w-[10%] min-w-[70px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
                     単価
                   </th>
-                  <th className="border border-gray-400 px-1 py-1 font-semibold sm:px-2 sm:py-2">
+                  <th className="w-[10%] min-w-[60px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
                     注文数量
                   </th>
-                  <th className="border border-gray-400 px-1 py-1 font-semibold sm:px-2 sm:py-2">
+                  <th className="w-[11%] min-w-[80px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
                     既納品数量
                   </th>
-                  <th className="border border-gray-400 px-1 py-1 font-semibold sm:px-2 sm:py-2">
+                  <th className="w-[10%] min-w-[60px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
                     残り数量
                   </th>
-                  <th className="border border-gray-400 px-1 py-1 font-semibold sm:px-2 sm:py-2">
+                  <th className="w-[12%] min-w-[90px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
                     今回納品数量
                   </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="h-82 w-82">
                 {orderDetails.map((detail) => {
                   // 残り数量 + 現在の割り当て分が選択可能な上限
                   const maxSelectable = detail.remainingQuantity + detail.currentAllocation;
@@ -304,40 +327,51 @@ const UndeliveredProductsModal = ({
                       key={detail.orderDetailId}
                       className="h-10 transition-colors hover:bg-blue-100 sm:h-12"
                     >
-                      <td className="border border-gray-400 px-1 py-1 text-center font-mono text-xs sm:px-2 sm:py-2">
+                      <td className="border border-gray-400 px-1 py-1 text-center font-mono text-xs sm:px-2 sm:py-2 sm:text-sm">
                         {detail.orderId}
                       </td>
-                      <td className="border border-gray-400 px-1 py-1 text-center text-xs sm:px-2 sm:py-2">
-                        {new Date(detail.orderDate).toLocaleDateString('ja-JP')}
+                      <td className="border border-gray-400 px-1 py-1 text-center text-xs sm:px-2 sm:py-2 sm:text-sm">
+                        {new Date(detail.orderDate).toLocaleDateString('ja-JP', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                        })}
                       </td>
                       <td className="border border-gray-400 px-1 py-1 text-left sm:px-2 sm:py-2">
-                        {detail.productName}
+                        <div className="overflow-x-auto text-xs whitespace-nowrap sm:text-sm">
+                          {detail.productName}
+                        </div>
                         {detail.description && (
-                          <div className="mt-1 text-xs text-gray-500">{detail.description}</div>
+                          <div className="mt-1 hidden overflow-x-auto text-xs whitespace-nowrap text-gray-500 sm:block">
+                            {detail.description}
+                          </div>
                         )}
                       </td>
-                      <td className="border border-gray-400 px-1 py-1 text-right sm:px-2 sm:py-2">
+                      <td className="border border-gray-400 px-1 py-1 text-right text-xs sm:px-2 sm:py-2 sm:text-sm">
                         ¥{detail.unitPrice.toLocaleString()}
                       </td>
-                      <td className="border border-gray-400 px-1 py-1 text-center sm:px-2 sm:py-2">
+                      <td className="border border-gray-400 px-1 py-1 text-center text-xs sm:px-2 sm:py-2 sm:text-sm">
                         {detail.totalQuantity}
                       </td>
-                      <td className="border border-gray-400 px-1 py-1 text-center sm:px-2 sm:py-2">
+                      <td className="border border-gray-400 px-1 py-1 text-center text-xs sm:px-2 sm:py-2 sm:text-sm">
                         {detail.allocatedInOtherDeliveries}
                       </td>
-                      <td className="border border-gray-400 px-1 py-1 text-center font-semibold text-green-600 sm:px-2 sm:py-2">
+                      <td className="border border-gray-400 px-1 py-1 text-center text-xs font-semibold text-green-600 sm:px-2 sm:py-2 sm:text-sm">
                         {detail.remainingQuantity}
                       </td>
-                      <td className="border border-gray-400 px-1 py-1 sm:px-2 sm:py-2">
+                      <td className="border border-gray-400 px-1 py-1 text-center sm:px-2 sm:py-2">
                         <input
                           type="number"
                           min="0"
                           max={maxSelectable}
                           value={selections[detail.orderDetailId] || 0}
                           onChange={(e) =>
-                            handleQuantityChange(detail.orderDetailId, parseInt(e.target.value) || 0)
+                            handleQuantityChange(
+                              detail.orderDetailId,
+                              parseInt(e.target.value) || 0,
+                            )
                           }
-                          className="w-16 rounded border border-gray-300 px-1 py-1 text-center text-xs sm:w-20"
+                          className="w-12 rounded border border-gray-300 px-1 py-1 text-center text-xs sm:w-16 sm:px-2 sm:text-sm"
                         />
                       </td>
                     </tr>
@@ -349,20 +383,20 @@ const UndeliveredProductsModal = ({
         </div>
 
         {/* フッターボタン */}
-        <div className="mt-4 flex justify-end gap-3">
+        <div className="flex flex-shrink-0 justify-end gap-2 border-t border-gray-200 p-2 sm:gap-3 sm:p-4">
           <button
             onClick={onClose}
-            className="rounded-lg border border-gray-300 bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-200"
+            className="rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-200 sm:px-4 sm:text-sm"
             disabled={isSaving}
           >
             キャンセル
           </button>
           <button
             onClick={handleSave}
-            disabled={isSaving}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-blue-700 disabled:bg-gray-400"
+            disabled={isSaving || !hasChanges}
+            className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white shadow-lg transition-colors hover:bg-blue-700 disabled:bg-gray-400 sm:px-4 sm:text-sm"
           >
-            {isSaving ? '保存中...' : '納品更新'}
+            {isSaving ? '保存中...' : hasChanges ? '納品更新' : '変更なし'}
           </button>
         </div>
       </div>
@@ -480,7 +514,7 @@ export default function DeliveryEditPage() {
         setIsSaving(false);
       }
     },
-    [deliveryId]
+    [deliveryId],
   );
 
   // 成功モーダルを閉じる際の処理
@@ -491,7 +525,7 @@ export default function DeliveryEditPage() {
 
   if (isLoading && !delivery) {
     return (
-      <div className="min-h-screen py-12 flex items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12">
         <div className="text-center">
           <div className="text-lg text-gray-600">納品データを読み込み中...</div>
         </div>
@@ -501,12 +535,12 @@ export default function DeliveryEditPage() {
 
   if (!delivery) {
     return (
-      <div className="min-h-screen py-12 flex items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12">
         <div className="text-center">
           <div className="text-lg text-red-600">納品データが見つかりません</div>
           <button
             onClick={() => router.push('/Home/DeliveryList')}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="mt-4 rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
           >
             納品一覧に戻る
           </button>
@@ -516,20 +550,20 @@ export default function DeliveryEditPage() {
   }
 
   return (
-    <div className="min-h-screen py-12 flex items-center justify-center bg-gray-50">
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 max-w-2xl">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">納品編集 - {delivery.id}</h1>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12">
+      <div className="container mx-auto max-w-2xl px-2 py-4 sm:px-4 sm:py-6">
+        <div className="rounded-lg bg-white p-6 shadow-lg">
+          <h1 className="mb-6 text-2xl font-bold text-gray-900">納品編集 - {delivery.id}</h1>
 
           {/* 顧客情報 */}
           <div className="mb-6">
-            <div className="bg-blue-500 text-white p-2 font-semibold text-sm sm:text-base">
+            <div className="bg-blue-500 p-2 text-sm font-semibold text-white sm:text-base">
               顧客情報
             </div>
-            <div className="p-3 border-x border-b border-gray-300">
-              <div className="text-sm text-gray-600 mb-2">
+            <div className="border-x border-b border-gray-300 p-3">
+              <div className="mb-2 text-sm text-gray-600">
                 <div className="font-semibold text-gray-900">{delivery.customer.name}</div>
-                <div className="text-xs mt-1">
+                <div className="mt-1 text-xs">
                   担当者: {delivery.customer.contactPerson || '担当者未設定'} | ID:{' '}
                   {delivery.customer.id}
                 </div>
@@ -545,13 +579,13 @@ export default function DeliveryEditPage() {
 
           {/* 納品日 */}
           <div className="mb-6">
-            <div className="bg-blue-500 text-white p-2 font-semibold text-sm sm:text-base">
+            <div className="bg-blue-500 p-2 text-sm font-semibold text-white sm:text-base">
               納品日
             </div>
-            <div className="p-3 border-x border-b border-gray-300">
+            <div className="border-x border-b border-gray-300 p-3">
               <input
                 type="date"
-                className="w-full px-2 py-2 rounded text-xs sm:text-sm border"
+                className="w-full rounded border px-2 py-2 text-xs sm:text-sm"
                 value={formatDateForInput(delivery.deliveryDate)}
                 readOnly
               />
@@ -560,39 +594,54 @@ export default function DeliveryEditPage() {
 
           {/* 現在の納品内容 */}
           <div className="mb-6">
-            <div className="bg-green-500 text-white p-2 font-semibold text-sm sm:text-base">
+            <div className="bg-green-500 p-2 text-sm font-semibold text-white sm:text-base">
               現在の納品内容
             </div>
-            <div className="p-3 border-x border-b border-gray-300">
+            <div className="border-x border-b border-gray-300 p-3">
               {delivery.deliveryDetails.length > 0 ? (
                 <div className="space-y-2">
-                  <div className="grid grid-cols-4 gap-2 text-xs font-semibold text-gray-700 pb-2 border-b">
+                  {/* ヘッダー行 - レスポンシブ対応 */}
+                  <div
+                    className="grid gap-2 border-b pb-2 text-xs font-semibold text-gray-700"
+                    style={{ gridTemplateColumns: '2fr 1fr 0.8fr 1.2fr' }}
+                  >
                     <div>商品名</div>
                     <div className="text-right">単価</div>
-                    <div className="text-center">数量</div>
+                    <div className="text-right">数量</div>
                     <div className="text-right">小計</div>
                   </div>
+                  {/* 商品明細行 - モバイル版で商品名を広く、小計も十分な幅を確保 */}
                   {delivery.deliveryDetails.map((detail) => (
-                    <div key={detail.id} className="grid grid-cols-4 gap-2 text-xs">
-                      <div>{detail.productName}</div>
+                    <div
+                      key={detail.id}
+                      className="grid gap-2 text-xs"
+                      style={{ gridTemplateColumns: '2fr 1fr 0.8fr 1.2fr' }}
+                    >
+                      <div className="overflow-x-auto whitespace-nowrap">{detail.productName}</div>
                       <div className="text-right">¥{detail.unitPrice.toLocaleString()}</div>
-                      <div className="text-center">{detail.quantity}</div>
-                      <div className="text-right">
+                      <div className="text-right">{detail.quantity}</div>
+                      <div className="text-right whitespace-nowrap">
                         ¥{(detail.unitPrice * detail.quantity).toLocaleString()}
                       </div>
                     </div>
                   ))}
-                  <div className="pt-2 border-t">
-                    <div className="grid grid-cols-4 gap-2 text-sm font-semibold">
+                  {/* 合計行 */}
+                  <div className="border-t pt-2">
+                    <div
+                      className="grid gap-2 text-sm font-semibold"
+                      style={{ gridTemplateColumns: '2fr 1fr 0.8fr 1.2fr' }}
+                    >
                       <div className="col-span-2">合計</div>
-                      <div className="text-center">{delivery.totalQuantity}個</div>
-                      <div className="text-right">¥{delivery.totalAmount.toLocaleString()}</div>
+                      <div className="text-right">{delivery.totalQuantity}個</div>
+                      <div className="text-right whitespace-nowrap">
+                        ¥{(delivery.totalAmount || 0).toLocaleString()}
+                      </div>
                     </div>
                   </div>
                   <div className="mt-4">
                     <button
                       onClick={handleFetchUndeliveredDetails}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm"
+                      className="rounded bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
                       disabled={isLoading || isSaving}
                     >
                       納品内容を変更
@@ -601,10 +650,10 @@ export default function DeliveryEditPage() {
                 </div>
               ) : (
                 <div>
-                  <div className="text-sm text-gray-600 mb-3">現在納品商品はありません</div>
+                  <div className="mb-3 text-sm text-gray-600">現在納品商品はありません</div>
                   <button
                     onClick={handleFetchUndeliveredDetails}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm"
+                    className="rounded bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
                     disabled={isLoading || isSaving}
                   >
                     納品商品を追加
@@ -616,11 +665,11 @@ export default function DeliveryEditPage() {
 
           {/* 備考 */}
           <div className="mb-6">
-            <div className="bg-blue-500 text-white p-2 font-semibold text-sm sm:text-base">備考</div>
-            <div className="p-3 border-x border-b border-gray-300">
-              <div className="text-sm text-gray-600">
-                {delivery.note || '備考はありません'}
-              </div>
+            <div className="bg-blue-500 p-2 text-sm font-semibold text-white sm:text-base">
+              備考
+            </div>
+            <div className="border-x border-b border-gray-300 p-3">
+              <div className="text-sm text-gray-600">{delivery.note || '備考はありません'}</div>
             </div>
           </div>
 
@@ -628,7 +677,7 @@ export default function DeliveryEditPage() {
           <div className="flex justify-center gap-4">
             <button
               onClick={() => router.push('/Home/DeliveryList')}
-              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+              className="rounded-lg border border-gray-300 px-6 py-2 text-gray-700 hover:bg-gray-50"
               disabled={isLoading || isSaving}
             >
               戻る

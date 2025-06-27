@@ -2,20 +2,27 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Customer, OrderDetail, Order, Delivery } from '@/app/generated/prisma';
+import type { Customer } from '@/app/generated/prisma';
 import {
   fetchUndeliveredOrderDetailsForCreate,
   createDelivery,
 } from '@/app/actions/deliveryActions';
 import { fetchAllCustomers } from '@/app/actions/customerActions';
 
-// APIで返されるCustomer型（日付が文字列で返される）
-type CustomerData = Omit<Customer, 'updatedAt' | 'deletedAt'> & {
+// 顧客型定義（文字列として返されるため）
+type CustomerData = {
+  id: string;
+  storeId: string;
+  name: string;
+  contactPerson: string | null;
+  address: string | null;
+  phone: string | null;
+  deliveryCondition: string | null;
+  note: string | null;
   updatedAt: string;
+  isDeleted: boolean;
   deletedAt: string | null;
 };
-
-// APIで返される未納品注文明細型（日付が文字列で返される）
 type UndeliveredOrderDetail = {
   orderDetailId: string;
   orderId: string;
@@ -286,63 +293,36 @@ const UndeliveredProductsModal = ({
         {/* テーブル部分 */}
         <div className="flex-1 overflow-hidden p-2 sm:p-4">
           <div className="h-144 overflow-auto">
-            <table
-              className="border-collapse text-center text-xs sm:text-sm"
-              style={{ minWidth: '700px' }}
-            >
+            <table className="w-full border-collapse text-center text-xs sm:text-sm">
               <thead className="sticky top-0 z-10 bg-blue-300">
                 <tr style={{ height: '36px' }}>
-                  <th
-                    className="border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm"
-                    style={{ width: '90px' }}
-                  >
+                  <th className="w-[12%] min-w-[90px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
                     注文ID
                   </th>
-                  <th
-                    className="border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm"
-                    style={{ width: '80px' }}
-                  >
+                  <th className="w-[10%] min-w-[80px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
                     注文日
                   </th>
-                  <th
-                    className="border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm"
-                    style={{ width: '150px' }}
-                  >
+                  <th className="w-[25%] min-w-[150px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
                     商品名
                   </th>
-                  <th
-                    className="border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm"
-                    style={{ width: '70px' }}
-                  >
+                  <th className="w-[10%] min-w-[70px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
                     単価
                   </th>
-                  <th
-                    className="border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm"
-                    style={{ width: '60px' }}
-                  >
+                  <th className="w-[10%] min-w-[60px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
                     注文数量
                   </th>
-                  <th
-                    className="border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm"
-                    style={{ width: '60px' }}
-                  >
+                  <th className="w-[11%] min-w-[80px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
                     既納品数量
                   </th>
-                  <th
-                    className="border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm"
-                    style={{ width: '60px' }}
-                  >
+                  <th className="w-[10%] min-w-[60px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
                     残り数量
                   </th>
-                  <th
-                    className="border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm"
-                    style={{ width: '90px' }}
-                  >
+                  <th className="w-[12%] min-w-[90px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
                     今回納品数量
                   </th>
                 </tr>
               </thead>
-              <tbody className="h-82 w-82">
+              <tbody>
                 {orderDetails.map((detail) => (
                   <tr
                     key={detail.orderDetailId}
@@ -359,15 +339,17 @@ const UndeliveredProductsModal = ({
                       })}
                     </td>
                     <td className="border border-gray-400 px-1 py-1 text-left sm:px-2 sm:py-2">
-                      <div className="text-xs sm:text-sm">{detail.productName}</div>
+                      <div className="overflow-x-auto text-xs whitespace-nowrap sm:text-sm">
+                        {detail.productName}
+                      </div>
                       {detail.description && (
-                        <div className="mt-1 hidden text-xs text-gray-500 sm:block">
+                        <div className="mt-1 hidden overflow-x-auto text-xs whitespace-nowrap text-gray-500 sm:block">
                           {detail.description}
                         </div>
                       )}
                     </td>
                     <td className="border border-gray-400 px-1 py-1 text-right text-xs sm:px-2 sm:py-2 sm:text-sm">
-                      ¥{(detail.unitPrice / 1000).toFixed(0)}k
+                      ¥{detail.unitPrice.toLocaleString()}
                     </td>
                     <td className="border border-gray-400 px-1 py-1 text-center text-xs sm:px-2 sm:py-2 sm:text-sm">
                       {detail.totalQuantity}
