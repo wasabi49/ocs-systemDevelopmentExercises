@@ -277,56 +277,92 @@ export async function updateDeliveryAllocations(
     }
 
     await prisma.$transaction(async (tx) => {
-      // 既存の割り当てを削除（論理削除）
-      await tx.deliveryAllocation.updateMany({
-        where: {
-          deliveryDetail: {
-            deliveryId: deliveryId,
-          },
-          isDeleted: false,
-        },
-        data: {
-          isDeleted: true,
-          deletedAt: new Date(),
-        },
-      });
-
-      // 既存の納品明細を削除（論理削除）
-      await tx.deliveryDetail.updateMany({
-        where: {
-          deliveryId: deliveryId,
-          isDeleted: false,
-        },
-        data: {
-          isDeleted: true,
-          deletedAt: new Date(),
-        },
-      });
-
-      if (allocations.length > 0) {
-        // 新しい納品明細ID生成のための連番取得
-        const lastDeliveryDetail = await tx.deliveryDetail.findFirst({
+      // 送信された割り当てを処理
+      for (const allocation of allocations) {
+        // 既存の割り当てを検索
+        const existingAllocation = await tx.deliveryAllocation.findFirst({
           where: {
-            deliveryId: deliveryId,
+            orderDetailId: allocation.orderDetailId,
+            deliveryDetail: {
+              deliveryId: deliveryId,
+            },
+            isDeleted: false,
           },
-          orderBy: {
-            id: 'desc',
-          },
-          select: {
-            id: true,
+          include: {
+            deliveryDetail: true,
           },
         });
 
-        let detailSequence = 1;
-        if (lastDeliveryDetail) {
-          const match = lastDeliveryDetail.id.match(/-(\d+)$/);
-          if (match) {
-            detailSequence = parseInt(match[1], 10) + 1;
-          }
-        }
+        if (existingAllocation) {
+          if (allocation.allocatedQuantity === 0) {
+            // 数量が0の場合は削除（論理削除）
+            await tx.deliveryAllocation.update({
+              where: {
+                orderDetailId_deliveryDetailId: {
+                  orderDetailId: existingAllocation.orderDetailId,
+                  deliveryDetailId: existingAllocation.deliveryDetailId,
+                },
+              },
+              data: {
+                isDeleted: true,
+                deletedAt: new Date(),
+              },
+            });
 
-        // 新しい納品明細と割り当てを作成
-        for (const allocation of allocations) {
+            // 関連する納品明細も削除
+            await tx.deliveryDetail.update({
+              where: { id: existingAllocation.deliveryDetailId },
+              data: {
+                isDeleted: true,
+                deletedAt: new Date(),
+              },
+            });
+          } else {
+            // 数量が変更された場合は更新
+            await tx.deliveryAllocation.update({
+              where: {
+                orderDetailId_deliveryDetailId: {
+                  orderDetailId: existingAllocation.orderDetailId,
+                  deliveryDetailId: existingAllocation.deliveryDetailId,
+                },
+              },
+              data: {
+                allocatedQuantity: allocation.allocatedQuantity,
+              },
+            });
+
+            // 関連する納品明細も更新
+            await tx.deliveryDetail.update({
+              where: { id: existingAllocation.deliveryDetailId },
+              data: {
+                quantity: allocation.allocatedQuantity,
+                productName: allocation.productName,
+                unitPrice: allocation.unitPrice,
+              },
+            });
+          }
+        } else if (allocation.allocatedQuantity > 0) {
+          // 新しい割り当てを作成
+          const lastDeliveryDetail = await tx.deliveryDetail.findFirst({
+            where: {
+              deliveryId: deliveryId,
+            },
+            orderBy: {
+              id: 'desc',
+            },
+            select: {
+              id: true,
+            },
+          });
+
+          let detailSequence = 1;
+          if (lastDeliveryDetail) {
+            const match = lastDeliveryDetail.id.match(/-(\d+)$/);
+            if (match) {
+              detailSequence = parseInt(match[1], 10) + 1;
+            }
+          }
+
           const deliveryDetailId = `${deliveryId}-${detailSequence.toString().padStart(2, '0')}`;
 
           // 納品明細を作成
@@ -348,34 +384,34 @@ export async function updateDeliveryAllocations(
               allocatedQuantity: allocation.allocatedQuantity,
             },
           });
-
-          detailSequence++;
         }
-
-        // 納品の合計金額と合計数量を更新
-        const totalAmount = allocations.reduce(
-          (sum, alloc) => sum + alloc.unitPrice * alloc.allocatedQuantity,
-          0,
-        );
-        const totalQuantity = allocations.reduce((sum, alloc) => sum + alloc.allocatedQuantity, 0);
-
-        await tx.delivery.update({
-          where: { id: deliveryId },
-          data: {
-            totalAmount: totalAmount,
-            totalQuantity: totalQuantity,
-          },
-        });
-      } else {
-        // 割り当てがない場合は合計をゼロに
-        await tx.delivery.update({
-          where: { id: deliveryId },
-          data: {
-            totalAmount: 0,
-            totalQuantity: 0,
-          },
-        });
       }
+
+      // 現在の納品の実際の合計を再計算
+      const currentDeliveryDetails = await tx.deliveryDetail.findMany({
+        where: {
+          deliveryId: deliveryId,
+          isDeleted: false,
+        },
+      });
+
+      const totalAmount = currentDeliveryDetails.reduce(
+        (sum, detail) => sum + detail.unitPrice * detail.quantity,
+        0,
+      );
+      const totalQuantity = currentDeliveryDetails.reduce(
+        (sum, detail) => sum + detail.quantity,
+        0,
+      );
+
+      // 納品の合計金額と合計数量を更新
+      await tx.delivery.update({
+        where: { id: deliveryId },
+        data: {
+          totalAmount: totalAmount,
+          totalQuantity: totalQuantity,
+        },
+      });
     });
 
     return {
@@ -752,6 +788,107 @@ export async function fetchUndeliveredOrderDetailsForCreate(customerId: string) 
     return {
       success: false,
       error: '未納品注文明細の取得に失敗しました',
+    };
+  }
+}
+
+/**
+ * 納品を削除（論理削除）
+ * @param deliveryId 削除する納品ID
+ * @returns 削除結果
+ */
+export async function deleteDelivery(deliveryId: string) {
+  try {
+    const storeId = await getStoreIdFromCookie();
+
+    if (!storeId) {
+      return {
+        success: false,
+        error: '店舗を選択してください',
+      };
+    }
+
+    // 納品が存在し、適切な店舗に属するかチェック
+    const delivery = await prisma.delivery.findUnique({
+      where: {
+        id: deliveryId,
+        isDeleted: false,
+      },
+      include: {
+        customer: true,
+        deliveryDetails: {
+          where: {
+            isDeleted: false,
+          },
+          include: {
+            deliveryAllocations: {
+              where: {
+                isDeleted: false,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!delivery || !delivery.customer || delivery.customer.storeId !== storeId) {
+      return {
+        success: false,
+        error: '納品が見つからないか、アクセス権限がありません',
+      };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      const now = new Date();
+
+      // 納品割り当てを論理削除
+      for (const detail of delivery.deliveryDetails) {
+        for (const allocation of detail.deliveryAllocations) {
+          await tx.deliveryAllocation.update({
+            where: {
+              orderDetailId_deliveryDetailId: {
+                orderDetailId: allocation.orderDetailId,
+                deliveryDetailId: allocation.deliveryDetailId,
+              },
+            },
+            data: {
+              isDeleted: true,
+              deletedAt: now,
+            },
+          });
+        }
+      }
+
+      // 納品明細を論理削除
+      for (const detail of delivery.deliveryDetails) {
+        await tx.deliveryDetail.update({
+          where: { id: detail.id },
+          data: {
+            isDeleted: true,
+            deletedAt: now,
+          },
+        });
+      }
+
+      // 納品を論理削除
+      await tx.delivery.update({
+        where: { id: deliveryId },
+        data: {
+          isDeleted: true,
+          deletedAt: now,
+        },
+      });
+    });
+
+    return {
+      success: true,
+      message: '納品を削除しました',
+    };
+  } catch (error) {
+    console.error('納品の削除に失敗しました:', error);
+    return {
+      success: false,
+      error: '納品の削除に失敗しました',
     };
   }
 }
