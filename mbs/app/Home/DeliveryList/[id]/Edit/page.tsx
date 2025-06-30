@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { Tooltip } from 'react-tooltip';
 import {
   fetchDeliveryForEdit,
   fetchUndeliveredOrderDetails,
@@ -252,7 +253,7 @@ const UndeliveredProductsModal = ({
       <div
         className="relative flex w-full max-w-4xl flex-col rounded-lg bg-white shadow-lg sm:max-w-5xl"
         style={{
-          maxHeight: '90vh',
+          height: '85vh',
           minWidth: 320,
           width: '98vw',
         }}
@@ -286,8 +287,8 @@ const UndeliveredProductsModal = ({
         </div>
 
         {/* テーブル部分 */}
-        <div className="flex-1 overflow-hidden p-2 sm:p-4">
-          <div className="h-144 overflow-auto">
+        <div className="min-h-0 flex-1 p-2 sm:p-4">
+          <div className="h-full overflow-auto rounded border border-gray-300">
             <table className="w-full border-collapse text-center text-xs sm:text-sm">
               <thead className="sticky top-0 z-10 bg-blue-300">
                 <tr style={{ height: '36px' }}>
@@ -317,7 +318,7 @@ const UndeliveredProductsModal = ({
                   </th>
                 </tr>
               </thead>
-              <tbody className="h-82 w-82">
+              <tbody>
                 {orderDetails.map((detail) => {
                   // 残り数量 + 現在の割り当て分が選択可能な上限
                   const maxSelectable = detail.remainingQuantity + detail.currentAllocation;
@@ -337,13 +338,23 @@ const UndeliveredProductsModal = ({
                           day: '2-digit',
                         })}
                       </td>
-                      <td className="border border-gray-400 px-1 py-1 text-left sm:px-2 sm:py-2">
-                        <div className="overflow-x-auto text-xs whitespace-nowrap sm:text-sm">
+                      <td className="max-w-0 border border-gray-400 px-1 py-1 text-left sm:px-2 sm:py-2">
+                        <div
+                          data-tooltip-id="product-tooltip"
+                          data-tooltip-content={detail.productName}
+                          className="cursor-help overflow-hidden text-xs text-ellipsis whitespace-nowrap sm:text-sm"
+                        >
                           {detail.productName}
                         </div>
                         {detail.description && (
-                          <div className="mt-1 hidden overflow-x-auto text-xs whitespace-nowrap text-gray-500 sm:block">
-                            {detail.description}
+                          <div className="mt-1 hidden text-xs text-gray-500 sm:block">
+                            <div
+                              data-tooltip-id="description-tooltip"
+                              data-tooltip-content={detail.description}
+                              className="cursor-help overflow-hidden text-ellipsis whitespace-nowrap"
+                            >
+                              {detail.description}
+                            </div>
                           </div>
                         )}
                       </td>
@@ -393,10 +404,16 @@ const UndeliveredProductsModal = ({
           </button>
           <button
             onClick={handleSave}
-            disabled={isSaving || !hasChanges}
+            disabled={isSaving || !hasChanges || totalSelectedQuantity === 0}
             className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white shadow-lg transition-colors hover:bg-blue-700 disabled:bg-gray-400 sm:px-4 sm:text-sm"
           >
-            {isSaving ? '保存中...' : hasChanges ? '納品更新' : '変更なし'}
+            {isSaving
+              ? '保存中...'
+              : totalSelectedQuantity === 0
+                ? '商品を選択してください'
+                : hasChanges
+                  ? '納品更新'
+                  : '変更なし'}
           </button>
         </div>
       </div>
@@ -603,7 +620,7 @@ export default function DeliveryEditPage() {
                   {/* ヘッダー行 - レスポンシブ対応 */}
                   <div
                     className="grid gap-2 border-b pb-2 text-xs font-semibold text-gray-700"
-                    style={{ gridTemplateColumns: '2fr 1fr 0.8fr 1.2fr' }}
+                    style={{ gridTemplateColumns: '3fr 0.8fr 0.6fr 1.2fr' }}
                   >
                     <div>商品名</div>
                     <div className="text-right">単価</div>
@@ -615,9 +632,17 @@ export default function DeliveryEditPage() {
                     <div
                       key={detail.id}
                       className="grid gap-2 text-xs"
-                      style={{ gridTemplateColumns: '2fr 1fr 0.8fr 1.2fr' }}
+                      style={{ gridTemplateColumns: '3fr 0.8fr 0.6fr 1.2fr' }}
                     >
-                      <div className="overflow-x-auto whitespace-nowrap">{detail.productName}</div>
+                      <div className="overflow-hidden">
+                        <div
+                          data-tooltip-id="product-tooltip"
+                          data-tooltip-content={detail.productName}
+                          className="cursor-help overflow-hidden text-ellipsis whitespace-nowrap"
+                        >
+                          {detail.productName}
+                        </div>
+                      </div>
                       <div className="text-right">¥{detail.unitPrice.toLocaleString()}</div>
                       <div className="text-right">{detail.quantity}</div>
                       <div className="text-right whitespace-nowrap">
@@ -629,7 +654,7 @@ export default function DeliveryEditPage() {
                   <div className="border-t pt-2">
                     <div
                       className="grid gap-2 text-sm font-semibold"
-                      style={{ gridTemplateColumns: '2fr 1fr 0.8fr 1.2fr' }}
+                      style={{ gridTemplateColumns: '3fr 0.8fr 0.6fr 1.2fr' }}
                     >
                       <div className="col-span-2">合計</div>
                       <div className="text-right">{delivery.totalQuantity}個</div>
@@ -703,6 +728,34 @@ export default function DeliveryEditPage() {
         onClose={() => setErrorModal({ isOpen: false, title: '', message: '' })}
         title={errorModal.title}
         message={errorModal.message}
+      />
+
+      {/* React Tooltip */}
+      <Tooltip
+        id="product-tooltip"
+        place="top"
+        className="z-50 max-w-xs"
+        style={{
+          backgroundColor: '#1f2937',
+          color: '#ffffff',
+          borderRadius: '8px',
+          padding: '8px 12px',
+          fontSize: '14px',
+          wordWrap: 'break-word',
+        }}
+      />
+      <Tooltip
+        id="description-tooltip"
+        place="top"
+        className="z-50 max-w-xs"
+        style={{
+          backgroundColor: '#1f2937',
+          color: '#ffffff',
+          borderRadius: '8px',
+          padding: '8px 12px',
+          fontSize: '14px',
+          wordWrap: 'break-word',
+        }}
       />
     </div>
   );

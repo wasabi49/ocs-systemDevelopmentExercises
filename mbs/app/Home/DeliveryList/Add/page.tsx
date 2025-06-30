@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { Tooltip } from 'react-tooltip';
 import type { Customer } from '@/app/generated/prisma';
 import {
   fetchUndeliveredOrderDetailsForCreate,
@@ -258,7 +259,7 @@ const UndeliveredProductsModal = ({
       <div
         className="relative flex w-full max-w-4xl flex-col rounded-lg bg-white shadow-lg sm:max-w-5xl"
         style={{
-          maxHeight: '90vh',
+          height: '85vh',
           minWidth: 320,
           width: '98vw',
         }}
@@ -291,8 +292,8 @@ const UndeliveredProductsModal = ({
         </div>
 
         {/* テーブル部分 */}
-        <div className="flex-1 overflow-hidden p-2 sm:p-4">
-          <div className="h-144 overflow-auto">
+        <div className="min-h-0 flex-1 p-2 sm:p-4">
+          <div className="h-full overflow-auto rounded border border-gray-300">
             <table className="w-full border-collapse text-center text-xs sm:text-sm">
               <thead className="sticky top-0 z-10 bg-blue-300">
                 <tr style={{ height: '36px' }}>
@@ -338,13 +339,23 @@ const UndeliveredProductsModal = ({
                         day: '2-digit',
                       })}
                     </td>
-                    <td className="border border-gray-400 px-1 py-1 text-left sm:px-2 sm:py-2">
-                      <div className="overflow-x-auto text-xs whitespace-nowrap sm:text-sm">
+                    <td className="max-w-0 border border-gray-400 px-1 py-1 text-left sm:px-2 sm:py-2">
+                      <div
+                        data-tooltip-id="product-tooltip"
+                        data-tooltip-content={detail.productName}
+                        className="cursor-help overflow-hidden text-xs text-ellipsis whitespace-nowrap sm:text-sm"
+                      >
                         {detail.productName}
                       </div>
                       {detail.description && (
-                        <div className="mt-1 hidden overflow-x-auto text-xs whitespace-nowrap text-gray-500 sm:block">
-                          {detail.description}
+                        <div className="mt-1 hidden text-xs text-gray-500 sm:block">
+                          <div
+                            data-tooltip-id="description-tooltip"
+                            data-tooltip-content={detail.description}
+                            className="cursor-help overflow-hidden text-ellipsis whitespace-nowrap"
+                          >
+                            {detail.description}
+                          </div>
                         </div>
                       )}
                     </td>
@@ -726,6 +737,34 @@ export default function DeliveryAddPage() {
         onClose={() => setErrorModal({ isOpen: false, title: '', message: '' })}
         title={errorModal.title}
         message={errorModal.message}
+      />
+
+      {/* React Tooltip */}
+      <Tooltip
+        id="product-tooltip"
+        place="top"
+        className="z-50 max-w-xs"
+        style={{
+          backgroundColor: '#1f2937',
+          color: '#ffffff',
+          borderRadius: '8px',
+          padding: '8px 12px',
+          fontSize: '14px',
+          wordWrap: 'break-word',
+        }}
+      />
+      <Tooltip
+        id="description-tooltip"
+        place="top"
+        className="z-50 max-w-xs"
+        style={{
+          backgroundColor: '#1f2937',
+          color: '#ffffff',
+          borderRadius: '8px',
+          padding: '8px 12px',
+          fontSize: '14px',
+          wordWrap: 'break-word',
+        }}
       />
     </div>
   );
