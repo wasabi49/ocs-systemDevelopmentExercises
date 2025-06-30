@@ -355,7 +355,7 @@ const generateTempOrderDetailId = (index: number): string => {
 
 // 商品リストポップアップコンポーネント
 const ProductListModal = ({ isOpen, onClose, products, router}: { isOpen: boolean; onClose: () => void; products: { id: string; name: string; quantity: number }[]; router: ReturnType<typeof useRouter>; pathname: string }) => {
-  const [checked, setChecked] = useState<(boolean | number)[]>([]);
+  const [checked, setChecked] = useState<(boolean | number | '')[]>([]);
   const [added, setAdded] = useState(false);
 
   useEffect(() => {
