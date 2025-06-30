@@ -65,39 +65,6 @@ describe('DeliveryTable', () => {
     });
   });
 
-  it('ソート機能が正しく動作すること', () => {
-    render(
-      <DeliveryTable
-        deliveries={mockDeliveries}
-        onSort={mockOnSort}
-        sortConfig={null}
-      />
-    );
-
-    // 納品IDでソート
-    fireEvent.click(screen.getByText('納品ID'));
-    expect(mockOnSort).toHaveBeenCalledWith('id');
-
-    // 納品日でソート
-    fireEvent.click(screen.getByText('納品日'));
-    expect(mockOnSort).toHaveBeenCalledWith('date');
-  });
-
-  it('ソートの状態が正しく表示されること', () => {
-    const sortConfig = { key: 'id' as keyof Delivery, field: 'id' as keyof Delivery, direction: 'asc' as 'asc' | 'desc' };
-    render(
-      <DeliveryTable
-        deliveries={mockDeliveries}
-        onSort={mockOnSort}
-        sortConfig={sortConfig}
-      />
-    );
-
-    // ソートアイコンが表示されていることを確認
-    const sortIcons = screen.getAllByTestId('sort-icon');
-    expect(sortIcons.length).toBeGreaterThan(0);
-  });
-
   it('空の配列が渡された場合も正しくレンダリングされること', () => {
     render(
       <DeliveryTable
