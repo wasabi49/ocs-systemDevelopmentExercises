@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { fetchDeliveryById, deleteDelivery } from '@/app/actions/deliveryActions';
+import { generateDeliveryPDF } from '@/app/components/DeliveryPDF';
 
 // レスポンス型定義
 interface DeliveryDetail {
@@ -306,8 +307,15 @@ const DeliveryDetailPage: React.FC = () => {
     setShowDeleteModal(false);
   };
 
-  const handlePdfExport = () => {
-    alert('PDFを出力しています（デモのため実際の出力は行われていません）');
+  const handlePdfExport = async () => {
+    if (!deliveryData) return;
+    
+    try {
+      await generateDeliveryPDF(deliveryData);
+    } catch (error) {
+      console.error('PDF生成エラー:', error);
+      alert('PDF生成中にエラーが発生しました');
+    }
   };
 
   // ローディング表示
