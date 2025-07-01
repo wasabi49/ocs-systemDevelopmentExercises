@@ -56,156 +56,170 @@ const createStyles = (useCustomFont: boolean) =>
       backgroundColor: '#FFFFFF',
       padding: 20,
       fontFamily: useCustomFont ? 'NotoSansJP' : 'Helvetica',
-      fontSize: 10,
+      fontSize: 9,
+      lineHeight: 1.2,
     },
     header: {
-      marginBottom: 20,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 12,
+      paddingBottom: 8,
+      borderBottom: '2 solid #333333',
     },
     title: {
-      fontSize: 24,
+      fontSize: 20,
       fontWeight: 'bold',
-      marginBottom: 15,
-      textAlign: 'left',
-      color: '#000000',
+      color: '#2c3e50',
+      letterSpacing: 1.2,
     },
     dateSection: {
-      flexDirection: 'row',
-      justifyContent: 'flex-end',
-      alignItems: 'center',
-      marginBottom: 20,
-      gap: 10,
+      alignItems: 'flex-end',
     },
     dateLabel: {
-      fontSize: 10,
-      color: '#000000',
+      fontSize: 9,
+      color: '#666666',
+      marginBottom: 2,
     },
-    dateBox: {
-      borderStyle: 'solid',
-      borderWidth: 1,
-      borderColor: '#000000',
-      padding: 5,
-      minWidth: 40,
-      textAlign: 'center',
+    date: {
+      fontSize: 12,
+      fontWeight: 'bold',
+      color: '#2c3e50',
     },
     customerSection: {
-      flexDirection: 'row',
-      justifyContent: 'flex-start',
-      alignItems: 'center',
       marginBottom: 10,
+      paddingHorizontal: 15,
+    },
+    customerRow: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      justifyContent: 'flex-start',
+      marginBottom: 6,
     },
     customerName: {
-      fontSize: 14,
+      fontSize: 16,
       fontWeight: 'bold',
-      color: '#000000',
-      marginRight: 10,
-    },
-    honorific: {
-      fontSize: 14,
-      color: '#000000',
-    },
-    dividerLine: {
-      borderStyle: 'solid',
-      borderBottomWidth: 1,
-      borderColor: '#4A90E2',
-      marginBottom: 15,
-      width: '50%', // 左半分のみ
-    },
-    orderText: {
-      fontSize: 10,
-      color: '#000000',
-      marginBottom: 20,
+      color: '#2c3e50',
       textAlign: 'left',
+      minWidth: 180,
+    },
+    customerUnderline: {
+      height: 2,
+      backgroundColor: '#34495e',
+      marginTop: 12,
+      marginBottom: 5,
+    },
+    customerLabel: {
+      fontSize: 14,
+      marginLeft: 8,
+      color: '#2c3e50',
+    },
+    message: {
+      fontSize: 10,
+      marginBottom: 10,
+      textAlign: 'left',
+      color: '#2c3e50',
+      paddingLeft: 15,
     },
     table: {
-      width: '100%',
-      borderStyle: 'solid',
-      borderWidth: 2,
-      borderColor: '#4A90E2', // 青色のボーダー
-      marginBottom: 20,
+      marginBottom: 8,
+      border: '2 solid #34495e',
+      borderRadius: 2,
     },
     tableHeader: {
-      backgroundColor: '#4A90E2', // 青い背景
       flexDirection: 'row',
+      backgroundColor: '#34495e',
+      paddingVertical: 6,
     },
     tableRow: {
       flexDirection: 'row',
-      borderStyle: 'solid',
-      borderBottomWidth: 1,
-      borderColor: '#4A90E2',
-    },
-    tableColHeader: {
-      borderStyle: 'solid',
-      borderRightWidth: 1,
-      borderColor: '#FFFFFF', // 白いボーダーでセル区切り
-      padding: 8,
-      justifyContent: 'center',
-      alignItems: 'center',
-      minHeight: 25,
-    },
-    tableCol: {
-      borderStyle: 'solid',
-      borderRightWidth: 1,
-      borderColor: '#4A90E2',
-      padding: 6,
-      justifyContent: 'center',
       minHeight: 20,
+      alignItems: 'center',
+      borderBottom: '0.5 solid #bdc3c7',
     },
-    // 列幅の調整（画像に合わせて）
-    productNameCol: {
-      width: '45%', // 品名列（拡大）
+    tableRowEven: {
+      backgroundColor: '#f8f9fa',
     },
-    quantityCol: {
-      width: '7%', // 数量列（縮小）
+    tableRowOdd: {
+      backgroundColor: '#ffffff',
     },
-    priceCol: {
-      width: '8%', // 単価列（縮小）
-    },
-    descriptionCol: {
-      width: '40%', // 摘要列（拡大）
-    },
-    tableCellHeader: {
-      fontSize: 11,
-      fontWeight: 'bold',
-      textAlign: 'center',
-      color: '#FFFFFF', // 白い文字
-    },
-    tableCell: {
-      fontSize: 9,
-      lineHeight: 1.2,
-      color: '#000000',
+    colProductName: {
+      width: '45%',
       textAlign: 'left',
+      borderRight: '0.5 solid #bdc3c7',
+      paddingHorizontal: 4,
+      paddingVertical: 3,
     },
-    tableCellRight: {
-      fontSize: 9,
-      textAlign: 'right',
-      lineHeight: 1.2,
-      color: '#000000',
-    },
-    tableCellCenter: {
-      fontSize: 9,
+    colQuantity: {
+      width: '6%',
       textAlign: 'center',
-      lineHeight: 1.2,
-      color: '#000000',
+      borderRight: '0.5 solid #bdc3c7',
+      paddingVertical: 3,
     },
-    noteSection: {
-      marginBottom: 15,
+    colUnitPrice: {
+      width: '8%',
+      textAlign: 'right',
+      borderRight: '0.5 solid #bdc3c7',
+      paddingHorizontal: 3,
+      paddingVertical: 3,
     },
-    noteTitle: {
+    colDescription: {
+      width: '41%',
+      textAlign: 'left',
+      paddingHorizontal: 4,
+      paddingVertical: 3,
+    },
+    headerText: {
       fontSize: 10,
       fontWeight: 'bold',
-      marginBottom: 5,
-      color: '#000000',
+      textAlign: 'center',
+      color: '#ffffff',
     },
-    noteBox: {
-      border: '1pt solid #4A90E2',
-      minHeight: 40,
-      padding: 8,
-      backgroundColor: '#FFFFFF',
-    },
-    noteText: {
+    cellText: {
       fontSize: 9,
-      lineHeight: 1.3,
-      color: '#000000',
+      color: '#2c3e50',
+    },
+    cellTextBold: {
+      fontSize: 9,
+      fontWeight: 'bold',
+      color: '#2c3e50',
+    },
+    emptyRow: {
+      minHeight: 20,
+    },
+    remarksSection: {
+      marginTop: 6,
+      marginBottom: 6,
+    },
+    remarksTitle: {
+      fontSize: 11,
+      fontWeight: 'bold',
+      color: '#2c3e50',
+      marginBottom: 5,
+    },
+    remarksBox: {
+      border: '1 solid #bdc3c7',
+      borderRadius: 3,
+      minHeight: 65,
+      padding: 8,
+      backgroundColor: '#f8f9fa',
+    },
+    remarksText: {
+      fontSize: 10,
+      color: '#2c3e50',
+      lineHeight: 1.6,
+    },
+    footer: {
+      marginTop: 5,
+      paddingTop: 4,
+      borderTop: '0.5 solid #bdc3c7',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    footerText: {
+      fontSize: 8,
+      color: '#7f8c8d',
     },
   });
 
@@ -311,70 +325,73 @@ const OrderPDF: React.FC<{ orderData: OrderData; useCustomFont: boolean }> = ({
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* タイトル */}
+        {/* ヘッダー */}
         <View style={styles.header}>
           <Text style={styles.title}>{safeJapaneseText('注文書')}</Text>
+          <View style={styles.dateSection}>
+            <Text style={styles.dateLabel}>注文日</Text>
+            <Text style={styles.date}>{formatJapaneseDate(orderData.orderDate)}</Text>
+          </View>
         </View>
 
-        {/* 日付欄 */}
-        <View style={styles.dateSection}>
-          <Text style={styles.dateLabel}>{formatJapaneseDate(orderData.orderDate)}</Text>
-        </View>
-
-        {/* 顧客名 */}
+        {/* 顧客セクション */}
         <View style={styles.customerSection}>
-          <Text style={styles.customerName}>
-            {safeJapaneseText(`${orderData.customer.name}`, 30)}
-          </Text>
-          <Text style={styles.honorific}>様</Text>
+          <View style={styles.customerRow}>
+            <View>
+              <Text style={styles.customerName}>{safeJapaneseText(orderData.customer.name, 30)}</Text>
+              <View style={styles.customerUnderline}></View>
+            </View>
+            <Text style={styles.customerLabel}>様</Text>
+          </View>
         </View>
 
-        {/* 区切り線 */}
-        <View style={styles.dividerLine} />
-
-        {/* 注文テキスト */}
-        <View>
-          <Text style={styles.orderText}>{safeJapaneseText('下記の通り御注文申し上げます')}</Text>
-        </View>
+        <Text style={styles.message}>下記の通り御注文申し上げます。</Text>
 
         {/* テーブル */}
         <View style={styles.table}>
-          {/* ヘッダー行（青い背景） */}
+          {/* テーブルヘッダー */}
           <View style={styles.tableHeader}>
-            <View style={[styles.tableColHeader, styles.productNameCol]}>
-              <Text style={styles.tableCellHeader}>品名</Text>
+            <View style={styles.colProductName}>
+              <Text style={styles.headerText}>品名</Text>
             </View>
-            <View style={[styles.tableColHeader, styles.quantityCol]}>
-              <Text style={styles.tableCellHeader}>数量</Text>
+            <View style={styles.colQuantity}>
+              <Text style={styles.headerText}>数量</Text>
             </View>
-            <View style={[styles.tableColHeader, styles.priceCol]}>
-              <Text style={styles.tableCellHeader}>単価</Text>
+            <View style={styles.colUnitPrice}>
+              <Text style={styles.headerText}>単価</Text>
             </View>
-            <View style={[styles.tableColHeader, styles.descriptionCol]}>
-              <Text style={styles.tableCellHeader}>摘要</Text>
+            <View style={styles.colDescription}>
+              <Text style={styles.headerText}>摘要</Text>
             </View>
           </View>
 
-          {/* データ行 */}
+          {/* テーブル行 */}
           {tableRows.map((detail, index) => (
-            <View style={styles.tableRow} key={index}>
-              <View style={[styles.tableCol, styles.productNameCol]}>
-                <Text style={styles.tableCell}>
+            <View
+              key={index}
+              style={[
+                styles.tableRow,
+                index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd,
+                detail.productName === '' ? styles.emptyRow : {},
+              ]}
+            >
+              <View style={styles.colProductName}>
+                <Text style={styles.cellTextBold}>
                   {detail.productName ? safeJapaneseText(detail.productName) : ''}
                 </Text>
               </View>
-              <View style={[styles.tableCol, styles.quantityCol]}>
-                <Text style={styles.tableCellCenter}>
+              <View style={styles.colQuantity}>
+                <Text style={styles.cellText}>
                   {detail.quantity > 0 ? detail.quantity.toString() : ''}
                 </Text>
               </View>
-              <View style={[styles.tableCol, styles.priceCol]}>
-                <Text style={styles.tableCellRight}>
+              <View style={styles.colUnitPrice}>
+                <Text style={styles.cellText}>
                   {detail.unitPrice > 0 ? `¥${detail.unitPrice.toLocaleString()}` : ''}
                 </Text>
               </View>
-              <View style={[styles.tableCol, styles.descriptionCol]}>
-                <Text style={styles.tableCell}>
+              <View style={styles.colDescription}>
+                <Text style={styles.cellText}>
                   {detail.description ? safeJapaneseText(detail.description) : ''}
                 </Text>
               </View>
@@ -383,13 +400,19 @@ const OrderPDF: React.FC<{ orderData: OrderData; useCustomFont: boolean }> = ({
         </View>
 
         {/* 備考欄 */}
-        <View style={styles.noteSection}>
-          <Text style={styles.noteTitle}>{safeJapaneseText('備考')}</Text>
-          <View style={styles.noteBox}>
-            {orderData.note && (
-              <Text style={styles.noteText}>{safeJapaneseText(orderData.note, 300)}</Text>
-            )}
+        <View style={styles.remarksSection}>
+          <Text style={styles.remarksTitle}>{safeJapaneseText('備考')}</Text>
+          <View style={styles.remarksBox}>
+            <Text style={styles.remarksText}>
+              {orderData.note ? safeJapaneseText(orderData.note, 300) : '特記事項はありません。'}
+            </Text>
           </View>
+        </View>
+
+        {/* フッター */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>発行日: {new Date().toLocaleDateString('ja-JP')}</Text>
+          <Text style={styles.footerText}>注文書 ID: {orderData.id}</Text>
         </View>
       </Page>
     </Document>
