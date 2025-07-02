@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { vi } from 'vitest';
 import DeliveryTable, { type Delivery } from './DeliveryTable';
 import '@testing-library/jest-dom/vitest';
+import { vi } from 'vitest';
 
 describe('DeliveryTable', () => {
   const mockDeliveries: Delivery[] = [
@@ -20,9 +20,11 @@ describe('DeliveryTable', () => {
   ];
 
   const mockOnSort = vi.fn();
+  const mockRenderSortIcons = vi.fn((field) => <span data-testid={`sort-icon-${field}`}></span>);
 
   beforeEach(() => {
     mockOnSort.mockClear();
+    mockRenderSortIcons.mockClear();
   });
 
   it('正しくコンポーネントがレンダリングされること', () => {
@@ -30,16 +32,16 @@ describe('DeliveryTable', () => {
       <DeliveryTable
         deliveries={mockDeliveries}
         onSort={mockOnSort}
-        sortConfig={null}
+        renderSortIcons={mockRenderSortIcons}
+        sortField={null}
+        sortOrder={'asc'}
       />
     );
-
     // ヘッダーの存在確認
     expect(screen.getByText('納品ID')).toBeInTheDocument();
     expect(screen.getByText('納品日')).toBeInTheDocument();
     expect(screen.getByText('顧客名')).toBeInTheDocument();
     expect(screen.getByText('備考')).toBeInTheDocument();
-
     // データの表示確認
     mockDeliveries.forEach((delivery) => {
       expect(screen.getByText(delivery.customerName)).toBeInTheDocument();
@@ -53,13 +55,13 @@ describe('DeliveryTable', () => {
       <DeliveryTable
         deliveries={mockDeliveries}
         onSort={mockOnSort}
-        sortConfig={null}
+        renderSortIcons={mockRenderSortIcons}
+        sortField={null}
+        sortOrder={'asc'}
       />
     );
-
     const links = screen.getAllByRole('link');
     expect(links).toHaveLength(mockDeliveries.length);
-    
     links.forEach((link, index) => {
       expect(link).toHaveAttribute('href', `/Home/DeliveryList/${mockDeliveries[index].id}`);
     });
@@ -70,12 +72,43 @@ describe('DeliveryTable', () => {
       <DeliveryTable
         deliveries={[]}
         onSort={mockOnSort}
-        sortConfig={null}
+        renderSortIcons={mockRenderSortIcons}
+        sortField={null}
+        sortOrder={'asc'}
       />
     );
-
     // ヘッダーは表示されているが、データは表示されていないことを確認
     expect(screen.getByText('納品ID')).toBeInTheDocument();
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
+  });
+
+  it('ソートアイコンがレンダリングされること', () => {
+    render(
+      <DeliveryTable
+        deliveries={mockDeliveries}
+        onSort={mockOnSort}
+        renderSortIcons={mockRenderSortIcons}
+        sortField={'id'}
+        sortOrder={'asc'}
+      />
+    );
+    expect(screen.getByTestId('sort-icon-id')).toBeInTheDocument();
+    expect(screen.getByTestId('sort-icon-date')).toBeInTheDocument();
+  });
+
+  it('ヘッダークリックでonSortが呼ばれること', () => {
+    render(
+      <DeliveryTable
+        deliveries={mockDeliveries}
+        onSort={mockOnSort}
+        renderSortIcons={mockRenderSortIcons}
+        sortField={null}
+        sortOrder={'asc'}
+      />
+    );
+    fireEvent.click(screen.getByText('納品ID'));
+    expect(mockOnSort).toHaveBeenCalledWith('id');
+    fireEvent.click(screen.getByText('納品日'));
+    expect(mockOnSort).toHaveBeenCalledWith('date');
   });
 });

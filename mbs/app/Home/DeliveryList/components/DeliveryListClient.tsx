@@ -5,7 +5,7 @@ import { ChevronUp, ChevronDown } from 'lucide-react';
 import { SortConfig, sortItems } from '@/app/utils/sortUtils';
 import Search from '@/app/components/Search';
 import Pagination from '@/app/components/Pagination';
-import DeliveryTable, { Delivery } from '../DeliveryTable';
+import DeliveryTable, { Delivery } from './DeliveryTable';
 import {useRouter} from 'next/navigation';
 
 // Delivery型を再エクスポート
