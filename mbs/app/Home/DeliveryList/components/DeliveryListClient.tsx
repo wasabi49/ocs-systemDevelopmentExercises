@@ -6,6 +6,7 @@ import { SortConfig, sortItems } from '@/app/utils/sortUtils';
 import Search from '@/app/components/Search';
 import Pagination from '@/app/components/Pagination';
 import DeliveryTable, { Delivery } from '../DeliveryTable';
+import {useRouter} from 'next/navigation';
 
 // Delivery型を再エクスポート
 export type { Delivery };
@@ -15,6 +16,7 @@ interface DeliveryListClientProps {
 }
 
 const DeliveryListClient: React.FC<DeliveryListClientProps> = ({ initialDeliveries }) => {
+  const route = useRouter();
   const [searchField, setSearchField] = useState<
     'すべて' | '納品ID' | '納品日' | '顧客名' | '備考' | '商品名'
   >('すべて');
@@ -36,10 +38,8 @@ const DeliveryListClient: React.FC<DeliveryListClientProps> = ({ initialDeliveri
 
   // 納品追加ハンドラー
   const handleAddDelivery = () => {
-    console.log('納品追加ボタンがクリックされました');
-    // 将来的に納品追加ページへの遷移を実装
-    // const router = useRouter();
-    // router.push('/Home/DeliveryList/Create');
+    
+    route.push('/Home/DeliveryList/Add');
   };
 
   // ページ変更ハンドラー

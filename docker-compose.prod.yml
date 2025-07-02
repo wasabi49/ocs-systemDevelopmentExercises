@@ -1,0 +1,30 @@
+services:
+  mbs:
+    image: node:22-alpine
+    working_dir: /app
+    depends_on:
+      - db
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+    ports:
+      - ${APP_PORT:-3000}:3000
+    restart: unless-stopped
+    volumes:
+      - ./mbs:/app
+    command: sh -c "npm i  --include=dev && npx prisma generate && npm run build && npm start"
+
+  db:
+    image: postgres:17.4
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - ${POSTGRES_PORT:-5432}:5432
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data:

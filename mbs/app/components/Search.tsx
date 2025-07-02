@@ -44,7 +44,7 @@ export default function Search({
       {/* アクションボタン（注文追加など） */}
       {actionButtonLabel && onActionButtonClick && (
         <button
-          className="h-[48px] flex-shrink-0 rounded-md border border-black bg-yellow-400 px-3 text-xs font-bold whitespace-nowrap text-black hover:bg-yellow-500 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4 sm:text-sm"
+          className="h-[48px] flex-shrink-0 rounded-md border border-gray-300 bg-green-500 px-3 text-xs font-bold whitespace-nowrap text-white hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4 sm:text-sm"
           onClick={onActionButtonClick}
           disabled={actionButtonDisabled}
           type="button"
