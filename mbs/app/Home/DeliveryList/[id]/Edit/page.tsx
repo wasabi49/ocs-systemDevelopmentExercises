@@ -432,7 +432,7 @@ const ProductListModal = ({ isOpen, onClose, products, router}: { isOpen: boolea
                             if (e.target.checked) {
                               arr[idx] = typeof arr[idx] === 'number' && arr[idx] > 0 ? arr[idx] : 1;
                             } else {
-                              arr[idx] = '';
+                              arr[idx] = false;
                             }
                             setChecked(arr);
                           }}
