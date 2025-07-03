@@ -3,11 +3,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Tooltip } from 'react-tooltip';
-import type { Customer } from '@/app/generated/prisma';
 import {
   fetchUndeliveredOrderDetailsForCreate,
   createDelivery,
 } from '@/app/actions/deliveryActions';
+import { useSimpleSearch } from '@/app/hooks/useGenericSearch';
+import { SortConfig, SortIcon, sortItems } from '@/app/utils/sortUtils';
 import { fetchAllCustomers } from '@/app/actions/customerActions';
 
 // 顧客型定義（文字列として返されるため）
@@ -194,6 +195,8 @@ const UndeliveredProductsModal = ({
   onSave: (allocations: AllocationUpdate[]) => Promise<void>;
 }) => {
   const [selections, setSelections] = useState<Record<string, number>>({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortConfig, setSortConfig] = useState<SortConfig<UndeliveredOrderDetail> | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   // モーダルが開かれた時に初期化
@@ -241,6 +244,44 @@ const UndeliveredProductsModal = ({
     }
   };
 
+  // 商品名で絞り込み（汎用検索フックを使用）
+  const filteredOrderDetails = useSimpleSearch(orderDetails, searchTerm, 'productName');
+
+  // ソート処理のハンドラー
+  const handleSort = (field: keyof UndeliveredOrderDetail) => {
+    sortItems(filteredOrderDetails, field, sortConfig, setSortConfig);
+  };
+
+  // ソート済みのデータを取得
+  const sortedOrderDetails = sortConfig 
+    ? [...filteredOrderDetails].sort((a, b) => {
+        const aValue = a[sortConfig.key];
+        const bValue = b[sortConfig.key];
+
+        // 日付フィールドの場合は特別な処理
+        if (sortConfig.key === 'orderDate') {
+          const aDate = new Date(aValue as string);
+          const bDate = new Date(bValue as string);
+          return sortConfig.direction === 'asc'
+            ? aDate.getTime() - bDate.getTime()
+            : bDate.getTime() - aDate.getTime();
+        }
+
+        // 数値の場合は数値として比較
+        if (typeof aValue === 'number' && typeof bValue === 'number') {
+          return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
+        }
+
+        // 文字列として比較
+        const aStr = String(aValue || '');
+        const bStr = String(bValue || '');
+
+        if (aStr < bStr) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aStr > bStr) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      })
+    : filteredOrderDetails;
+
   // 選択数量の合計を計算
   const totalSelectedQuantity = Object.values(selections).reduce((sum, qty) => sum + qty, 0);
   const totalSelectedAmount = Object.entries(selections).reduce((sum, [orderDetailId, qty]) => {
@@ -282,12 +323,46 @@ const UndeliveredProductsModal = ({
             ※完全に納品済みの注文明細は表示されません
           </div>
 
+          {/* 商品名検索 */}
+          <div className="mt-3">
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 z-10 -translate-y-1/2 text-gray-400">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="h-4 w-4"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                  />
+                </svg>
+              </div>
+              <input
+                type="text"
+                placeholder="商品名で検索..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
           {/* 選択状況の表示 */}
           <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-2 sm:p-3">
             <div className="text-xs font-medium text-blue-800 sm:text-sm">
               選択状況: {totalSelectedQuantity}個 / 合計金額: ¥
               {totalSelectedAmount.toLocaleString()}
             </div>
+            {searchTerm && (
+              <div className="mt-1 text-xs text-blue-600">
+                検索結果: {filteredOrderDetails.length}件 / 全{orderDetails.length}件
+              </div>
+            )}
           </div>
         </div>
 
@@ -297,26 +372,62 @@ const UndeliveredProductsModal = ({
             <table className="w-full border-collapse text-center text-xs sm:text-sm">
               <thead className="sticky top-0 z-10 bg-blue-300">
                 <tr style={{ height: '36px' }}>
-                  <th className="w-[12%] min-w-[90px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
-                    注文ID
+                  <th 
+                    className="w-[12%] min-w-[90px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm cursor-pointer hover:bg-blue-400"
+                    onClick={() => handleSort('orderId')}
+                  >
+                    <div className="flex items-center justify-center">
+                      注文ID
+                      <SortIcon field="orderId" sortConfig={sortConfig} />
+                    </div>
                   </th>
-                  <th className="w-[10%] min-w-[80px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
-                    注文日
+                  <th 
+                    className="w-[10%] min-w-[80px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm cursor-pointer hover:bg-blue-400"
+                    onClick={() => handleSort('orderDate')}
+                  >
+                    <div className="flex items-center justify-center">
+                      注文日
+                      <SortIcon field="orderDate" sortConfig={sortConfig} />
+                    </div>
                   </th>
                   <th className="w-[25%] min-w-[150px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
                     商品名
                   </th>
-                  <th className="w-[10%] min-w-[70px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
-                    単価
+                  <th 
+                    className="w-[10%] min-w-[70px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm cursor-pointer hover:bg-blue-400"
+                    onClick={() => handleSort('unitPrice')}
+                  >
+                    <div className="flex items-center justify-center">
+                      単価
+                      <SortIcon field="unitPrice" sortConfig={sortConfig} />
+                    </div>
                   </th>
-                  <th className="w-[10%] min-w-[60px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
-                    注文数量
+                  <th 
+                    className="w-[10%] min-w-[60px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm cursor-pointer hover:bg-blue-400"
+                    onClick={() => handleSort('totalQuantity')}
+                  >
+                    <div className="flex items-center justify-center">
+                      注文数量
+                      <SortIcon field="totalQuantity" sortConfig={sortConfig} />
+                    </div>
                   </th>
-                  <th className="w-[11%] min-w-[80px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
-                    既納品数量
+                  <th 
+                    className="w-[11%] min-w-[80px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm cursor-pointer hover:bg-blue-400"
+                    onClick={() => handleSort('allocatedInOtherDeliveries')}
+                  >
+                    <div className="flex items-center justify-center">
+                      既納品数量
+                      <SortIcon field="allocatedInOtherDeliveries" sortConfig={sortConfig} />
+                    </div>
                   </th>
-                  <th className="w-[10%] min-w-[60px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
-                    残り数量
+                  <th 
+                    className="w-[10%] min-w-[60px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm cursor-pointer hover:bg-blue-400"
+                    onClick={() => handleSort('remainingQuantity')}
+                  >
+                    <div className="flex items-center justify-center">
+                      残り数量
+                      <SortIcon field="remainingQuantity" sortConfig={sortConfig} />
+                    </div>
                   </th>
                   <th className="w-[12%] min-w-[90px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
                     今回納品数量
@@ -324,10 +435,16 @@ const UndeliveredProductsModal = ({
                 </tr>
               </thead>
               <tbody>
-                {orderDetails.map((detail) => (
+                {sortedOrderDetails.map((detail) => {
+                  const isSelected = (selections[detail.orderDetailId] || 0) > 0;
+                  return (
                   <tr
                     key={detail.orderDetailId}
-                    className="h-10 transition-colors hover:bg-blue-100 sm:h-12"
+                    className={`h-10 transition-colors sm:h-12 ${
+                      isSelected 
+                        ? 'bg-green-100 border-l-4 border-l-green-500 shadow-sm' 
+                        : 'hover:bg-blue-50'
+                    }`}
                   >
                     <td className="border border-gray-400 px-1 py-1 text-center font-mono text-xs sm:px-2 sm:py-2 sm:text-sm">
                       {detail.orderId}
@@ -384,7 +501,8 @@ const UndeliveredProductsModal = ({
                       />
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -444,7 +562,7 @@ export default function DeliveryAddPage() {
             message: result.error || '顧客データの取得に失敗しました',
           });
         }
-      } catch (error) {
+      } catch {
         setErrorModal({
           isOpen: true,
           title: 'エラー',
@@ -487,7 +605,7 @@ export default function DeliveryAddPage() {
         });
         setOrderDetails([]);
       }
-    } catch (error) {
+    } catch {
       setErrorModal({
         isOpen: true,
         title: 'エラー',
@@ -554,7 +672,7 @@ export default function DeliveryAddPage() {
             message: result.error || '納品の作成に失敗しました',
           });
         }
-      } catch (error) {
+      } catch {
         setErrorModal({
           isOpen: true,
           title: 'エラー',
