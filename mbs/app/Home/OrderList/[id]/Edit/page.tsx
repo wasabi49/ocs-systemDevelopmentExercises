@@ -30,7 +30,7 @@ interface OrderUpdateRequest {
 interface OrderDetailEdit {
   id: string;
   productName: string;
-  unitPrice: number;
+  unitPrice: number | string; // 入力中は文字列も許可
   quantity: number | '';
   description: string;
   deliveryStatus?: string;
@@ -124,7 +124,9 @@ const formatJPY = (amount: number): string => {
 };
 
 const parseJPYString = (value: string): number => {
-  const numValue = Number(value.replace(/,/g, ''));
+  // 数字以外の文字（コンマ、スペース等）を除去
+  const cleanValue = value.replace(/[^\d]/g, '');
+  const numValue = Number(cleanValue);
   return isNaN(numValue) ? 0 : numValue;
 };
 
@@ -490,6 +492,12 @@ const OrderEditPage: React.FC = () => {
     });
   }, []);
 
+  // 単価のフォーマット処理（入力完了時）
+  const handleUnitPriceBlur = useCallback((index: number, value: string) => {
+    const numValue = parseJPYString(value);
+    handleOrderDetailChange(index, 'unitPrice', numValue);
+  }, [handleOrderDetailChange]);
+
   // 注文詳細行の追加
   const handleAddOrderDetail = useCallback(() => {
     if (orderDetails.length >= MAX_PRODUCTS) {
@@ -571,7 +579,7 @@ const OrderEditPage: React.FC = () => {
           status,
           orderDetails: orderDetails.map(detail => ({
             productName: detail.productName,
-            unitPrice: detail.unitPrice,
+            unitPrice: typeof detail.unitPrice === 'number' ? detail.unitPrice : parseJPYString(String(detail.unitPrice)),
             quantity: typeof detail.quantity === 'number' ? detail.quantity : 1,
             description: detail.description || null
           }))
@@ -619,7 +627,8 @@ const OrderEditPage: React.FC = () => {
   const totalAmount = useMemo(() => {
     return orderDetails.reduce((sum, detail) => {
       const quantity = typeof detail.quantity === 'number' ? detail.quantity : 0;
-      return sum + (detail.unitPrice * quantity);
+      const unitPrice = typeof detail.unitPrice === 'number' ? detail.unitPrice : parseJPYString(String(detail.unitPrice));
+      return sum + (unitPrice * quantity);
     }, 0);
   }, [orderDetails]);
 
@@ -756,10 +765,20 @@ const OrderEditPage: React.FC = () => {
                         <input 
                           type="text" 
                           className="w-full px-1 py-1 text-xs sm:text-sm text-right"
-                          value={orderDetail.unitPrice === 0 ? '' : formatJPY(orderDetail.unitPrice)}
+                          value={
+                            typeof orderDetail.unitPrice === 'string' 
+                              ? orderDetail.unitPrice 
+                              : orderDetail.unitPrice === 0 
+                                ? '' 
+                                : formatJPY(orderDetail.unitPrice)
+                          }
                           onChange={(e) => {
-                            const numValue = parseJPYString(e.target.value);
-                            handleOrderDetailChange(index, 'unitPrice', numValue);
+                            // 入力中は生の値をそのまま保存（文字列として）
+                            handleOrderDetailChange(index, 'unitPrice', e.target.value);
+                          }}
+                          onBlur={(e) => {
+                            // 入力完了時に数値に変換してフォーマット
+                            handleUnitPriceBlur(index, e.target.value);
                           }}
                           placeholder="0"
                         />

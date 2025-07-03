@@ -28,7 +28,7 @@ type ValidationResult = {
 type OrderDetailCreate = {
   id: string; // 一時的なID（TEMP-XX形式）
   productName: string;
-  unitPrice: number;
+  unitPrice: number | string; // 入力中は文字列、表示時は数値
   quantity: number | '';
   description: string; // nullを許可しない
 };
@@ -72,7 +72,9 @@ const formatJPY = (amount: number): string => {
 };
 
 const parseJPYString = (value: string): number => {
-  const numValue = Number(value.replace(/,/g, ''));
+  // 数字以外の文字（コンマ、スペース等）を除去
+  const cleanValue = value.replace(/[^\d]/g, '');
+  const numValue = Number(cleanValue);
   return isNaN(numValue) ? 0 : numValue;
 };
 
@@ -480,7 +482,7 @@ export default function OrderCreatePage() {
   const validationResult = useMemo(() => {
     const orderDetailsForValidation = orderDetails.map(detail => ({
       productName: detail.productName,
-      unitPrice: detail.unitPrice,
+      unitPrice: typeof detail.unitPrice === 'number' ? detail.unitPrice : parseJPYString(String(detail.unitPrice)),
       quantity: typeof detail.quantity === 'number' ? detail.quantity : 1,
       description: detail.description || null
     }));
@@ -611,7 +613,7 @@ export default function OrderCreatePage() {
       // OrderDetailCreateからAPIの型に変換
       const orderDetailsForCreate = orderDetails.map(detail => ({
         productName: detail.productName,
-        unitPrice: detail.unitPrice, // Float型として送信
+        unitPrice: typeof detail.unitPrice === 'number' ? detail.unitPrice : parseJPYString(String(detail.unitPrice)),
         quantity: typeof detail.quantity === 'number' ? detail.quantity : 1,
         description: detail.description || null
       }));
@@ -713,7 +715,8 @@ export default function OrderCreatePage() {
   const totalAmount = useMemo(() => {
     return orderDetails.reduce((sum, detail) => {
       const quantity = typeof detail.quantity === 'number' ? detail.quantity : 0;
-      return sum + (detail.unitPrice * quantity);
+      const unitPrice = typeof detail.unitPrice === 'number' ? detail.unitPrice : parseJPYString(String(detail.unitPrice));
+      return sum + (unitPrice * quantity);
     }, 0);
   }, [orderDetails]);
 
@@ -803,10 +806,22 @@ export default function OrderCreatePage() {
                         <input 
                           type="text" 
                           className="w-full px-1 py-1 text-xs sm:text-sm text-right"
-                          value={orderDetail.unitPrice === 0 ? '' : formatJPY(orderDetail.unitPrice)}
+                          value={
+                            typeof orderDetail.unitPrice === 'string' 
+                              ? orderDetail.unitPrice 
+                              : orderDetail.unitPrice === 0 
+                                ? '' 
+                                : formatJPY(orderDetail.unitPrice)
+                          }
                           onChange={(e) => {
-                            const numValue = parseJPYString(e.target.value);
-                            handleEditOrderDetail(index, 'unitPrice', numValue);
+                            // 入力中は生の文字列をそのまま保存
+                            handleEditOrderDetail(index, 'unitPrice', e.target.value);
+                          }}
+                          onBlur={(e) => {
+                            // 入力完了時に数値に変換
+                            const numericValue = e.target.value.replace(/[^\d]/g, '');
+                            const finalValue = numericValue === '' ? 0 : Number(numericValue);
+                            handleEditOrderDetail(index, 'unitPrice', finalValue);
                           }}
                           placeholder="0"
                         />
