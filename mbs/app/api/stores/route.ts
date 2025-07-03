@@ -4,8 +4,13 @@ import { PrismaClient } from '@/app/generated/prisma';
 
 const prisma = new PrismaClient();
 
+// 型定義
+interface StoreCreateRequest {
+  name: string;
+}
+
 // 店舗一覧取得
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const stores = await prisma.store.findMany({
       orderBy: { name: 'asc' }
@@ -34,7 +39,7 @@ export async function GET(request: NextRequest) {
 // 店舗作成（管理者用）
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body: StoreCreateRequest = await request.json();
     
     if (!body.name) {
       return NextResponse.json(

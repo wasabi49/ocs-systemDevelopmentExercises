@@ -1,7 +1,23 @@
 // app/api/orders/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient, Prisma } from '@/app/generated/prisma';
+import { PrismaClient } from '@/app/generated/prisma';
 import { cookies } from 'next/headers';
+
+// 型定義
+interface OrderDetailInput {
+  productName: string;
+  unitPrice: number;
+  quantity: number;
+  description?: string;
+}
+
+interface OrderUpdateRequest {
+  orderDate: string;
+  customerId: string;
+  note?: string;
+  status?: string;
+  orderDetails: OrderDetailInput[];
+}
 
 const prisma = new PrismaClient();
 
@@ -201,7 +217,7 @@ export async function PUT(
     console.log('=== 注文更新開始 ===');
     console.log('注文ID:', orderId);
 
-    let body;
+    let body: OrderUpdateRequest;
     try {
       body = await request.json();
       console.log('受信データ:', JSON.stringify(body, null, 2));
@@ -340,7 +356,7 @@ export async function PUT(
       console.log('新しい注文明細の作成...');
       // 新しい注文詳細を作成
       const orderDetails = await Promise.all(
-        body.orderDetails.map(async (detail: any, index: number) => {
+        body.orderDetails.map(async (detail: OrderDetailInput, index: number) => {
           const newDetailId = generateOrderDetailId(orderId, index);
           console.log(`明細${index + 1}作成 ID: ${newDetailId}`, detail);
           return tx.orderDetail.create({

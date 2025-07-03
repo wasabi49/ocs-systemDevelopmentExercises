@@ -1,11 +1,11 @@
 // app/api/customers/route.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { PrismaClient } from '@/app/generated/prisma';
 import { getStoreIdFromCookie } from '@/app/utils/storeUtils';
 
 const prisma = new PrismaClient();
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Cookieから現在の店舗IDを取得
     const currentStoreId = await getStoreIdFromCookie();

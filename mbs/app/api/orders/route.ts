@@ -4,6 +4,21 @@ import { PrismaClient } from '@/app/generated/prisma';
 
 const prisma = new PrismaClient();
 
+// 型定義
+interface OrderDetailInput {
+  productName: string;
+  unitPrice: number;
+  quantity: number;
+  description: string | null;
+}
+
+interface OrderCreateRequest {
+  orderDetails: OrderDetailInput[];
+  orderDate: string;
+  customerId: string;
+  note: string | null;
+}
+
 // 注文一覧取得
 export async function GET(request: NextRequest) {
   try {
@@ -84,23 +99,10 @@ export async function GET(request: NextRequest) {
 // 注文作成
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    
-    // リクエストボディの型定義
-    const orderData: {
-      orderDetails: {
-        productName: string;
-        unitPrice: number;
-        quantity: number;
-        description: string | null;
-      }[];
-      orderDate: string;
-      customerId: string;
-      note: string | null;
-    } = body;
+    const body: OrderCreateRequest = await request.json();
 
     // バリデーション
-    if (!orderData.orderDetails || orderData.orderDetails.length === 0) {
+    if (!body.orderDetails || body.orderDetails.length === 0) {
       return NextResponse.json(
         { 
           success: false,
@@ -110,7 +112,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!orderData.customerId) {
+    if (!body.customerId) {
       return NextResponse.json(
         { 
           success: false,
@@ -123,7 +125,7 @@ export async function POST(request: NextRequest) {
     // 顧客の存在確認
     const customer = await prisma.customer.findUnique({
       where: { 
-        id: orderData.customerId, 
+        id: body.customerId, 
         isDeleted: false
       }
     });
@@ -139,7 +141,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 商品の必須項目チェック
-    const hasInvalidProducts = orderData.orderDetails.some(
+    const hasInvalidProducts = body.orderDetails.some(
       detail => !detail.productName.trim() && !(detail.description || '').trim()
     );
 
@@ -183,16 +185,16 @@ export async function POST(request: NextRequest) {
       const order = await tx.order.create({
         data: {
           id: orderId,
-          orderDate: new Date(orderData.orderDate),
-          customerId: orderData.customerId,
-          note: orderData.note,
+          orderDate: new Date(body.orderDate),
+          customerId: body.customerId,
+          note: body.note,
           status: '未完了',
         }
       });
 
       // 注文詳細の作成
       const orderDetails = await Promise.all(
-        orderData.orderDetails.map((detail, index) =>
+        body.orderDetails.map((detail, index) =>
           tx.orderDetail.create({
             data: {
               id: generateOrderDetailId(orderId, index),
