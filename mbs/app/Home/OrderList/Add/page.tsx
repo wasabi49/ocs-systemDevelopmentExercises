@@ -33,6 +33,21 @@ type OrderDetailCreate = {
   description: string; // nullを許可しない
 };
 
+// API成功レスポンスの型定義
+interface OrderCreateSuccessResponse {
+  order: {
+    id: string;
+    orderDate: string;
+  };
+  orderDetails: Array<{
+    id: string;
+    productName: string;
+    unitPrice: number;
+    quantity: number;
+    description: string | null;
+  }>;
+}
+
 // 定数定義
 const MAX_PRODUCTS = 20;
 
@@ -266,13 +281,7 @@ const SuccessModal = ({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  orderData?: {
-    order: {
-      id: string;
-      orderDate: string;
-    };
-    orderDetails: any[];
-  } | null;
+  orderData?: OrderCreateSuccessResponse | null;
 }) => {
   if (!isOpen) return null;
 
@@ -421,7 +430,7 @@ export default function OrderCreatePage() {
   const [note, setNote] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
-  const [successOrderData, setSuccessOrderData] = useState<any>(null); // 成功時の注文データ
+  const [successOrderData, setSuccessOrderData] = useState<OrderCreateSuccessResponse | null>(null); // 成功時の注文データ
 
   // 削除モーダル関連の状態
   const [deleteModal, setDeleteModal] = useState<{
