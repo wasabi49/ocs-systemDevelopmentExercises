@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Papa from 'papaparse';
 import { importCustomersFromCSV } from '@/app/actions/customerActions';
 import { useStore } from '@/app/contexts/StoreContext';
+import { Loading } from '@/app/components/Loading';
 
 export type CSVImportModalProps = {
   open: boolean;
@@ -626,7 +627,7 @@ const CSVImportModal = ({ open, onCancel, onSuccess }: CSVImportModalProps) => {
       onClick={handleImport}
       disabled={isLoading || csvData.length === 0}
     >
-      {isLoading ? 'インポート中...' : 'データインポート'}
+      {isLoading ? <Loading variant="button" size="sm" text="インポート中..." /> : 'データインポート'}
     </button>
   );
 

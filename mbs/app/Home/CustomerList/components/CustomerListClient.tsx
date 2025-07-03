@@ -6,6 +6,7 @@ import Search from '@/app/components/Search';
 import Pagination from '@/app/components/Pagination';
 import { fetchCustomers } from '@/app/actions/customerActions';
 import { useServerActionStoreCheck } from '@/app/hooks/useServerActionStoreCheck';
+import { Loading } from '@/app/components/Loading';
 
 // 顧客データの型定義
 type Customer = {
@@ -131,7 +132,7 @@ export default function CustomerListClient({ initialCustomers }: CustomerListCli
         <div className="w-full overflow-x-auto rounded-lg bg-white shadow-sm">
           {loading ? (
             <div className="flex h-64 items-center justify-center">
-              <div className="text-lg font-semibold text-gray-600">データを読み込み中...</div>
+              <Loading variant="spinner" size="md" text="データを読み込み中..." />
             </div>
           ) : filteredCustomers.length === 0 ? (
             <div className="flex h-64 items-center justify-center">

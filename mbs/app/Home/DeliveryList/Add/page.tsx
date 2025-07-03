@@ -10,6 +10,7 @@ import {
 import { useSimpleSearch } from '@/app/hooks/useGenericSearch';
 import { SortConfig, SortIcon, sortItems } from '@/app/utils/sortUtils';
 import { fetchAllCustomers } from '@/app/actions/customerActions';
+import { Loading } from '@/app/components/Loading';
 
 // 顧客型定義（文字列として返されるため）
 type CustomerData = {
@@ -522,7 +523,7 @@ const UndeliveredProductsModal = ({
             disabled={isSaving || totalSelectedQuantity === 0}
             className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white shadow-lg transition-colors hover:bg-blue-700 disabled:bg-gray-400 sm:px-4 sm:text-sm"
           >
-            {isSaving ? '保存中...' : '納品作成'}
+            {isSaving ? <Loading variant="button" size="sm" text="保存中..." /> : '納品作成'}
           </button>
         </div>
       </div>

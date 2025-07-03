@@ -10,6 +10,7 @@ import {
 } from '@/app/actions/deliveryActions';
 import { useSimpleSearch } from '@/app/hooks/useGenericSearch';
 import { SortConfig, SortIcon, sortItems } from '@/app/utils/sortUtils';
+import { Loading } from '@/app/components/Loading';
 
 // 未納品注文明細の型定義
 type UndeliveredOrderDetail = {
@@ -524,13 +525,15 @@ const UndeliveredProductsModal = ({
             disabled={isSaving || !hasChanges || totalSelectedQuantity === 0}
             className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white shadow-lg transition-colors hover:bg-blue-700 disabled:bg-gray-400 sm:px-4 sm:text-sm"
           >
-            {isSaving
-              ? '保存中...'
-              : totalSelectedQuantity === 0
-                ? '商品を選択してください'
-                : hasChanges
-                  ? '納品更新'
-                  : '変更なし'}
+            {isSaving ? (
+              <Loading variant="button" size="sm" text="保存中..." />
+            ) : totalSelectedQuantity === 0 ? (
+              '商品を選択してください'
+            ) : hasChanges ? (
+              '納品更新'
+            ) : (
+              '変更なし'
+            )}
           </button>
         </div>
       </div>
@@ -659,11 +662,7 @@ export default function DeliveryEditPage() {
 
   if (isLoading && !delivery) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12">
-        <div className="text-center">
-          <div className="text-lg text-gray-600">納品データを読み込み中...</div>
-        </div>
-      </div>
+      <Loading variant="spinner" size="md" text="納品データを読み込み中..." fullScreen />
     );
   }
 

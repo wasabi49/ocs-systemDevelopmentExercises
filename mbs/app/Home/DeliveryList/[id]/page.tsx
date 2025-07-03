@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { fetchDeliveryById, deleteDelivery } from '@/app/actions/deliveryActions';
 import { generateDeliveryPDF } from '@/app/components/DeliveryPDF';
+import { Loading } from '@/app/components/Loading';
 
 // レスポンス型定義
 interface DeliveryDetail {
@@ -178,10 +179,7 @@ const DeleteConfirmModal = ({
               disabled={isDeleting}
             >
               {isDeleting ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                  削除中...
-                </div>
+                <Loading variant="button" size="sm" text="削除中..." />
               ) : (
                 '削除'
               )}
@@ -322,12 +320,7 @@ const DeliveryDetailPage: React.FC = () => {
   if (loading) {
     return (
       <div className="container mx-auto max-w-7xl px-2 py-4 sm:px-4 sm:py-6 lg:px-6">
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
-            <p className="text-gray-600">データを読み込んでいます...</p>
-          </div>
-        </div>
+        <Loading variant="spinner" size="md" text="データを読み込んでいます..." className="py-12" />
       </div>
     );
   }

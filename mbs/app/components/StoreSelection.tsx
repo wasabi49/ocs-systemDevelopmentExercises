@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Store as MapPin, Loader2, Building2, CheckCircle, ArrowRight } from 'lucide-react';
 import { useStore, Store } from '@/app/contexts/StoreContext'; // Storeインターフェースをcontextからインポート
 import { getAllStores } from '@/app/actions/storeActions';
+import { Loading, LoadingWithIcon } from '@/app/components/Loading';
 
 interface StoreSelectionProps {
   initialStores?: Store[];
@@ -74,14 +75,10 @@ const StoreSelection: React.FC<StoreSelectionProps> = ({
               <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
             </div>
           </div>
-          <h2 className="mb-3 text-xl font-semibold text-gray-800">店舗情報を読み込み中</h2>
+          <LoadingWithIcon icon={false} size="lg" text="店舗情報を読み込み中" />
           <p className="text-gray-600">しばらくお待ちください...</p>
-          <div className="mt-4 flex justify-center">
-            <div className="flex space-x-1">
-              <div className="h-2 w-2 animate-bounce rounded-full bg-blue-500"></div>
-              <div className="h-2 w-2 animate-bounce rounded-full bg-blue-500 delay-100"></div>
-              <div className="h-2 w-2 animate-bounce rounded-full bg-blue-500 delay-200"></div>
-            </div>
+          <div className="mt-4">
+            <Loading variant="dots" size="md" />
           </div>
         </div>
       </div>
