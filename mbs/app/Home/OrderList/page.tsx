@@ -2,6 +2,7 @@ import React from 'react';
 import OrderListClient from './components/OrderListClient';
 import { fetchOrders } from '@/app/actions/orderActions';
 import type { Order } from '@/app/generated/prisma';
+import { checkStoreRequirement } from '@/app/utils/storeRedirect';
 
 // 表示用の注文データ型（seed.tsのOrder + フラット化された顧客情報）
 interface OrderWithCustomer extends Order {
@@ -13,6 +14,9 @@ interface OrderWithCustomer extends Order {
 export default async function OrderListPage() {
   // サーバーサイドでデータ取得
   const result = await fetchOrders();
+  
+  // 店舗未選択の場合はリダイレクト
+  checkStoreRequirement(result);
 
   let orders: OrderWithCustomer[] = [];
 

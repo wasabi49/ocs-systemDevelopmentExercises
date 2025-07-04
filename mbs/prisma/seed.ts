@@ -1,5 +1,5 @@
 import { PrismaClient } from '../app/generated/prisma';
-import type { Order, Delivery, Customer, DeliveryAllocation } from '../app/generated/prisma';
+import type { Order, Delivery, Customer } from '../app/generated/prisma';
 
 const prisma = new PrismaClient();
 
@@ -864,7 +864,7 @@ async function main() {
           });
 
           const totalAllocated = existingAllocations.reduce(
-            (sum: number, alloc: DeliveryAllocation) => sum + alloc.allocatedQuantity,
+            (sum: number, alloc) => sum + alloc.allocatedQuantity,
             0,
           );
 

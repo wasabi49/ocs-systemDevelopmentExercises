@@ -50,38 +50,46 @@ export const Loading: React.FC<LoadingProps> = ({
     switch (variant) {
       case 'spinner':
         return (
-          <div className={`animate-spin rounded-full border-b-2 border-blue-600 ${sizeClasses[size].spinner}`} />
+          <div
+            className={`animate-spin rounded-full border-b-2 border-blue-600 ${sizeClasses[size].spinner}`}
+          />
         );
-      
+
       case 'dots':
         return (
           <div className="flex space-x-1">
-            <div className={`animate-bounce rounded-full bg-blue-500 ${sizeClasses[size].dots}`} 
-                 style={{ animationDelay: '0ms' }} />
-            <div className={`animate-bounce rounded-full bg-blue-500 ${sizeClasses[size].dots}`} 
-                 style={{ animationDelay: '150ms' }} />
-            <div className={`animate-bounce rounded-full bg-blue-500 ${sizeClasses[size].dots}`} 
-                 style={{ animationDelay: '300ms' }} />
+            <div
+              className={`animate-bounce rounded-full bg-blue-500 ${sizeClasses[size].dots}`}
+              style={{ animationDelay: '0ms' }}
+            />
+            <div
+              className={`animate-bounce rounded-full bg-blue-500 ${sizeClasses[size].dots}`}
+              style={{ animationDelay: '150ms' }}
+            />
+            <div
+              className={`animate-bounce rounded-full bg-blue-500 ${sizeClasses[size].dots}`}
+              style={{ animationDelay: '300ms' }}
+            />
           </div>
         );
-      
+
       case 'text':
         return (
           <div className={`font-medium text-gray-600 ${sizeClasses[size].text}`}>
             {text || '読み込み中...'}
           </div>
         );
-      
+
       case 'button':
         return (
           <div className="flex items-center justify-center gap-2">
-            <div className={`animate-spin rounded-full border-2 border-white border-t-transparent ${sizeClasses[size].spinner}`} />
-            <span className={`text-white ${sizeClasses[size].text}`}>
-              {text || '処理中...'}
-            </span>
+            <div
+              className={`animate-spin rounded-full border-2 border-white border-t-transparent ${sizeClasses[size].spinner}`}
+            />
+            <span className={`text-white ${sizeClasses[size].text}`}>{text || '処理中...'}</span>
           </div>
         );
-      
+
       default:
         return null;
     }
@@ -108,7 +116,6 @@ export const LoadingWithIcon: React.FC<LoadingWithIconProps> = ({
   size = 'md',
   text,
   className = '',
-  ...props
 }) => {
   const iconSizeClasses = {
     sm: 'h-4 w-4',
@@ -127,7 +134,7 @@ export const LoadingWithIcon: React.FC<LoadingWithIconProps> = ({
 export const LoadingOverlay: React.FC<LoadingProps> = (props) => {
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-black bg-opacity-50" />
+      <div className="bg-opacity-50 fixed inset-0 z-40 bg-black" />
       <div className="fixed inset-0 z-50 flex items-center justify-center">
         <div className="rounded-lg bg-white p-6 shadow-lg">
           <Loading {...props} />
