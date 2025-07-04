@@ -134,6 +134,13 @@ export async function fetchCustomerById(id: string) {
         id: id,
         isDeleted: false,
       },
+      include: {
+        statistics: {
+          where: {
+            isDeleted: false,
+          },
+        },
+      },
     });
 
     if (!customer) {
@@ -149,6 +156,13 @@ export async function fetchCustomerById(id: string) {
         id: customer.id,
         customerName: customer.name,
         managerName: customer.contactPerson || '',
+        statistics: customer.statistics
+          ? {
+              averageLeadTime: customer.statistics.averageLeadTime || 0,
+              totalSales: customer.statistics.totalSales || 0,
+              updatedAt: customer.statistics.updatedAt.toISOString(),
+            }
+          : null,
       },
     };
   } catch (error) {
@@ -201,24 +215,28 @@ export async function importCustomersFromCSV(csvData: string[][], storeId?: stri
     }
 
     const dataRows = csvData.slice(1); // ヘッダー行を除く
-    
+
     // 有効行の判定：最低限、店舗名と顧客名が必要
     // かつ、ヘッダー行のような文字列を除外
     const validRows = dataRows.filter((row) => {
       if (row.length < 3) return false;
-      
+
       const storeName = row[1]?.toString().trim();
       const customerName = row[2]?.toString().trim();
-      
+
       // 空の値をチェック
       if (!storeName || !customerName) return false;
-      
+
       // ヘッダー行のような値を除外
-      if (storeName === '店舗名' || customerName === '顧客名' || 
-          storeName === 'storeName' || customerName === 'customerName') {
+      if (
+        storeName === '店舗名' ||
+        customerName === '顧客名' ||
+        storeName === 'storeName' ||
+        customerName === 'customerName'
+      ) {
         return false;
       }
-      
+
       return true;
     });
 

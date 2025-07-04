@@ -78,12 +78,13 @@ export async function fetchDeliveryById(id: string) {
       where: {
         id: id,
         isDeleted: false,
-        customer: {
-          isDeleted: false, // 削除されていない顧客のみ
-        },
       },
       include: {
-        customer: true,
+        customer: {
+          where: {
+            isDeleted: false, // 削除されていない顧客のみ
+          },
+        },
         deliveryDetails: {
           where: { isDeleted: false },
         },
