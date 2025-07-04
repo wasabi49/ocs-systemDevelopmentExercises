@@ -45,10 +45,10 @@ sequenceDiagram
             end
             
             alt 商品未選択
-                ProductModal->>ProductModal: 追加ボタン無効化
+                ProductModal->>ProductModal: 更新ボタン無効化
             else 商品選択済み
-                User->>ProductModal: 追加ボタンクリック
-                ProductModal->>ProductModal: 追加完了表示
+                User->>ProductModal: 更新ボタンクリック
+                ProductModal->>ProductModal: 更新完了表示
                 ProductModal->>Router: 1秒後にDeliveryListに遷移
                 Router->>Router: ページ遷移実行
             end
