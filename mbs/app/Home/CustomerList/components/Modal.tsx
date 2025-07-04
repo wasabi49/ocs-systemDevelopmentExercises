@@ -218,8 +218,6 @@ const CSVImportModal = ({ open, onCancel, onSuccess }: CSVImportModalProps) => {
   const { selectedStore } = useStore();
   const [fileNames, setFileNames] = useState<string[]>([]);
   const [csvData, setCsvData] = useState<string[][]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [csvValidation, setCsvValidation] = useState<CSVValidationResult | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showResult, setShowResult] = useState(false);

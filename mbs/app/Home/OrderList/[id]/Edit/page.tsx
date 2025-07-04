@@ -1,109 +1,122 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import type { Customer } from '@/app/generated/prisma';
+import React, { useState, useEffect, useTransition, useCallback, useMemo } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import type { Customer, Prisma } from '@/app/generated/prisma';
 
-// 注文更新時のデータ型定義
-type OrderUpdateData = {
-  orderDetails: {
+// APIレスポンス用の型（Prismaのinclude結果）
+type OrderWithRelations = Prisma.OrderGetPayload<{
+  include: {
+    customer: true;
+    orderDetails: true;
+  };
+}>;
+
+// 注文更新用の型定義
+interface OrderUpdateRequest {
+  orderDate: string;
+  customerId: string;
+  note: string | null;
+  status: string;
+  orderDetails: Array<{
     productName: string;
     unitPrice: number;
     quantity: number;
     description: string | null;
-  }[];
-  orderDate: Date;
-  customerId: string;
-  note: string | null;
-};
-
-// バリデーション結果の型定義
-type ValidationResult = {
-  isValid: boolean;
-  errors: string[];
-};
+  }>;
+}
 
 // 注文明細の編集用型
-type OrderDetailEdit = {
-  id: string; // 既存IDまたは一時的なID（TEMP-XX形式）
+interface OrderDetailEdit {
+  id: string;
   productName: string;
-  unitPrice: number;
+  unitPrice: number | string; // 入力中は文字列も許可
   quantity: number | '';
   description: string;
-  deliveryStatus?: string; // 既存商品の場合のみ
-};
+  deliveryStatus?: string;
+}
 
 // 定数定義
 const MAX_PRODUCTS = 20;
 
-// ダミーの顧客データ（Prismaの型に準拠）
-const DUMMY_CUSTOMERS: Customer[] = [
-  { 
-    id: 'C-00001', 
-    storeId: 'store-001',
-    name: '大阪情報専門学校',
-    contactPerson: '山田太郎',
-    address: '大阪府大阪市北区',
-    phone: '06-1234-5678',
-    deliveryCondition: '通常2-3営業日以内',
-    note: '学校関連の納品は事前に連絡が必要',
-    updatedAt: new Date('2025-01-01'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00002', 
-    storeId: 'store-001',
-    name: '株式会社スマートソリューションズ',
-    contactPerson: '佐藤次郎',
-    address: '大阪府大阪市中央区',
-    phone: '06-2345-6789',
-    deliveryCondition: '当日納品対応可',
-    note: '重要顧客、優先対応',
-    updatedAt: new Date('2025-01-02'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00003', 
-    storeId: 'store-001',
-    name: '株式会社SCC',
-    contactPerson: '田中三郎',
-    address: '大阪府吹田市',
-    phone: '06-3456-7890',
-    deliveryCondition: '午前中指定',
-    note: '大口顧客',
-    updatedAt: new Date('2025-01-03'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00004', 
-    storeId: 'store-001',
-    name: '株式会社くら寿司',
-    contactPerson: '鈴木四郎',
-    address: '大阪府堺市',
-    phone: '072-456-7890',
-    deliveryCondition: '食品関連は温度管理必須',
-    note: '衛生管理に特に注意',
-    updatedAt: new Date('2025-01-04'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00005', 
-    storeId: 'store-001',
-    name: '株式会社大阪テクノロジー',
-    contactPerson: '伊藤五郎',
-    address: '大阪府東大阪市',
-    phone: '06-5678-9012',
-    deliveryCondition: '平日10:00-18:00',
-    note: 'IT関連機器専門',
-    updatedAt: new Date('2025-01-05'),
-    isDeleted: false,
-    deletedAt: null
+// API関数
+const fetchOrderDetail = async (orderId: string): Promise<{
+  success: boolean;
+  data?: OrderWithRelations;
+  error?: string;
+}> => {
+  try {
+    const response = await fetch(`/api/orders/${orderId}`);
+    const result = await response.json();
+    
+    if (response.ok && result.success) {
+      return {
+        success: true,
+        data: result.data
+      };
+    } else {
+      return {
+        success: false,
+        error: result.error || 'データの取得に失敗しました'
+      };
+    }
+  } catch (error) {
+    console.error('API呼び出しエラー:', error);
+    return {
+      success: false,
+      error: 'ネットワークエラーが発生しました'
+    };
   }
-];
+};
+
+const fetchCustomers = async (): Promise<Customer[]> => {
+  try {
+    const response = await fetch('/api/customers');
+    const result = await response.json();
+    if (result.success) {
+      return result.customers;
+    }
+    return [];
+  } catch (error) {
+    console.error('顧客データ取得エラー:', error);
+    return [];
+  }
+};
+
+const updateOrderAPI = async (orderId: string, orderData: OrderUpdateRequest): Promise<{
+  success: boolean;
+  message?: string;
+  error?: string;
+}> => {
+  try {
+    const response = await fetch(`/api/orders/${orderId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(orderData)
+    });
+    const result = await response.json();
+    
+    if (response.ok && result.success) {
+      return {
+        success: true,
+        message: result.message || '注文が正常に更新されました'
+      };
+    } else {
+      return {
+        success: false,
+        error: result.error || '更新に失敗しました'
+      };
+    }
+  } catch (error) {
+    console.error('更新API呼び出しエラー:', error);
+    return {
+      success: false,
+      error: 'ネットワークエラーが発生しました'
+    };
+  }
+};
 
 // ユーティリティ関数
 const formatJPY = (amount: number): string => {
@@ -111,39 +124,59 @@ const formatJPY = (amount: number): string => {
 };
 
 const parseJPYString = (value: string): number => {
-  const numValue = Number(value.replace(/,/g, ''));
+  // 数字以外の文字（コンマ、スペース等）を除去
+  const cleanValue = value.replace(/[^\d]/g, '');
+  const numValue = Number(cleanValue);
   return isNaN(numValue) ? 0 : numValue;
 };
 
-const formatDateForInput = (date: Date): string => {
-  return date.toISOString().split('T')[0];
+const formatDateForInput = (date: Date | string): string => {
+  const dateObj = date instanceof Date ? date : new Date(date);
+  return dateObj.toISOString().split('T')[0];
 };
 
-const formatDateFromInput = (inputDate: string): Date => {
-  return new Date(inputDate);
+// ID生成ヘルパー関数
+const generateTempOrderDetailId = (index: number): string => {
+  return `TEMP-${String(index + 1).padStart(2, '0')}`;
+};
+
+// 納品情報を取得する関数
+const getDeliveryInfo = (orderDetailId: string) => {
+  if (orderDetailId.startsWith('TEMP-')) {
+    return { deliveryStatus: '' };
+  }
+
+  const seed = parseInt(orderDetailId.slice(-1)) || 0;
+
+  if (seed % 4 === 0) {
+    return { deliveryStatus: '未納品' };
+  } else if (seed % 4 === 1) {
+    return { deliveryStatus: '一部納品' };
+  }
+
+  return { deliveryStatus: '完了' };
 };
 
 // バリデーション関数
-const validateOrderData = (orderData: OrderUpdateData): ValidationResult => {
+const validateOrderData = (orderDetails: OrderDetailEdit[], orderDate: string, customerId: string): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
 
-  if (orderData.orderDetails.length === 0) {
-    errors.push('商品を1つ以上追加してください');
-  }
-
-  if (!orderData.orderDate) {
+  if (!orderDate) {
     errors.push('注文日を入力してください');
   }
 
-  if (!orderData.customerId.trim()) {
+  if (!customerId) {
     errors.push('顧客を選択してください');
   }
 
-  // 商品の必須項目チェック
-  const hasInvalidProducts = orderData.orderDetails.some(
-    detail => !detail.productName.trim() && !(detail.description || '').trim()
+  if (orderDetails.length === 0) {
+    errors.push('商品を1つ以上追加してください');
+  }
+
+  const hasInvalidProducts = orderDetails.some(
+    detail => !detail.productName.trim() && !detail.description.trim()
   );
-  
+
   if (hasInvalidProducts) {
     errors.push('各商品の商品名または摘要を入力してください');
   }
@@ -170,7 +203,6 @@ const DeleteConfirmModal = ({
 }) => {
   if (!isOpen) return null;
 
-  // 表示する情報を決定
   const hasProductName = productName.trim() !== '';
   const hasDescription = description.trim() !== '';
 
@@ -178,28 +210,15 @@ const DeleteConfirmModal = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-brightness-50">
       <div className="w-full max-w-sm scale-100 transform rounded-2xl bg-white shadow-xl transition-all duration-50">
         <div className="p-6 text-center">
-          {/* 警告アイコン */}
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-            <svg
-              className="h-8 w-8 text-red-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
-              />
+            <svg className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
           </div>
 
           <h3 className="mb-2 text-xl font-bold text-gray-900">商品削除</h3>
-
           <p className="mb-4 text-sm text-gray-600">以下の商品を削除してもよろしいですか？</p>
 
-          {/* 削除対象商品の表示 */}
           <div className="mb-6 rounded-lg bg-gray-50 p-4">
             <div className="text-left space-y-2">
               {hasProductName && (
@@ -208,9 +227,7 @@ const DeleteConfirmModal = ({
                     <span className="mr-2 h-2 w-2 flex-shrink-0 rounded-full bg-blue-500"></span>
                     <span className="font-medium text-sm text-gray-800">商品名</span>
                   </div>
-                  <p className="ml-4 text-sm font-semibold text-gray-900">
-                    {productName}
-                  </p>
+                  <p className="ml-4 text-sm font-semibold text-gray-900">{productName}</p>
                 </div>
               )}
               {hasDescription && (
@@ -219,9 +236,7 @@ const DeleteConfirmModal = ({
                     <span className="mr-2 h-2 w-2 flex-shrink-0 rounded-full bg-green-500"></span>
                     <span className="font-medium text-sm text-gray-800">摘要</span>
                   </div>
-                  <p className="ml-4 text-sm font-semibold text-gray-900">
-                    {description}
-                  </p>
+                  <p className="ml-4 text-sm font-semibold text-gray-900">{description}</p>
                 </div>
               )}
               {!hasProductName && !hasDescription && (
@@ -230,29 +245,19 @@ const DeleteConfirmModal = ({
                     <span className="mr-2 h-2 w-2 flex-shrink-0 rounded-full bg-gray-400"></span>
                     <span className="font-medium text-sm text-gray-800">商品</span>
                   </div>
-                  <p className="ml-4 text-sm font-semibold text-gray-500">
-                    （商品名・摘要未入力）
-                  </p>
+                  <p className="ml-4 text-sm font-semibold text-gray-500">（商品名・摘要未入力）</p>
                 </div>
               )}
             </div>
           </div>
 
-          <p className="mb-6 text-xs text-red-600">
-            この操作は取り消すことができません。
-          </p>
+          <p className="mb-6 text-xs text-red-600">この操作は取り消すことができません。</p>
 
           <div className="flex gap-3">
-            <button
-              onClick={onClose}
-              className="flex-1 rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-200"
-            >
+            <button onClick={onClose} className="flex-1 rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-200">
               キャンセル
             </button>
-            <button
-              onClick={onConfirm}
-              className="flex-1 rounded-lg bg-red-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-red-700"
-            >
+            <button onClick={onConfirm} className="flex-1 rounded-lg bg-red-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-red-700">
               削除
             </button>
           </div>
@@ -280,30 +285,14 @@ const ErrorModal = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-brightness-50">
       <div className="w-full max-w-sm scale-100 transform rounded-2xl bg-white shadow-xl transition-all duration-50">
         <div className="p-6 text-center">
-          {/* エラーアイコン */}
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-            <svg
-              className="h-8 w-8 text-red-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
+            <svg className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
-
           <h3 className="mb-2 text-xl font-bold text-gray-900">{title}</h3>
           <div className="mb-6 text-sm text-gray-600 whitespace-pre-line">{message}</div>
-
-          <button
-            onClick={onClose}
-            className="w-full rounded-lg bg-red-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-red-700"
-          >
+          <button onClick={onClose} className="w-full rounded-lg bg-red-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-red-700">
             OK
           </button>
         </div>
@@ -312,7 +301,7 @@ const ErrorModal = ({
   );
 };
 
-// 成功ポップアップコンポーネント
+// 成功モーダルコンポーネント
 const SuccessModal = ({ 
   isOpen, 
   onClose 
@@ -326,30 +315,14 @@ const SuccessModal = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-brightness-50">
       <div className="w-full max-w-sm scale-100 transform rounded-2xl bg-white shadow-xl transition-all duration-50">
         <div className="p-6 text-center">
-          {/* 成功アイコン */}
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-            <svg
-              className="h-8 w-8 text-green-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
+            <svg className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-
           <h3 className="mb-2 text-xl font-bold text-gray-900">注文更新完了</h3>
           <p className="mb-6 text-sm text-gray-600">注文が正常に更新されました。</p>
-
-          <button
-            onClick={onClose}
-            className="w-full rounded-lg bg-green-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-green-700"
-          >
+          <button onClick={onClose} className="w-full rounded-lg bg-green-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-green-700">
             OK
           </button>
         </div>
@@ -402,46 +375,38 @@ const CustomerDropdown = ({
   );
 };
 
-// ID生成ヘルパー関数
-const generateTempOrderDetailId = (index: number): string => {
-  return `TEMP-${String(index + 1).padStart(2, '0')}`;
-};
-
-// 納品情報を取得する関数
-const getDeliveryInfo = (orderDetailId: string) => {
-  // 一時的なIDの場合は納品情報なし
-  if (orderDetailId.startsWith('TEMP-')) {
-    return { deliveryStatus: '' };
-  }
-
-  const seed = parseInt(orderDetailId.slice(-1)) || 0;
-
-  if (seed % 4 === 0) {
-    return { deliveryStatus: '未納品' };
-  } else if (seed % 4 === 1) {
-    return { deliveryStatus: '一部納品' };
-  }
-
-  return { deliveryStatus: '完了' };
-};
-
-// メインコンポーネント
-export default function OrderEditPage() {
-  const router = useRouter();
+const OrderEditPage: React.FC = () => {
   const params = useParams();
+  const router = useRouter();
   const orderId = (params?.id as string) || '';
-  
-  // 状態管理
-  const [orderDetails, setOrderDetails] = useState<OrderDetailEdit[]>([]);
-  const [orderDate, setOrderDate] = useState<Date>(new Date());
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+
+  const [orderData, setOrderData] = useState<OrderWithRelations | null>(null);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isUpdating, startUpdateTransition] = useTransition();
+
+  // フォーム状態
+  const [orderDate, setOrderDate] = useState<string>('');
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
   const [customerSearchTerm, setCustomerSearchTerm] = useState<string>('');
   const [showCustomerDropdown, setShowCustomerDropdown] = useState<boolean>(false);
   const [note, setNote] = useState<string>('');
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
+  const [status, setStatus] = useState<string>('未完了');
+  const [orderDetails, setOrderDetails] = useState<OrderDetailEdit[]>([]);
+
+  // モーダル状態
+  const [errorModal, setErrorModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    title: '',
+    message: ''
+  });
+
+  const [successModal, setSuccessModal] = useState<boolean>(false);
   
-  // 削除モーダル関連の状態
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
     targetIndex: number;
@@ -453,132 +418,87 @@ export default function OrderEditPage() {
     productName: '',
     description: ''
   });
-  
-  // エラーモーダル関連の状態
-  const [errorModal, setErrorModal] = useState<{
-    isOpen: boolean;
-    title: string;
-    message: string;
-  }>({
-    isOpen: false,
-    title: '',
-    message: ''
-  });
 
-  // 既存注文データの読み込み
-  const loadOrderData = useCallback(async () => {
-    try {
-      // 注文明細ページと同じロジックでダミーデータを生成
-      const fallbackCustomers = [
-        { id: 'C-00001', name: '大阪情報専門学校', contactPerson: '山田太郎' },
-        { id: 'C-00002', name: '株式会社スマートソリューションズ', contactPerson: '佐藤次郎' },
-        { id: 'C-00003', name: '株式会社SCC', contactPerson: '田中三郎' },
-        { id: 'C-00004', name: '株式会社くら寿司', contactPerson: '鈴木四郎' },
-        { id: 'C-00005', name: '株式会社大阪テクノロジー', contactPerson: '伊藤五郎' }
-      ];
-
-      // 商品データ
-      const fallbackProducts = [
-        { name: 'IT情報コンサルメント', price: 3500 },
-        { name: 'プログラミング入門書', price: 2400 },
-        { name: 'ビジネス戦略ガイド', price: 3000 },
-        { name: '英語学習教材セット', price: 8500 },
-        { name: 'デザイン年鑑', price: 8000 }
-      ];
-
-      // シード値を使った決定的な生成
-      const getSeededRandom = (seed: number) => {
-        const x = Math.sin(seed) * 10000;
-        return x - Math.floor(x);
-      };
-
-      const orderSeed = parseInt(orderId.replace(/\D/g, '')) || 1;
-      const orderNumber = parseInt(orderId.replace(/^O0*/, '')) || 1;
-      const customerIndex = (orderNumber - 1) % 5;
-      const selectedCustomerData = fallbackCustomers[customerIndex];
-
-      // 顧客データを設定
-      const customer = DUMMY_CUSTOMERS.find(c => c.id === selectedCustomerData.id) || DUMMY_CUSTOMERS[0];
-      setSelectedCustomer(customer);
-      setCustomerSearchTerm(customer.name);
-
-      // 注文日を設定
-      setOrderDate(new Date('2025-01-01'));
-
-      // 備考を設定
-      setNote(`${customer.name}からの注文`);
-
-      // 商品明細を生成（編集可能、数量は常に1に変更）
-      const detailCount = Math.floor(getSeededRandom(orderSeed) * 3) + 2;
-      const generatedDetails: OrderDetailEdit[] = [];
-
-      for (let i = 1; i <= detailCount; i++) {
-        const productIndex = Math.floor(getSeededRandom(orderSeed + i) * fallbackProducts.length);
-        const product = fallbackProducts[productIndex];
-
-        const orderDetailId = `${orderId}-${String(i).padStart(2, '0')}`;
-        const deliveryInfo = getDeliveryInfo(orderDetailId);
-
-        generatedDetails.push({
-          id: orderDetailId,
-          productName: product.name,
-          unitPrice: product.price,
-          quantity: 1, // 数量は常に1に設定
-          description: `${customer.name}向け商品`,
-          deliveryStatus: deliveryInfo.deliveryStatus
+  // データ取得
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!orderId) {
+        setErrorModal({
+          isOpen: true,
+          title: 'エラー',
+          message: '注文IDが指定されていません。'
         });
+        setLoading(false);
+        return;
       }
 
-      setOrderDetails(generatedDetails);
+      try {
+        const [orderResult, customersData] = await Promise.all([
+          fetchOrderDetail(orderId),
+          fetchCustomers()
+        ]);
 
-    } catch (error) {
-      console.error('注文データの読み込みに失敗しました:', error);
-      setErrorModal({
-        isOpen: true,
-        title: 'データ読み込みエラー',
-        message: '注文データの読み込みに失敗しました。'
-      });
-    }
+        if (orderResult.success && orderResult.data) {
+          const order = orderResult.data;
+          setOrderData(order);
+          setOrderDate(formatDateForInput(order.orderDate));
+          setSelectedCustomerId(order.customerId);
+          setCustomerSearchTerm(order.customer.name);
+          setNote(order.note || '');
+          setStatus(order.status || '未完了');
+          
+          const editableDetails: OrderDetailEdit[] = order.orderDetails.map(detail => ({
+            id: detail.id,
+            productName: detail.productName,
+            unitPrice: detail.unitPrice,
+            quantity: detail.quantity,
+            description: detail.description || '',
+            deliveryStatus: getDeliveryInfo(detail.id).deliveryStatus
+          }));
+          setOrderDetails(editableDetails);
+        } else {
+          setErrorModal({
+            isOpen: true,
+            title: 'データ取得エラー',
+            message: orderResult.error || 'データの取得に失敗しました'
+          });
+        }
+
+        setCustomers(customersData);
+      } catch (error) {
+        console.error('データ取得エラー:', error);
+        setErrorModal({
+          isOpen: true,
+          title: 'データ取得エラー',
+          message: 'データの取得に失敗しました。'
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [orderId]);
 
-  // ページ読み込み時に既存データを取得
-  useEffect(() => {
-    if (orderId) {
-      loadOrderData();
-    }
-  }, [orderId, loadOrderData]);
-  
-  // 顧客検索フィルター（メモ化）
-  const filteredCustomers = useMemo(() => {
-    if (customerSearchTerm.trim() === '') {
-      return DUMMY_CUSTOMERS;
-    }
-    return DUMMY_CUSTOMERS.filter(c => 
-      c.name.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
-      (c.contactPerson || '').toLowerCase().includes(customerSearchTerm.toLowerCase())
-    );
-  }, [customerSearchTerm]);
+  // 注文詳細の変更ハンドラー
+  const handleOrderDetailChange = useCallback((index: number, field: keyof OrderDetailEdit, value: string | number) => {
+    setOrderDetails(prev => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        [field]: value
+      };
+      return updated;
+    });
+  }, []);
 
-  // バリデーション状態の計算（メモ化）
-  const validationResult = useMemo(() => {
-    const orderDetailsForValidation = orderDetails.map(detail => ({
-      productName: detail.productName,
-      unitPrice: detail.unitPrice,
-      quantity: typeof detail.quantity === 'number' ? detail.quantity : 1,
-      description: detail.description || null
-    }));
+  // 単価のフォーマット処理（入力完了時）
+  const handleUnitPriceBlur = useCallback((index: number, value: string) => {
+    const numValue = parseJPYString(value);
+    handleOrderDetailChange(index, 'unitPrice', numValue);
+  }, [handleOrderDetailChange]);
 
-    const orderData: OrderUpdateData = {
-      orderDetails: orderDetailsForValidation,
-      orderDate,
-      customerId: selectedCustomer?.id || '',
-      note: note || null
-    };
-    
-    return validateOrderData(orderData);
-  }, [orderDetails, orderDate, selectedCustomer, note]);
-  
-  // 商品追加ハンドラー
+  // 注文詳細行の追加
   const handleAddOrderDetail = useCallback(() => {
     if (orderDetails.length >= MAX_PRODUCTS) {
       setErrorModal({
@@ -588,32 +508,20 @@ export default function OrderEditPage() {
       });
       return;
     }
-    
-    const newOrderDetail: OrderDetailEdit = {
+
+    const newDetail: OrderDetailEdit = {
       id: generateTempOrderDetailId(orderDetails.length),
       productName: '',
-      quantity: 1, // 初期値を1に変更
       unitPrice: 0,
+      quantity: 1,
       description: '',
-      deliveryStatus: '' // 新規商品は納品状況なし
+      deliveryStatus: ''
     };
-    setOrderDetails(prev => [...prev, newOrderDetail]);
+    setOrderDetails(prev => [...prev, newDetail]);
   }, [orderDetails.length]);
 
-  // 商品編集ハンドラー
-  const handleEditOrderDetail = useCallback((index: number, field: keyof OrderDetailEdit, value: string | number) => {
-    setOrderDetails(prev => {
-      const updatedDetails = [...prev];
-      updatedDetails[index] = {
-        ...updatedDetails[index],
-        [field]: value
-      };
-      return updatedDetails;
-    });
-  }, []);
-
-  // 商品削除ハンドラー（モーダル表示）
-  const handleDeleteOrderDetail = useCallback((index: number) => {
+  // 注文詳細行の削除
+  const handleRemoveOrderDetail = useCallback((index: number) => {
     if (orderDetails.length <= 1) {
       setErrorModal({
         isOpen: true,
@@ -624,14 +532,11 @@ export default function OrderEditPage() {
     }
     
     const orderDetail = orderDetails[index];
-    const productName = orderDetail?.productName || '';
-    const description = orderDetail?.description || '';
-    
     setDeleteModal({
       isOpen: true,
       targetIndex: index,
-      productName: productName,
-      description: description
+      productName: orderDetail?.productName || '',
+      description: orderDetail?.description || ''
     });
   }, [orderDetails]);
 
@@ -649,28 +554,62 @@ export default function OrderEditPage() {
     });
   }, [deleteModal]);
 
-  // 削除キャンセルハンドラー
-  const handleCancelDelete = useCallback(() => {
-    setDeleteModal({
-      isOpen: false,
-      targetIndex: -1,
-      productName: '',
-      description: ''
-    });
-  }, []);
+  // バリデーション状態の計算
+  const validationResult = useMemo(() => {
+    return validateOrderData(orderDetails, orderDate, selectedCustomerId);
+  }, [orderDetails, orderDate, selectedCustomerId]);
 
-  // エラーモーダルを閉じるハンドラー
-  const handleCloseErrorModal = useCallback(() => {
-    setErrorModal({
-      isOpen: false,
-      title: '',
-      message: ''
+  // 更新処理
+  const handleUpdate = useCallback(() => {
+    if (!validationResult.isValid) {
+      setErrorModal({
+        isOpen: true,
+        title: '入力エラー',
+        message: validationResult.errors.join('\n')
+      });
+      return;
+    }
+
+    startUpdateTransition(async () => {
+      try {
+        const updateData: OrderUpdateRequest = {
+          orderDate,
+          customerId: selectedCustomerId,
+          note: note || null,
+          status,
+          orderDetails: orderDetails.map(detail => ({
+            productName: detail.productName,
+            unitPrice: typeof detail.unitPrice === 'number' ? detail.unitPrice : parseJPYString(String(detail.unitPrice)),
+            quantity: typeof detail.quantity === 'number' ? detail.quantity : 1,
+            description: detail.description || null
+          }))
+        };
+
+        const result = await updateOrderAPI(orderId, updateData);
+
+        if (result.success) {
+          setSuccessModal(true);
+        } else {
+          setErrorModal({
+            isOpen: true,
+            title: '更新エラー',
+            message: result.error || '注文の更新に失敗しました'
+          });
+        }
+      } catch (error) {
+        console.error('注文更新エラー:', error);
+        setErrorModal({
+          isOpen: true,
+          title: '更新エラー',
+          message: '注文の更新に失敗しました。'
+        });
+      }
     });
-  }, []);
+  }, [validationResult, orderDate, selectedCustomerId, note, status, orderDetails, orderId]);
 
   // 顧客選択ハンドラー
   const handleSelectCustomer = useCallback((customer: Customer) => {
-    setSelectedCustomer(customer);
+    setSelectedCustomerId(customer.id);
     setCustomerSearchTerm(customer.name);
     setShowCustomerDropdown(false);
   }, []);
@@ -679,58 +618,29 @@ export default function OrderEditPage() {
   const handleCustomerSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setCustomerSearchTerm(e.target.value);
     setShowCustomerDropdown(true);
-    // 検索文字列が変更されたら選択をクリア
-    if (selectedCustomer && e.target.value !== selectedCustomer.name) {
-      setSelectedCustomer(null);
+    if (e.target.value !== customers.find(c => c.id === selectedCustomerId)?.name) {
+      setSelectedCustomerId('');
     }
-  }, [selectedCustomer]);
+  }, [customers, selectedCustomerId]);
 
-  // 注文更新ハンドラー
-  const handleUpdateOrder = useCallback(async () => {
-    if (isSubmitting || !validationResult.isValid) return;
-    
-    setIsSubmitting(true);
-    
-    try {
-      // OrderDetailEditからPrismaの型に変換
-      const orderDetailsForUpdate = orderDetails.map(detail => ({
-        productName: detail.productName,
-        unitPrice: detail.unitPrice,
-        quantity: typeof detail.quantity === 'number' ? detail.quantity : 1,
-        description: detail.description || null
-      }));
+  // 合計金額計算
+  const totalAmount = useMemo(() => {
+    return orderDetails.reduce((sum, detail) => {
+      const quantity = typeof detail.quantity === 'number' ? detail.quantity : 0;
+      const unitPrice = typeof detail.unitPrice === 'number' ? detail.unitPrice : parseJPYString(String(detail.unitPrice));
+      return sum + (unitPrice * quantity);
+    }, 0);
+  }, [orderDetails]);
 
-      // 実際のAPI呼び出しで使用するデータ
-      console.log('注文更新データ:', {
-        orderDetails: orderDetailsForUpdate,
-        orderDate,
-        customerId: selectedCustomer?.id || '',
-        note: note || null
-      });
-      console.log('選択された顧客:', selectedCustomer);
-      
-      // 成功時の処理
-      setShowSuccessModal(true);
-      
-    } catch {
-      // エラーハンドリング
-      setErrorModal({
-        isOpen: true,
-        title: '注文更新エラー',
-        message: '注文の更新に失敗しました。もう一度お試しください。'
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [orderDetails, orderDate, selectedCustomer, note, isSubmitting, validationResult.isValid]);
+  // 顧客フィルター
+  const filteredCustomers = useMemo(() => {
+    return customers.filter(c => 
+      c.name.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
+      (c.contactPerson || '').toLowerCase().includes(customerSearchTerm.toLowerCase())
+    );
+  }, [customers, customerSearchTerm]);
 
-  // 成功モーダルを閉じる際の処理
-  const handleCloseSuccessModal = useCallback(() => {
-    setShowSuccessModal(false);
-    router.push('/Home/OrderList');
-  }, [router]);
-
-  // 無効な理由を表示するハンドラー
+  // バリデーションエラー表示ハンドラー
   const handleShowValidationErrors = useCallback(() => {
     if (!validationResult.isValid) {
       setErrorModal({
@@ -741,13 +651,37 @@ export default function OrderEditPage() {
     }
   }, [validationResult]);
 
-  // 合計金額の計算（メモ化）
-  const totalAmount = useMemo(() => {
-    return orderDetails.reduce((sum, detail) => {
-      const quantity = typeof detail.quantity === 'number' ? detail.quantity : 0;
-      return sum + (detail.unitPrice * quantity);
-    }, 0);
-  }, [orderDetails]);
+  // ローディング表示
+  if (loading) {
+    return (
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+            <span className="text-lg text-gray-600">読み込み中...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // データが見つからない場合
+  if (!orderData) {
+    return (
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="text-6xl text-gray-300 mb-4">📋</div>
+            <h2 className="text-xl font-semibold text-gray-700 mb-2">注文が見つかりません</h2>
+            <p className="text-gray-500 mb-4">指定された注文ID「{orderId}」は存在しないか、削除されています。</p>
+            <button onClick={() => router.push('/Home/OrderList')} className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+              注文一覧に戻る
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
@@ -769,7 +703,7 @@ export default function OrderEditPage() {
               商品情報
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[500px] border-collapse text-xs sm:text-sm border-l border-r border-b border-black">
+              <table className="w-full min-w-[600px] border-collapse text-xs sm:text-sm border-l border-r border-b border-black">
                 <thead>
                   <tr style={{height: '60px'}}>
                     <th className="border border-black px-1 sm:px-2 py-2 bg-blue-500 text-white" style={{width: '25%'}}>
@@ -806,7 +740,7 @@ export default function OrderEditPage() {
                           type="text" 
                           className="w-full px-1 py-1 text-xs sm:text-sm"
                           value={orderDetail.productName}
-                          onChange={(e) => handleEditOrderDetail(index, 'productName', e.target.value)}
+                          onChange={(e) => handleOrderDetailChange(index, 'productName', e.target.value)}
                           placeholder="商品名を入力"
                         />
                       </td>
@@ -818,10 +752,10 @@ export default function OrderEditPage() {
                           onChange={(e) => {
                             const value = e.target.value;
                             if (value === '') {
-                              handleEditOrderDetail(index, 'quantity', '');
+                              handleOrderDetailChange(index, 'quantity', '');
                             } else {
                               const quantity = parseInt(value) || 1;
-                              handleEditOrderDetail(index, 'quantity', Math.max(1, quantity));
+                              handleOrderDetailChange(index, 'quantity', Math.max(1, quantity));
                             }
                           }}
                           placeholder="1"
@@ -831,10 +765,20 @@ export default function OrderEditPage() {
                         <input 
                           type="text" 
                           className="w-full px-1 py-1 text-xs sm:text-sm text-right"
-                          value={orderDetail.unitPrice === 0 ? '' : formatJPY(orderDetail.unitPrice)}
+                          value={
+                            typeof orderDetail.unitPrice === 'string' 
+                              ? orderDetail.unitPrice 
+                              : orderDetail.unitPrice === 0 
+                                ? '' 
+                                : formatJPY(orderDetail.unitPrice)
+                          }
                           onChange={(e) => {
-                            const numValue = parseJPYString(e.target.value);
-                            handleEditOrderDetail(index, 'unitPrice', numValue);
+                            // 入力中は生の値をそのまま保存（文字列として）
+                            handleOrderDetailChange(index, 'unitPrice', e.target.value);
+                          }}
+                          onBlur={(e) => {
+                            // 入力完了時に数値に変換してフォーマット
+                            handleUnitPriceBlur(index, e.target.value);
                           }}
                           placeholder="0"
                         />
@@ -861,29 +805,18 @@ export default function OrderEditPage() {
                           type="text" 
                           className="w-full px-1 py-1 text-xs sm:text-sm"
                           value={orderDetail.description || ''}
-                          onChange={(e) => handleEditOrderDetail(index, 'description', e.target.value)}
+                          onChange={(e) => handleOrderDetailChange(index, 'description', e.target.value)}
                           placeholder="摘要を入力"
                         />
                       </td>
                       <td className="border border-black px-1 sm:px-2 py-1 text-center">
                         <button
-                          onClick={() => handleDeleteOrderDetail(index)}
+                          onClick={() => handleRemoveOrderDetail(index)}
                           className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors duration-200"
                           title="この行を削除"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H9a1 1 0 00-1 1v3M4 7h16"
-                            />
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H9a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
                         </button>
                       </td>
@@ -962,10 +895,10 @@ export default function OrderEditPage() {
                 </div>
                 
                 <div className="text-gray-600 text-xs mt-1">
-                  選択された顧客: <span className="font-semibold">{selectedCustomer?.name || '未選択'}</span>
-                  {selectedCustomer && (
+                  選択された顧客: <span className="font-semibold">{customers.find(c => c.id === selectedCustomerId)?.name || '未選択'}</span>
+                  {selectedCustomerId && (
                     <div className="text-gray-500 text-xs mt-1">
-                      担当者: {selectedCustomer.contactPerson || '担当者未設定'} | ID: {selectedCustomer.id}
+                      担当者: {customers.find(c => c.id === selectedCustomerId)?.contactPerson || '担当者未設定'} | ID: {selectedCustomerId}
                     </div>
                   )}
                 </div>
@@ -981,9 +914,28 @@ export default function OrderEditPage() {
                 <input 
                   type="date" 
                   className="w-full px-2 py-2 rounded text-xs sm:text-sm border border-black"
-                  value={formatDateForInput(orderDate)}
-                  onChange={(e) => setOrderDate(formatDateFromInput(e.target.value))}
+                  value={orderDate}
+                  onChange={(e) => setOrderDate(e.target.value)}
                 />
+              </div>
+            </div>
+
+            {/* ステータス */}
+            <div>
+              <div className="bg-blue-500 text-white p-2 font-semibold text-sm sm:text-base border border-black">
+                ステータス
+              </div>
+              <div className="p-3 border-x border-b border-black">
+                <select 
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  className="w-full px-2 py-2 rounded text-xs sm:text-sm border border-black"
+                >
+                  <option value="未完了">未完了</option>
+                  <option value="進行中">進行中</option>
+                  <option value="完了">完了</option>
+                  <option value="キャンセル">キャンセル</option>
+                </select>
               </div>
             </div>
             
@@ -1001,30 +953,74 @@ export default function OrderEditPage() {
                 />
               </div>
             </div>
+
+            {/* 注文履歴表示（既存データがある場合） */}
+            {orderData && (
+              <div className="bg-white border rounded-lg shadow-lg">
+                <div className="bg-gray-100 text-gray-800 p-3 rounded-t-lg">
+                  <h3 className="text-sm sm:text-base font-semibold">元の注文情報</h3>
+                </div>
+                <div className="p-4 text-xs sm:text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <span className="font-medium text-gray-700">注文ID:</span>
+                      <span className="ml-2 text-gray-900">{orderData.id}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">顧客名:</span>
+                      <span className="ml-2 text-gray-900">{orderData.customer.name}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">担当者:</span>
+                      <span className="ml-2 text-gray-900">{orderData.customer.contactPerson || '未設定'}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">元の合計:</span>
+                      <span className="ml-2 text-gray-900">
+                        ¥{formatJPY(orderData.orderDetails.reduce((sum, detail) => 
+                          sum + (detail.unitPrice * detail.quantity), 0
+                        ))}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
       
       {/* 注文更新ボタン */}
-      <div className="flex justify-center mt-6">
+      <div className="flex flex-col sm:flex-row justify-center gap-3 mt-6">
+        <button 
+          onClick={() => router.push('/Home/OrderList')}
+          className="font-bold py-3 px-6 sm:px-8 rounded-lg text-sm sm:text-base shadow-lg border-2 bg-gray-500 hover:bg-gray-600 text-white border-gray-600 cursor-pointer transition-all duration-200"
+        >
+          <div className="flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 sm:h-5 w-4 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            キャンセル
+          </div>
+        </button>
         <button 
           className={`font-bold py-3 px-6 sm:px-8 rounded-lg text-sm sm:text-base shadow-lg border-2 transition-all duration-200 ${
-            validationResult.isValid && !isSubmitting
+            validationResult.isValid && !isUpdating
               ? 'bg-green-600 hover:bg-green-700 text-white border-green-700 cursor-pointer'
               : 'bg-gray-400 text-gray-600 border-gray-500 cursor-not-allowed'
           }`}
-          onClick={validationResult.isValid ? handleUpdateOrder : handleShowValidationErrors}
-          disabled={isSubmitting}
+          onClick={validationResult.isValid ? handleUpdate : handleShowValidationErrors}
+          disabled={isUpdating}
         >
-          {isSubmitting ? (
-            <div className="flex items-center gap-2">
+          {isUpdating ? (
+            <div className="flex items-center justify-center gap-2">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
               処理中...
             </div>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 sm:h-5 w-4 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               注文を更新
             </div>
@@ -1046,29 +1042,32 @@ export default function OrderEditPage() {
           </ul>
         </div>
       )}
-      
-      {/* 成功ポップアップ */}
-      <SuccessModal
-        isOpen={showSuccessModal}
-        onClose={handleCloseSuccessModal}
-      />
-      
-      {/* 削除確認モーダル */}
-      <DeleteConfirmModal
+
+      {/* モーダル */}
+      <DeleteConfirmModal 
         isOpen={deleteModal.isOpen}
-        onClose={handleCancelDelete}
+        onClose={() => setDeleteModal({ isOpen: false, targetIndex: -1, productName: '', description: '' })}
         onConfirm={handleConfirmDelete}
         productName={deleteModal.productName}
         description={deleteModal.description}
       />
-      
-      {/* エラーモーダル */}
-      <ErrorModal
+
+      <ErrorModal 
         isOpen={errorModal.isOpen}
-        onClose={handleCloseErrorModal}
+        onClose={() => setErrorModal({ isOpen: false, title: '', message: '' })}
         title={errorModal.title}
         message={errorModal.message}
       />
+
+      <SuccessModal 
+        isOpen={successModal}
+        onClose={() => {
+          setSuccessModal(false);
+          router.push('/Home/OrderList');
+        }}
+      />
     </div>
   );
-}
+};
+
+export default OrderEditPage;

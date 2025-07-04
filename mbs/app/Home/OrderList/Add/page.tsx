@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Customer } from '@/app/generated/prisma';
+import { useStore } from '@/app/contexts/StoreContext';
 
 // 注文作成時のデータ型定義（Prismaの型をベースに）
 type OrderCreateData = {
@@ -27,82 +28,43 @@ type ValidationResult = {
 type OrderDetailCreate = {
   id: string; // 一時的なID（TEMP-XX形式）
   productName: string;
-  unitPrice: number;
+  unitPrice: number | string; // 入力中は文字列、表示時は数値
   quantity: number | '';
   description: string; // nullを許可しない
 };
 
+// API成功レスポンスの型定義
+interface OrderCreateSuccessResponse {
+  order: {
+    id: string;
+    orderDate: string;
+  };
+  orderDetails: Array<{
+    id: string;
+    productName: string;
+    unitPrice: number;
+    quantity: number;
+    description: string | null;
+  }>;
+}
+
 // 定数定義
 const MAX_PRODUCTS = 20;
 
-// ダミーの顧客データ（Prismaの型に準拠）
-const DUMMY_CUSTOMERS: Customer[] = [
-  { 
-    id: 'C-00001', 
-    storeId: 'store-001',
-    name: '大阪情報専門学校',
-    contactPerson: '山田太郎',
-    address: '大阪府大阪市北区',
-    phone: '06-1234-5678',
-    deliveryCondition: '通常2-3営業日以内',
-    note: '学校関連の納品は事前に連絡が必要',
-    updatedAt: new Date('2025-01-01'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00002', 
-    storeId: 'store-001',
-    name: '株式会社スマートソリューションズ',
-    contactPerson: '佐藤次郎',
-    address: '大阪府大阪市中央区',
-    phone: '06-2345-6789',
-    deliveryCondition: '当日納品対応可',
-    note: '重要顧客、優先対応',
-    updatedAt: new Date('2025-01-02'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00003', 
-    storeId: 'store-001',
-    name: '株式会社SCC',
-    contactPerson: '田中三郎',
-    address: '大阪府吹田市',
-    phone: '06-3456-7890',
-    deliveryCondition: '午前中指定',
-    note: '大口顧客',
-    updatedAt: new Date('2025-01-03'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00004', 
-    storeId: 'store-001',
-    name: '株式会社くら寿司',
-    contactPerson: '鈴木四郎',
-    address: '大阪府堺市',
-    phone: '072-456-7890',
-    deliveryCondition: '食品関連は温度管理必須',
-    note: '衛生管理に特に注意',
-    updatedAt: new Date('2025-01-04'),
-    isDeleted: false,
-    deletedAt: null
-  },
-  { 
-    id: 'C-00005', 
-    storeId: 'store-001',
-    name: '株式会社大阪テクノロジー',
-    contactPerson: '伊藤五郎',
-    address: '大阪府東大阪市',
-    phone: '06-5678-9012',
-    deliveryCondition: '平日10:00-18:00',
-    note: 'IT関連機器専門',
-    updatedAt: new Date('2025-01-05'),
-    isDeleted: false,
-    deletedAt: null
+// 顧客データ取得関数
+const fetchCustomers = async (): Promise<Customer[]> => {
+  try {
+    const response = await fetch('/api/customers');
+    const result = await response.json();
+    if (result.success) {
+      return result.customers;
+    }
+    return [];
+  } catch (error) {
+    console.error('顧客データ取得エラー:', error);
+    return [];
   }
-];
+};
 
 // ユーティリティ関数
 const formatJPY = (amount: number): string => {
@@ -110,7 +72,9 @@ const formatJPY = (amount: number): string => {
 };
 
 const parseJPYString = (value: string): number => {
-  const numValue = Number(value.replace(/,/g, ''));
+  // 数字以外の文字（コンマ、スペース等）を除去
+  const cleanValue = value.replace(/[^\d]/g, '');
+  const numValue = Number(cleanValue);
   return isNaN(numValue) ? 0 : numValue;
 };
 
@@ -314,16 +278,18 @@ const ErrorModal = ({
 // 成功ポップアップコンポーネント
 const SuccessModal = ({ 
   isOpen, 
-  onClose 
+  onClose,
+  orderData
 }: {
   isOpen: boolean;
   onClose: () => void;
+  orderData?: OrderCreateSuccessResponse | null;
 }) => {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-brightness-50">
-      <div className="w-full max-w-sm scale-100 transform rounded-2xl bg-white shadow-xl transition-all duration-50">
+      <div className="w-full max-w-md scale-100 transform rounded-2xl bg-white shadow-xl transition-all duration-50">
         <div className="p-6 text-center">
           {/* 成功アイコン */}
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
@@ -343,13 +309,50 @@ const SuccessModal = ({
           </div>
 
           <h3 className="mb-2 text-xl font-bold text-gray-900">注文追加完了</h3>
+          
+          {orderData && (
+            <div className="mb-4 rounded-lg bg-green-50 border border-green-200 p-4">
+              <div className="space-y-2 text-left">
+                <div>
+                  <div className="flex items-center mb-1">
+                    <span className="mr-2 h-2 w-2 flex-shrink-0 rounded-full bg-green-500"></span>
+                    <span className="text-sm font-medium text-green-800">注文ID</span>
+                  </div>
+                  <p className="ml-4 font-mono text-sm font-bold text-green-900">
+                    {orderData.order.id}
+                  </p>
+                </div>
+                
+                <div>
+                  <div className="flex items-center mb-1">
+                    <span className="mr-2 h-2 w-2 flex-shrink-0 rounded-full bg-blue-500"></span>
+                    <span className="text-sm font-medium text-green-800">商品数</span>
+                  </div>
+                  <p className="ml-4 text-sm font-semibold text-green-900">
+                    {orderData.orderDetails.length}点
+                  </p>
+                </div>
+                
+                <div>
+                  <div className="flex items-center mb-1">
+                    <span className="mr-2 h-2 w-2 flex-shrink-0 rounded-full bg-purple-500"></span>
+                    <span className="text-sm font-medium text-green-800">注文日</span>
+                  </div>
+                  <p className="ml-4 text-sm font-semibold text-green-900">
+                    {new Date(orderData.order.orderDate).toLocaleDateString('ja-JP')}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <p className="mb-6 text-sm text-gray-600">注文が正常に追加されました。</p>
 
           <button
             onClick={onClose}
             className="w-full rounded-lg bg-green-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-green-700"
           >
-            OK
+            注文一覧へ
           </button>
         </div>
       </div>
@@ -409,22 +412,17 @@ const generateTempOrderDetailId = (index: number): string => {
 // メインコンポーネント
 export default function OrderCreatePage() {
   const router = useRouter();
+  const { selectedStore } = useStore(); // 店舗情報を取得
 
   // 状態管理
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [orderDetails, setOrderDetails] = useState<OrderDetailCreate[]>([
     { 
       id: generateTempOrderDetailId(0), 
-      productName: 'IT情報コンサルメント', 
-      quantity: 2, 
-      unitPrice: 3500, 
-      description: '' 
-    },
-    { 
-      id: generateTempOrderDetailId(1), 
       productName: '', 
       quantity: '', 
-      unitPrice: 2400, 
-      description: '9784813299035' 
+      unitPrice: 0, 
+      description: '' 
     }
   ]);
   const [orderDate, setOrderDate] = useState<Date>(new Date());
@@ -434,6 +432,7 @@ export default function OrderCreatePage() {
   const [note, setNote] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
+  const [successOrderData, setSuccessOrderData] = useState<OrderCreateSuccessResponse | null>(null); // 成功時の注文データ
 
   // 削除モーダル関連の状態
   const [deleteModal, setDeleteModal] = useState<{
@@ -459,22 +458,31 @@ export default function OrderCreatePage() {
     message: ''
   });
 
-  // 顧客検索フィルター（メモ化）
+  // 顧客データを取得するuseEffect
+  useEffect(() => {
+    const loadCustomers = async () => {
+      const customerData = await fetchCustomers();
+      setCustomers(customerData);
+    };
+    loadCustomers();
+  }, []);
+
+  // 顧客検索フィルター（実際のデータを使用）
   const filteredCustomers = useMemo(() => {
     if (customerSearchTerm.trim() === '') {
-      return DUMMY_CUSTOMERS;
+      return customers;
     }
-    return DUMMY_CUSTOMERS.filter(c => 
+    return customers.filter(c => 
       c.name.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
       (c.contactPerson || '').toLowerCase().includes(customerSearchTerm.toLowerCase())
     );
-  }, [customerSearchTerm]);
+  }, [customerSearchTerm, customers]);
 
   // バリデーション状態の計算（メモ化）
   const validationResult = useMemo(() => {
     const orderDetailsForValidation = orderDetails.map(detail => ({
       productName: detail.productName,
-      unitPrice: detail.unitPrice,
+      unitPrice: typeof detail.unitPrice === 'number' ? detail.unitPrice : parseJPYString(String(detail.unitPrice)),
       quantity: typeof detail.quantity === 'number' ? detail.quantity : 1,
       description: detail.description || null
     }));
@@ -595,39 +603,90 @@ export default function OrderCreatePage() {
     }
   }, [selectedCustomer]);
 
-  // 注文追加ハンドラー
+  // 注文追加ハンドラー（実際のAPI呼び出し版）
   const handleAddOrder = useCallback(async () => {
     if (isSubmitting || !validationResult.isValid) return;
 
     setIsSubmitting(true);
 
     try {
-      // OrderDetailCreateからPrismaの型に変換
+      // OrderDetailCreateからAPIの型に変換
       const orderDetailsForCreate = orderDetails.map(detail => ({
         productName: detail.productName,
-        unitPrice: detail.unitPrice,
+        unitPrice: typeof detail.unitPrice === 'number' ? detail.unitPrice : parseJPYString(String(detail.unitPrice)),
         quantity: typeof detail.quantity === 'number' ? detail.quantity : 1,
         description: detail.description || null
       }));
 
-      // 実際のAPI呼び出しで使用するデータ
-      console.log('注文データ:', {
+      // API呼び出し用のデータ作成
+      const apiData = {
         orderDetails: orderDetailsForCreate,
-        orderDate,
+        orderDate: orderDate.toISOString(), // Dateオブジェクトを文字列に変換
         customerId: selectedCustomer?.id || '',
         note: note || null
+      };
+
+      console.log('送信する注文データ:', apiData);
+
+      // 実際のAPI呼び出し
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(apiData),
       });
-      console.log('選択された顧客:', selectedCustomer);
 
-      // 成功時の処理
-      setShowSuccessModal(true);
+      const result = await response.json();
 
-    } catch {
-      // エラーハンドリング
+      if (!response.ok) {
+        throw new Error(result.error || 'APIエラーが発生しました');
+      }
+
+      if (result.success) {
+        console.log('注文が正常に作成されました:', result.data);
+        
+        // 成功時の注文データを保存
+        setSuccessOrderData(result.data);
+        
+        // 成功時は入力フォームをリセット
+        setOrderDetails([
+          { 
+            id: generateTempOrderDetailId(0), 
+            productName: '', 
+            quantity: '', 
+            unitPrice: 0, 
+            description: '' 
+          }
+        ]);
+        setSelectedCustomer(null);
+        setCustomerSearchTerm('');
+        setNote('');
+        setOrderDate(new Date());
+        
+        // 成功モーダルを表示
+        setShowSuccessModal(true);
+      } else {
+        // APIからのエラーメッセージを表示
+        setErrorModal({
+          isOpen: true,
+          title: '注文追加エラー',
+          message: result.error || '注文の追加に失敗しました。'
+        });
+      }
+
+    } catch (error) {
+      // ネットワークエラーや予期しないエラーの処理
+      console.error('注文作成中にエラーが発生:', error);
+      
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : '注文の追加に失敗しました。もう一度お試しください。';
+      
       setErrorModal({
         isOpen: true,
         title: '注文追加エラー',
-        message: '注文の追加に失敗しました。もう一度お試しください。'
+        message: errorMessage
       });
     } finally {
       setIsSubmitting(false);
@@ -637,6 +696,7 @@ export default function OrderCreatePage() {
   // 成功モーダルを閉じる際の処理
   const handleCloseSuccessModal = useCallback(() => {
     setShowSuccessModal(false);
+    setSuccessOrderData(null);
     router.push('/Home/OrderList');
   }, [router]);
 
@@ -655,12 +715,29 @@ export default function OrderCreatePage() {
   const totalAmount = useMemo(() => {
     return orderDetails.reduce((sum, detail) => {
       const quantity = typeof detail.quantity === 'number' ? detail.quantity : 0;
-      return sum + (detail.unitPrice * quantity);
+      const unitPrice = typeof detail.unitPrice === 'number' ? detail.unitPrice : parseJPYString(String(detail.unitPrice));
+      return sum + (unitPrice * quantity);
     }, 0);
   }, [orderDetails]);
 
   return (
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
+      {/* 店舗情報表示 */}
+      {selectedStore && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center gap-2">
+            <span className="text-blue-600">🏪</span>
+            <span className="text-sm font-medium text-blue-800">
+              現在の店舗: <span className="font-bold">{selectedStore.name}</span>
+            </span>
+            <span className="text-xs text-blue-600">({selectedStore.id})</span>
+          </div>
+          <p className="text-xs text-blue-600 mt-1">
+            この店舗の顧客のみが表示されます
+          </p>
+        </div>
+      )}
+
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
         {/* 商品選択エリア（左側） */}
         <div className="w-full lg:w-1/2">
@@ -729,10 +806,22 @@ export default function OrderCreatePage() {
                         <input 
                           type="text" 
                           className="w-full px-1 py-1 text-xs sm:text-sm text-right"
-                          value={orderDetail.unitPrice === 0 ? '' : formatJPY(orderDetail.unitPrice)}
+                          value={
+                            typeof orderDetail.unitPrice === 'string' 
+                              ? orderDetail.unitPrice 
+                              : orderDetail.unitPrice === 0 
+                                ? '' 
+                                : formatJPY(orderDetail.unitPrice)
+                          }
                           onChange={(e) => {
-                            const numValue = parseJPYString(e.target.value);
-                            handleEditOrderDetail(index, 'unitPrice', numValue);
+                            // 入力中は生の文字列をそのまま保存
+                            handleEditOrderDetail(index, 'unitPrice', e.target.value);
+                          }}
+                          onBlur={(e) => {
+                            // 入力完了時に数値に変換
+                            const numericValue = e.target.value.replace(/[^\d]/g, '');
+                            const finalValue = numericValue === '' ? 0 : Number(numericValue);
+                            handleEditOrderDetail(index, 'unitPrice', finalValue);
                           }}
                           placeholder="0"
                         />
@@ -932,6 +1021,7 @@ export default function OrderCreatePage() {
       <SuccessModal
         isOpen={showSuccessModal}
         onClose={handleCloseSuccessModal}
+        orderData={successOrderData}
       />
 
       {/* 削除確認モーダル */}

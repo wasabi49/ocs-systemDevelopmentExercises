@@ -134,6 +134,13 @@ export async function fetchCustomerById(id: string) {
         id: id,
         isDeleted: false,
       },
+      include: {
+        statistics: {
+          where: {
+            isDeleted: false,
+          },
+        },
+      },
     });
 
     if (!customer) {
@@ -149,6 +156,13 @@ export async function fetchCustomerById(id: string) {
         id: customer.id,
         customerName: customer.name,
         managerName: customer.contactPerson || '',
+        statistics: customer.statistics
+          ? {
+              averageLeadTime: customer.statistics.averageLeadTime || 0,
+              totalSales: customer.statistics.totalSales || 0,
+              updatedAt: customer.statistics.updatedAt.toISOString(),
+            }
+          : null,
       },
     };
   } catch (error) {
