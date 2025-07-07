@@ -2,6 +2,8 @@
 db/
 .docker/
 
+.claude
+
 # Node.js関連
 node_modules/
 /node_modules
