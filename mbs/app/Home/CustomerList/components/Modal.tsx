@@ -351,6 +351,13 @@ const CSVImportModal = ({ open, onCancel, onSuccess }: CSVImportModalProps) => {
   };
 
   const validateCSVStructure = (csvData: string[][], storeName?: string): CSVValidationResult => {
+    logger.info('CSV検証開始', { 
+      csvDataLength: csvData?.length || 0,
+      storeName,
+      firstRow: csvData?.[0] || [],
+      secondRow: csvData?.[1] || []
+    });
+
     if (!csvData || csvData.length === 0) {
       return {
         isValid: false,
@@ -370,12 +377,11 @@ const CSVImportModal = ({ open, onCancel, onSuccess }: CSVImportModalProps) => {
     const warnings: string[] = [];
     const invalidRows: Array<{ rowIndex: number; issues: string[] }> = [];
 
-    // ヘッダー行の基本検証
-    if (headerRow.length < 8) {
+    // ヘッダー行の基本検証（最低限必要な列数を4列に緩和）
+    if (headerRow.length < 4) {
       return {
         isValid: false,
-        error:
-          'CSVファイルの列数が不足しています（8列必要：顧客ID、店舗名、顧客名、担当者名、住所、電話番号、配送条件、備考）',
+        error: 'CSVファイルの列数が不足しています（最低4列必要：顧客ID、店舗名、顧客名、担当者名）',
       };
     }
 
@@ -413,32 +419,38 @@ const CSVImportModal = ({ open, onCancel, onSuccess }: CSVImportModalProps) => {
       const rowIndex = index + 2; // ヘッダーを除いた実際の行番号
       const issues: string[] = [];
 
-      // 基本的な列数チェック
-      if (row.length < 8) {
-        issues.push(
-          '列数が不足しています（8列必要：顧客ID、店舗名、顧客名、担当者名、住所、電話番号、配送条件、備考）',
-        );
+      // 空の行をスキップ
+      const hasData = row.some(cell => cell && cell.toString().trim() !== '');
+      if (!hasData) {
+        return; // 空行は無視
+      }
+
+      // 基本的な列数チェック（最低限必要な列数を4列に緩和）
+      if (row.length < 4) {
+        issues.push('列数が不足しています（最低4列必要：顧客ID、店舗名、顧客名、担当者名）');
       } else {
         const customerIdCol = row[0]?.toString().trim();
         const storeNameCol = row[1]?.toString().trim();
         const customerNameCol = row[2]?.toString().trim();
         const contactPersonCol = row[3]?.toString().trim();
-        const addressCol = row[4]?.toString().trim();
-        const phoneCol = row[5]?.toString().trim();
-        const deliveryConditionCol = row[6]?.toString().trim();
-        const noteCol = row[7]?.toString().trim();
+        const addressCol = row[4]?.toString().trim() || '';
+        const phoneCol = row[5]?.toString().trim() || '';
+        const deliveryConditionCol = row[6]?.toString().trim() || '';
+        const noteCol = row[7]?.toString().trim() || '';
 
-        // 必須項目チェック
-        if (!storeNameCol) {
-          issues.push('店舗名が空です');
-        }
+        // 必須項目チェック（顧客名のみ必須とする）
         if (!customerNameCol) {
           issues.push('顧客名が空です');
         }
+        
+        // 店舗名のチェック（警告として表示）
+        if (!storeNameCol) {
+          warnings.push(`行${rowIndex}: 店舗名が空です`);
+        }
 
-        // 店舗名チェック（現在選択している店舗と比較）
+        // 店舗名チェック（現在選択している店舗と比較）- 警告として表示
         if (storeName && storeNameCol && storeNameCol !== storeName) {
-          issues.push(`店舗名が一致しません（期待値: "${storeName}", 実際: "${storeNameCol}"）`);
+          warnings.push(`行${rowIndex}: 店舗名が一致しません（期待値: "${storeName}", 実際: "${storeNameCol}"）`);
         }
 
         // 顧客IDの形式チェック（存在する場合）
