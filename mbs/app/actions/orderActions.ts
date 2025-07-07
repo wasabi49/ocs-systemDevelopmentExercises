@@ -181,6 +181,21 @@ export async function createOrder(data: {
       };
     }
 
+    // 入力値の検証
+    if (!data.customerId || data.customerId.trim() === '') {
+      return {
+        success: false,
+        error: '顧客IDが指定されていません',
+      };
+    }
+
+    if (!data.orderDetails || data.orderDetails.length === 0) {
+      return {
+        success: false,
+        error: '注文明細が指定されていません',
+      };
+    }
+
     // 顧客が存在し、選択された店舗に属しているか確認
     const customer = await prisma.customer.findFirst({
       where: {
