@@ -500,13 +500,7 @@ const OrderEditPage: React.FC = () => {
           
           // statusが存在しない場合、納品状況から判断
           if (!orderStatus) {
-            const allDetailsCompleted = order.orderDetails.length > 0 && 
-              order.orderDetails.every(detail => {
-                // 実際の納品状況を確認する必要があるが、ここでは簡易的に判定
-                // 将来的にはdeliveryAllocation等のデータも参照
-                return true; // この部分は実際の納品データの実装に依存
-              });
-            
+            const allDetailsCompleted = order.orderDetails.length > 0;
             orderStatus = allDetailsCompleted ? '完了' : '未完了';
           }
           
@@ -707,7 +701,7 @@ const OrderEditPage: React.FC = () => {
     })));
     
     console.log('Status changed to:', newStatus);
-  }, []);
+  }, [status]);
 
   // 合計金額計算
   const totalAmount = useMemo(() => {
