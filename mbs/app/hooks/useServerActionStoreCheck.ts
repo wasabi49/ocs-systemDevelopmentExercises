@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { logger } from '@/lib/logger';
 
 interface ServerActionResult {
   status?: string;
@@ -20,13 +21,13 @@ export const useServerActionStoreCheck = () => {
    */
   const checkStoreRequirement = (result: ServerActionResult) => {
     if (result?.status === 'store_required' || result?.status === 'store_invalid') {
-      console.log('店舗選択が必要です。店舗選択ページにリダイレクトします。');
+      logger.info('店舗選択が必要です。店舗選択ページにリダイレクトします。');
       router.push('/stores');
       return true;
     }
 
     if (result?.needsStoreSelection) {
-      console.log('店舗選択が必要です。店舗選択ページにリダイレクトします。');
+      logger.info('店舗選択が必要です。店舗選択ページにリダイレクトします。');
       router.push('/stores');
       return true;
     }

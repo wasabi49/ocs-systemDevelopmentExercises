@@ -1,6 +1,7 @@
 // components/DeliveryTable.tsx
 import React from 'react';
 import Link from 'next/link';
+import { logger } from '@/lib/logger';
 
 export type Delivery = {
   id: string;
@@ -18,7 +19,7 @@ type Props = {
 };
 
 export default function DeliveryTable({ deliveries, onSort, renderSortIcons }: Props) {
-  console.log(deliveries)
+  logger.debug('DeliveryTable rendering', { deliveries })
   return (
     <table className="w-full min-w-0 border-collapse text-center text-[10px] sm:text-xs md:text-sm">
       <thead className="bg-blue-300">

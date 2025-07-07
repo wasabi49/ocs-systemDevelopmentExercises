@@ -6,6 +6,7 @@ import type { Customer } from '@/app/generated/prisma';
 import { useStore } from '@/app/contexts/StoreContext';
 import { fetchAllCustomers } from '@/app/actions/customerActions';
 import { createOrder } from '@/app/actions/orderActions';
+import { logger } from '@/lib/logger';
 
 // 注文作成時のデータ型定義（Prismaの型をベースに）
 type OrderCreateData = {
@@ -63,7 +64,7 @@ const fetchCustomers = async (): Promise<Customer[]> => {
     }
     return [];
   } catch (error) {
-    console.error('顧客データ取得エラー:', error);
+    logger.error('顧客データ取得エラー', error);
     return [];
   }
 };
@@ -628,7 +629,7 @@ export default function OrderCreatePage() {
         note: note || null
       };
 
-      console.log('送信する注文データ:', apiData);
+      logger.info('送信する注文データ', { apiData });
 
       // Server Actionを使用して注文を作成
       const result = await createOrder(apiData);
@@ -638,7 +639,7 @@ export default function OrderCreatePage() {
       }
 
       if (result.success) {
-        console.log('注文が正常に作成されました:', result.data);
+        logger.info('注文が正常に作成されました', { data: result.data });
         
         // 成功時の注文データを保存
         setSuccessOrderData(result.data);
@@ -671,7 +672,7 @@ export default function OrderCreatePage() {
 
     } catch (error) {
       // ネットワークエラーや予期しないエラーの処理
-      console.error('注文作成中にエラーが発生:', error);
+      logger.error('注文作成中にエラーが発生', error);
       
       const errorMessage = error instanceof Error 
         ? error.message 

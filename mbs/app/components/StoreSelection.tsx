@@ -6,6 +6,7 @@ import { Store as MapPin, Loader2, Building2, CheckCircle, ArrowRight } from 'lu
 import { useStore, Store } from '@/app/contexts/StoreContext'; // Storeインターフェースをcontextからインポート
 import { getAllStores } from '@/app/actions/storeActions';
 import { Loading, LoadingWithIcon } from '@/app/components/Loading';
+import { logger } from '@/lib/logger';
 
 interface StoreSelectionProps {
   initialStores?: Store[];
@@ -42,7 +43,7 @@ const StoreSelection: React.FC<StoreSelectionProps> = ({
         setStoreList(stores);
         setStores(stores);
       } catch (err) {
-        console.error('店舗データの取得に失敗:', err);
+        logger.error('店舗データの取得に失敗', err);
         setError('店舗データの取得に失敗しました。再度お試しください。');
       } finally {
         setIsLoading(false);
@@ -54,11 +55,11 @@ const StoreSelection: React.FC<StoreSelectionProps> = ({
 
   // 店舗選択ハンドラー
   const handleStoreSelect = (store: Store) => {
-    console.log('店舗選択:', store); 
+    logger.info('店舗選択', { store }); 
     setSelectedStoreId(store.id);
     setSelectedStore(store); 
 
-    console.log('Cookie保存完了、画面遷移開始'); 
+    logger.info('Cookie保存完了、画面遷移開始'); 
 
     // 少し遅延をかけてから画面遷移（選択アニメーションを見せるため）
     setTimeout(() => {

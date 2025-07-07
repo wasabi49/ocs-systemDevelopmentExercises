@@ -3,6 +3,7 @@
 import { useRouter, usePathname } from 'next/navigation';
 import { useStore } from '@/app/contexts/StoreContext';
 import { useEffect } from 'react';
+import { logger } from '@/lib/logger';
 
 /**
  * 店舗が選択されていない場合に店舗選択ページにリダイレクトするカスタムフック
@@ -16,7 +17,7 @@ export const useStoreRedirect = () => {
 
   useEffect(() => {
     if (!selectedStore && !isStoreSelectionPage) {
-      console.log('店舗が選択されていません。店舗選択ページにリダイレクトします。');
+      logger.info('店舗が選択されていません。店舗選択ページにリダイレクトします。');
       router.push('/stores');
     }
   }, [selectedStore, isStoreSelectionPage, router]);

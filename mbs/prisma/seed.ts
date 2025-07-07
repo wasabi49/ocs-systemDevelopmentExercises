@@ -1,39 +1,40 @@
 import { PrismaClient } from '../app/generated/prisma';
 import type { Order, Delivery, Customer } from '../app/generated/prisma';
+import { logger } from '../lib/logger';
 
 const prisma = new PrismaClient();
 
 async function main() {
   // データベースの完全クリーンアップ - 外部キー制約を考慮した削除順序
-  console.log('Starting database cleanup...');
+  logger.info('Starting database cleanup...');
 
   // 1. 最も依存関係の多いテーブルから削除（多対多の関連テーブル）
-  console.log('Cleaning delivery allocations...');
+  logger.info('Cleaning delivery allocations...');
   await prisma.deliveryAllocation.deleteMany({});
 
   // 2. 明細テーブル
-  console.log('Cleaning details tables...');
+  logger.info('Cleaning details tables...');
   await prisma.deliveryDetail.deleteMany({});
   await prisma.orderDetail.deleteMany({});
 
   // 3. 主要トランザクションテーブル
-  console.log('Cleaning transaction tables...');
+  logger.info('Cleaning transaction tables...');
   await prisma.delivery.deleteMany({});
   await prisma.order.deleteMany({});
 
   // 4. 統計テーブル
-  console.log('Cleaning statistics table...');
+  logger.info('Cleaning statistics table...');
   await prisma.statistics.deleteMany({});
 
   // 5. 顧客テーブル
-  console.log('Cleaning customer table...');
+  logger.info('Cleaning customer table...');
   await prisma.customer.deleteMany({});
 
   // 6. 基本テーブル（依存されるテーブル）
-  console.log('Cleaning store table...');
+  logger.info('Cleaning store table...');
   await prisma.store.deleteMany({});
 
-  console.log('Database cleanup completed successfully');
+  logger.info('Database cleanup completed successfully');
 
   // 店舗データ作成（3店舗）
   const stores = await Promise.all([
@@ -630,10 +631,10 @@ async function main() {
     }),
   );
 
-  console.log(`Created ${customers.length} customers distributed across stores:`);
-  console.log(`- 今里店: ${customers.slice(0, 20).length} customers`);
-  console.log(`- 深江橋店: ${customers.slice(20, 40).length} customers`);
-  console.log(`- 緑橋本店: ${customers.slice(40, 60).length} customers`);
+  logger.info(`Created ${customers.length} customers distributed across stores`);
+  logger.info(`- 今里店: ${customers.slice(0, 20).length} customers`);
+  logger.info(`- 深江橋店: ${customers.slice(20, 40).length} customers`);
+  logger.info(`- 緑橋本店: ${customers.slice(40, 60).length} customers`);
 
   // 統計データの作成
   await Promise.all(
@@ -677,7 +678,7 @@ async function main() {
     }
   }
 
-  console.log(`Created ${orders.length} orders for ${customers.length} customers`);
+  logger.info(`Created ${orders.length} orders for ${customers.length} customers`);
 
   // 注文明細データの作成
   const products = [
@@ -787,7 +788,7 @@ async function main() {
   console.log(`Created ${orderDetails.length} order details`);
 
   // 正しいビジネスフローに従った納品データの作成
-  console.log('Creating deliveries following correct business flow...');
+  logger.info('Creating deliveries following correct business flow...');
   
   const deliveries: Delivery[] = [];
   const deliveryDetails = [];
@@ -929,7 +930,7 @@ async function main() {
 
             // すべての納品数量が配分されたかチェック
             if (remainingDeliveryQuantity > 0) {
-              console.warn(
+              logger.warn(
                 `Warning: DeliveryDetail ${deliveryDetail.id} has ${remainingDeliveryQuantity} unallocated items for product ${productName}`,
               );
             }
@@ -950,28 +951,28 @@ async function main() {
     }
   }
 
-  console.log(`Created ${allocationCount} delivery allocations`);
+  logger.info(`Created ${allocationCount} delivery allocations`);
 
-  console.log('=== Seed Data Summary ===');
-  console.log(`Stores: ${stores.length}`);
-  console.log(`Customers: ${customers.length} (20 per store)`);
-  console.log(`  - 今里店: 20 customers (C-00001 ~ C-00020)`);
-  console.log(`  - 深江橋店: 20 customers (C-00021 ~ C-00040)`);
-  console.log(`  - 緑橋本店: 20 customers (C-00041 ~ C-00060)`);
-  console.log(`Orders: ${orders.length} (${orders.length / customers.length} per customer)`);
-  console.log(`Order Details: ${orderDetails.length}`);
-  console.log(
+  logger.info('=== Seed Data Summary ===');
+  logger.info(`Stores: ${stores.length}`);
+  logger.info(`Customers: ${customers.length} (20 per store)`);
+  logger.info(`  - 今里店: 20 customers (C-00001 ~ C-00020)`);
+  logger.info(`  - 深江橋店: 20 customers (C-00021 ~ C-00040)`);
+  logger.info(`  - 緑橋本店: 20 customers (C-00041 ~ C-00060)`);
+  logger.info(`Orders: ${orders.length} (${orders.length / customers.length} per customer)`);
+  logger.info(`Order Details: ${orderDetails.length}`);
+  logger.info(
     `Deliveries: ${deliveries.length} (${deliveries.length / customers.length} per customer)`,
   );
-  console.log(`Delivery Details: ${deliveryDetails.length}`);
-  console.log(`Delivery Allocations: ${allocationCount} (same customer & product matching)`);
-  console.log(`Products: ${products.length} book titles (bookstore inventory)`);
-  console.log('Seed data created successfully for all tables with expanded dataset');
+  logger.info(`Delivery Details: ${deliveryDetails.length}`);
+  logger.info(`Delivery Allocations: ${allocationCount} (same customer & product matching)`);
+  logger.info(`Products: ${products.length} book titles (bookstore inventory)`);
+  logger.info('Seed data created successfully for all tables with expanded dataset');
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    logger.error('Seed script failed', e);
     process.exit(1);
   })
   .finally(async () => {

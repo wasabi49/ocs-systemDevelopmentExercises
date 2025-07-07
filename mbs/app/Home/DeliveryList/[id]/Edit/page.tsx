@@ -11,6 +11,7 @@ import {
 import { useSimpleSearch } from '@/app/hooks/useGenericSearch';
 import { SortConfig, SortIcon, sortItems } from '@/app/utils/sortUtils';
 import { Loading } from '@/app/components/Loading';
+import { logger } from '@/lib/logger';
 
 // 未納品注文明細の型定義
 type UndeliveredOrderDetail = {
@@ -221,14 +222,14 @@ const UndeliveredProductsModal = ({
 
       // 変更がある場合のみAPIを呼び出す
       if (allocations.length > 0) {
-        console.log('変更された項目のみ送信:', allocations);
+        logger.info('変更された項目のみ送信', { allocations });
         await onSave(allocations);
       } else {
-        console.log('変更がないため、APIコールをスキップ');
+        logger.info('変更がないため、APIコールをスキップ');
       }
       onClose();
     } catch (error) {
-      console.error('保存エラー:', error);
+      logger.error('保存エラー', error);
     } finally {
       setIsSaving(false);
     }
