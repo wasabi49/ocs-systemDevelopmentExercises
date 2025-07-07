@@ -39,6 +39,13 @@ interface OrderDetailEdit {
 // 定数定義
 const MAX_PRODUCTS = 20;
 
+// 注文状況の選択肢を定数として定義（実際のDB値に合わせる）
+const ORDER_STATUS_OPTIONS = [
+  { value: '未完了', label: '未完了' },
+  { value: '完了', label: '完了' },
+  { value: 'キャンセル', label: 'キャンセル' }
+];
+
 // API関数
 const fetchOrderDetail = async (orderId: string): Promise<{
   success: boolean;
@@ -141,11 +148,22 @@ const generateTempOrderDetailId = (index: number): string => {
 };
 
 // 納品情報を取得する関数
-const getDeliveryInfo = (orderDetailId: string) => {
+const getDeliveryInfo = (orderDetailId: string, orderStatus: string) => {
   if (orderDetailId.startsWith('TEMP-')) {
     return { deliveryStatus: '' };
   }
 
+  // 注文が完了している場合は、すべての明細を完了とする
+  if (orderStatus === '完了') {
+    return { deliveryStatus: '完了' };
+  }
+
+  // 注文がキャンセルの場合
+  if (orderStatus === 'キャンセル') {
+    return { deliveryStatus: '未納品' };
+  }
+
+  // その他の場合は未完了として扱う
   const seed = parseInt(orderDetailId.slice(-1)) || 0;
 
   if (seed % 4 === 0) {
@@ -157,8 +175,34 @@ const getDeliveryInfo = (orderDetailId: string) => {
   return { deliveryStatus: '完了' };
 };
 
+// 注文状況の正規化関数
+const normalizeOrderStatus = (status: string | null | undefined): string => {
+  if (!status) return '未完了'; // デフォルト値
+  
+  // 既存の状況値をチェックして、選択肢にあるものかどうか確認
+  const validStatuses = ['未完了', '完了', 'キャンセル'];
+  
+  // 完全一致をチェック
+  if (validStatuses.includes(status)) {
+    return status;
+  }
+  
+  // 部分一致や類似の値をチェック
+  const normalizedStatus = status.toLowerCase().trim();
+  
+  if (normalizedStatus.includes('完了') || normalizedStatus === 'completed') {
+    return '完了';
+  } else if (normalizedStatus.includes('キャンセル') || normalizedStatus === 'cancelled') {
+    return 'キャンセル';
+  }
+  
+  // どれにも該当しない場合はデフォルト値
+  console.warn(`Unknown order status: "${status}", defaulting to "未完了"`);
+  return '未完了';
+};
+
 // バリデーション関数
-const validateOrderData = (orderDetails: OrderDetailEdit[], orderDate: string, customerId: string): { isValid: boolean; errors: string[] } => {
+const validateOrderData = (orderDetails: OrderDetailEdit[], orderDate: string, customerId: string, status: string): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
 
   if (!orderDate) {
@@ -167,6 +211,10 @@ const validateOrderData = (orderDetails: OrderDetailEdit[], orderDate: string, c
 
   if (!customerId) {
     errors.push('顧客を選択してください');
+  }
+
+  if (!status) {
+    errors.push('注文状況を選択してください');
   }
 
   if (orderDetails.length === 0) {
@@ -391,7 +439,7 @@ const OrderEditPage: React.FC = () => {
   const [customerSearchTerm, setCustomerSearchTerm] = useState<string>('');
   const [showCustomerDropdown, setShowCustomerDropdown] = useState<boolean>(false);
   const [note, setNote] = useState<string>('');
-  const [status, setStatus] = useState<string>('未完了');
+  const [status, setStatus] = useState<string>('未完了'); // デフォルト値を明示的に設定
   const [orderDetails, setOrderDetails] = useState<OrderDetailEdit[]>([]);
 
   // モーダル状態
@@ -445,7 +493,29 @@ const OrderEditPage: React.FC = () => {
           setSelectedCustomerId(order.customerId);
           setCustomerSearchTerm(order.customer.name);
           setNote(order.note || '');
-          setStatus(order.status || '未完了');
+          
+          // DBから取得した注文状況を正規化して設定
+          // statusがnullや未定義の場合は、納品状況から推測
+          let orderStatus = order.status;
+          
+          // statusが存在しない場合、納品状況から判断
+          if (!orderStatus) {
+            const allDetailsCompleted = order.orderDetails.length > 0 && 
+              order.orderDetails.every(detail => {
+                // 実際の納品状況を確認する必要があるが、ここでは簡易的に判定
+                // 将来的にはdeliveryAllocation等のデータも参照
+                return true; // この部分は実際の納品データの実装に依存
+              });
+            
+            orderStatus = allDetailsCompleted ? '完了' : '未完了';
+          }
+          
+          const normalizedStatus = normalizeOrderStatus(orderStatus);
+          setStatus(normalizedStatus);
+          
+          console.log('Original status from DB:', order.status);
+          console.log('Normalized status:', normalizedStatus);
+          console.log('Order details:', order.orderDetails);
           
           const editableDetails: OrderDetailEdit[] = order.orderDetails.map(detail => ({
             id: detail.id,
@@ -453,7 +523,7 @@ const OrderEditPage: React.FC = () => {
             unitPrice: detail.unitPrice,
             quantity: detail.quantity,
             description: detail.description || '',
-            deliveryStatus: getDeliveryInfo(detail.id).deliveryStatus
+            deliveryStatus: getDeliveryInfo(detail.id, normalizedStatus).deliveryStatus
           }));
           setOrderDetails(editableDetails);
         } else {
@@ -515,7 +585,7 @@ const OrderEditPage: React.FC = () => {
       unitPrice: 0,
       quantity: 1,
       description: '',
-      deliveryStatus: ''
+      deliveryStatus: getDeliveryInfo(generateTempOrderDetailId(orderDetails.length), status).deliveryStatus
     };
     setOrderDetails(prev => [...prev, newDetail]);
   }, [orderDetails.length]);
@@ -556,8 +626,8 @@ const OrderEditPage: React.FC = () => {
 
   // バリデーション状態の計算
   const validationResult = useMemo(() => {
-    return validateOrderData(orderDetails, orderDate, selectedCustomerId);
-  }, [orderDetails, orderDate, selectedCustomerId]);
+    return validateOrderData(orderDetails, orderDate, selectedCustomerId, status);
+  }, [orderDetails, orderDate, selectedCustomerId, status]);
 
   // 更新処理
   const handleUpdate = useCallback(() => {
@@ -576,7 +646,7 @@ const OrderEditPage: React.FC = () => {
           orderDate,
           customerId: selectedCustomerId,
           note: note || null,
-          status,
+          status, // 正規化された状況を送信
           orderDetails: orderDetails.map(detail => ({
             productName: detail.productName,
             unitPrice: typeof detail.unitPrice === 'number' ? detail.unitPrice : parseJPYString(String(detail.unitPrice)),
@@ -584,6 +654,8 @@ const OrderEditPage: React.FC = () => {
             description: detail.description || null
           }))
         };
+
+        console.log('Sending update data with status:', updateData.status);
 
         const result = await updateOrderAPI(orderId, updateData);
 
@@ -622,6 +694,20 @@ const OrderEditPage: React.FC = () => {
       setSelectedCustomerId('');
     }
   }, [customers, selectedCustomerId]);
+
+  // 注文状況変更ハンドラー
+  const handleStatusChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newStatus = e.target.value;
+    setStatus(newStatus);
+    
+    // 注文状況が変更されたら、すべての明細の納品状況も更新
+    setOrderDetails(prev => prev.map(detail => ({
+      ...detail,
+      deliveryStatus: getDeliveryInfo(detail.id, newStatus).deliveryStatus
+    })));
+    
+    console.log('Status changed to:', newStatus);
+  }, []);
 
   // 合計金額計算
   const totalAmount = useMemo(() => {
@@ -928,13 +1014,14 @@ const OrderEditPage: React.FC = () => {
               <div className="p-3 border-x border-b border-black">
                 <select 
                   value={status}
-                  onChange={(e) => setStatus(e.target.value)}
+                  onChange={handleStatusChange}
                   className="w-full px-2 py-2 rounded text-xs sm:text-sm border border-black"
                 >
-                  <option value="未完了">未完了</option>
-                  <option value="進行中">進行中</option>
-                  <option value="完了">完了</option>
-                  <option value="キャンセル">キャンセル</option>
+                  {ORDER_STATUS_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -977,9 +1064,9 @@ const OrderEditPage: React.FC = () => {
                     <div>
                       <span className="font-medium text-gray-700">元の合計:</span>
                       <span className="ml-2 text-gray-900">
-                        ¥{formatJPY(orderData.orderDetails.reduce((sum, detail) => 
+                        ¥{orderData.orderDetails.reduce((sum, detail) => 
                           sum + (detail.unitPrice * detail.quantity), 0
-                        ))}
+                        ).toLocaleString()}
                       </span>
                     </div>
                   </div>
@@ -1063,7 +1150,7 @@ const OrderEditPage: React.FC = () => {
         isOpen={successModal}
         onClose={() => {
           setSuccessModal(false);
-          router.push('/Home/OrderList');
+          router.push(`/Home/OrderList/${orderId}`);
         }}
       />
     </div>
