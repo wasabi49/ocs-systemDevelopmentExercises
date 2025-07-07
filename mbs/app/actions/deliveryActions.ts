@@ -74,17 +74,16 @@ export async function fetchDeliveries() {
  */
 export async function fetchDeliveryById(id: string) {
   try {
-    const delivery = await prisma.delivery.findUnique({
+    const delivery = await prisma.delivery.findFirst({
       where: {
         id: id,
         isDeleted: false,
+        customer: {
+          isDeleted: false, // 削除されていない顧客のみ
+        },
       },
       include: {
-        customer: {
-          where: {
-            isDeleted: false, // 削除されていない顧客のみ
-          },
-        },
+        customer: true,
         deliveryDetails: {
           where: { isDeleted: false },
         },

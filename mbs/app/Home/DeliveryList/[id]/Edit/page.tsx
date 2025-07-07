@@ -229,7 +229,7 @@ const UndeliveredProductsModal = ({
       }
       onClose();
     } catch (error) {
-      logger.error('保存エラー', error);
+      logger.error('保存エラー', { error: error instanceof Error ? error.message : String(error) });
     } finally {
       setIsSaving(false);
     }

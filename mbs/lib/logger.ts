@@ -14,8 +14,10 @@ class Logger {
     if (!this.isServer) return;
 
     try {
-      const { writeFileSync, existsSync, mkdirSync } = await import('fs');
-      const { join } = await import('path');
+      const fs = await import('fs');
+      const path = await import('path');
+      const { writeFileSync, existsSync, mkdirSync } = fs;
+      const { join } = path;
 
       const logDir = join(process.cwd(), 'logs');
 

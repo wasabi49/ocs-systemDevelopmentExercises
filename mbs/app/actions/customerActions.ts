@@ -129,17 +129,16 @@ export async function fetchCustomers() {
  */
 export async function fetchCustomerById(id: string) {
   try {
-    const customer = await prisma.customer.findUnique({
+    const customer = await prisma.customer.findFirst({
       where: {
         id: id,
         isDeleted: false,
+        statistics: {
+          isDeleted: false,
+        },
       },
       include: {
-        statistics: {
-          where: {
-            isDeleted: false,
-          },
-        },
+        statistics: true,
       },
     });
 

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Customer } from '@/app/generated/prisma';
 import { useStore } from '@/app/contexts/StoreContext';
-import { fetchAllCustomers } from '@/app/actions/customerActions';
+// import { fetchAllCustomers } from '@/app/actions/customerActions';
 import { createOrder } from '@/app/actions/orderActions';
 import { logger } from '@/lib/logger';
 
@@ -64,7 +64,7 @@ const fetchCustomers = async (): Promise<Customer[]> => {
     }
     return [];
   } catch (error) {
-    logger.error('顧客データ取得エラー', error);
+    logger.error('顧客データ取得エラー', { error: error instanceof Error ? error.message : String(error) });
     return [];
   }
 };
@@ -642,7 +642,15 @@ export default function OrderCreatePage() {
         logger.info('注文が正常に作成されました', { data: result.data });
         
         // 成功時の注文データを保存
-        setSuccessOrderData(result.data);
+        if (result.data) {
+          setSuccessOrderData({
+            order: {
+              id: result.data.order.id,
+              orderDate: result.data.order.orderDate.toISOString(),
+            },
+            orderDetails: result.data.orderDetails,
+          });
+        }
         
         // 成功時は入力フォームをリセット
         setOrderDetails([
@@ -672,7 +680,7 @@ export default function OrderCreatePage() {
 
     } catch (error) {
       // ネットワークエラーや予期しないエラーの処理
-      logger.error('注文作成中にエラーが発生', error);
+      logger.error('注文作成中にエラーが発生', { error: error instanceof Error ? error.message : String(error) });
       
       const errorMessage = error instanceof Error 
         ? error.message 

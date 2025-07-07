@@ -108,18 +108,16 @@ export async function recalculateStatistics() {
           isDeleted: false,
         },
         include: {
-          orderDetails: {
-            where: {
-              isDeleted: false,
-            },
-          },
+          orderDetails: true,
         },
       });
 
       const totalSales = orders.reduce((total, order) => {
-        const orderTotal = order.orderDetails.reduce((orderSum, detail) => {
-          return orderSum + detail.unitPrice * detail.quantity;
-        }, 0);
+        const orderTotal = order.orderDetails
+          .filter((detail) => !detail.isDeleted)
+          .reduce((orderSum, detail) => {
+            return orderSum + detail.unitPrice * detail.quantity;
+          }, 0);
         return total + orderTotal;
       }, 0);
 

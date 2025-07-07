@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma';
 import { getStoreIdFromCookie } from '@/app/utils/storeUtils';
 import { Order, Customer } from '@/app/generated/prisma';
+import { logger } from '@/lib/logger';
 
 type OrderWithCustomer = Order & { customer: Customer };
 
@@ -64,7 +65,7 @@ export async function fetchOrders() {
       })),
     };
   } catch (error) {
-    console.error('注文データの取得に失敗しました:', error);
+    logger.error('注文データの取得に失敗しました', { error: error instanceof Error ? error.message : String(error) });
     return {
       status: 'error' as const,
       error: '注文データの取得に失敗しました',
@@ -124,7 +125,7 @@ export async function fetchOrderById(id: string) {
       },
     };
   } catch (error) {
-    console.error('注文データの取得に失敗しました:', error);
+    logger.error('注文データの取得に失敗しました', { error: error instanceof Error ? error.message : String(error) });
     return {
       success: false,
       error: '注文データの取得に失敗しました',
@@ -147,7 +148,7 @@ export async function fetchOrdersAction() {
       data: result.status === 'success' ? result.data : [],
     };
   } catch (error) {
-    console.error('注文データの取得に失敗しました:', error);
+    logger.error('注文データの取得に失敗しました', { error: error instanceof Error ? error.message : String(error) });
     return {
       loading: false,
       error: '注文データの取得中にエラーが発生しました',
@@ -196,23 +197,52 @@ export async function createOrder(data: {
       };
     }
 
+    // 新しい注文IDを生成
+    const lastOrder = await prisma.order.findFirst({
+      where: {
+        id: {
+          startsWith: 'O',
+        },
+      },
+      orderBy: {
+        id: 'desc',
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    let nextNumber = 1;
+    if (lastOrder) {
+      const numberPart = lastOrder.id.substring(1);
+      const lastNumber = parseInt(numberPart, 10);
+      if (!isNaN(lastNumber)) {
+        nextNumber = lastNumber + 1;
+      }
+    }
+
+    const orderId = `O${nextNumber.toString().padStart(7, '0')}`;
+
     // トランザクションで注文と注文明細を作成
     const result = await prisma.$transaction(async (tx) => {
       // 注文を作成
       const order = await tx.order.create({
         data: {
+          id: orderId,
           orderDate: new Date(data.orderDate),
           customerId: data.customerId,
           note: data.note,
+          status: '未完了',
           isDeleted: false,
         },
       });
 
       // 注文明細を作成
       const orderDetails = await Promise.all(
-        data.orderDetails.map((detail) =>
+        data.orderDetails.map((detail, index) =>
           tx.orderDetail.create({
             data: {
+              id: `${order.id}-${(index + 1).toString().padStart(2, '0')}`,
               orderId: order.id,
               productName: detail.productName,
               unitPrice: detail.unitPrice,
@@ -232,7 +262,7 @@ export async function createOrder(data: {
       data: result,
     };
   } catch (error) {
-    console.error('注文の作成に失敗しました:', error);
+    logger.error('注文の作成に失敗しました', { error: error instanceof Error ? error.message : String(error) });
     return {
       success: false,
       error: '注文の作成に失敗しました',
@@ -303,7 +333,7 @@ export async function deleteOrder(orderId: string) {
       message: '注文が正常に削除されました',
     };
   } catch (error) {
-    console.error('注文の削除に失敗しました:', error);
+    logger.error('注文の削除に失敗しました', { error: error instanceof Error ? error.message : String(error) });
     return {
       success: false,
       error: '注文の削除に失敗しました',
@@ -400,11 +430,35 @@ export async function updateOrder(
         },
       });
 
+      // 既存の注文明細IDを取得して重複を避ける
+      const existingOrderDetails = await tx.orderDetail.findMany({
+        where: {
+          orderId: order.id,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      const existingIds = new Set(existingOrderDetails.map(od => od.id));
+      
       // 新しい注文明細を作成
       const orderDetails = await Promise.all(
-        data.orderDetails.map((detail) =>
-          tx.orderDetail.create({
+        data.orderDetails.map(async (detail, index) => {
+          // 重複しないIDを生成
+          let newId = `${order.id}-${(index + 1).toString().padStart(2, '0')}`;
+          let counter = index + 1;
+          
+          while (existingIds.has(newId)) {
+            counter++;
+            newId = `${order.id}-${counter.toString().padStart(2, '0')}`;
+          }
+          
+          existingIds.add(newId);
+          
+          return await tx.orderDetail.create({
             data: {
+              id: newId,
               orderId: order.id,
               productName: detail.productName,
               unitPrice: detail.unitPrice,
@@ -412,8 +466,8 @@ export async function updateOrder(
               description: detail.description,
               isDeleted: false,
             },
-          })
-        )
+          });
+        })
       );
 
       return { order, orderDetails };
@@ -424,7 +478,7 @@ export async function updateOrder(
       data: result,
     };
   } catch (error) {
-    console.error('注文の更新に失敗しました:', error);
+    logger.error('注文の更新に失敗しました', { error: error instanceof Error ? error.message : String(error) });
     return {
       success: false,
       error: '注文の更新に失敗しました',

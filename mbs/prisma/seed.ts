@@ -972,7 +972,7 @@ async function main() {
 
 main()
   .catch((e) => {
-    logger.error('Seed script failed', e);
+    logger.error('Seed script failed', { error: e instanceof Error ? e.message : String(e) });
     process.exit(1);
   })
   .finally(async () => {

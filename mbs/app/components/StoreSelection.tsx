@@ -43,7 +43,7 @@ const StoreSelection: React.FC<StoreSelectionProps> = ({
         setStoreList(stores);
         setStores(stores);
       } catch (err) {
-        logger.error('店舗データの取得に失敗', err);
+        logger.error('店舗データの取得に失敗', { error: err instanceof Error ? err.message : String(err) });
         setError('店舗データの取得に失敗しました。再度お試しください。');
       } finally {
         setIsLoading(false);

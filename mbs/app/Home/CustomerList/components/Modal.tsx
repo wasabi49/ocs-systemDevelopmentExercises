@@ -3,6 +3,7 @@ import Papa from 'papaparse';
 import { importCustomersFromCSV } from '@/app/actions/customerActions';
 import { useStore } from '@/app/contexts/StoreContext';
 import { Loading } from '@/app/components/Loading';
+import { logger } from '@/lib/logger';
 
 export type CSVImportModalProps = {
   open: boolean;
@@ -218,6 +219,7 @@ const CSVImportModal = ({ open, onCancel, onSuccess }: CSVImportModalProps) => {
   const { selectedStore } = useStore();
   const [fileNames, setFileNames] = useState<string[]>([]);
   const [csvData, setCsvData] = useState<string[][]>([]);
+  const [, setCsvValidation] = useState<CSVValidationResult | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showResult, setShowResult] = useState(false);
@@ -281,7 +283,7 @@ const CSVImportModal = ({ open, onCancel, onSuccess }: CSVImportModalProps) => {
         setShowResult(true);
       }
     } catch (error) {
-      console.error(error);
+      logger.error('CSVインポートエラー', { error: error instanceof Error ? error.message : String(error) });
       setImportResult({ status: 'error', error: 'インポート中にエラーが発生しました' });
       setShowResult(true);
     } finally {
