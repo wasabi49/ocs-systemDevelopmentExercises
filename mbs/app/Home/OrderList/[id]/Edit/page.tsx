@@ -180,7 +180,7 @@ const normalizeOrderStatus = (status: string | null | undefined): string => {
   if (!status) return '未完了'; // デフォルト値
   
   // 既存の状況値をチェックして、選択肢にあるものかどうか確認
-  const validStatuses = ['未完了', '完了', 'キャンセル'];
+  const validStatuses = ORDER_STATUS_OPTIONS.map(option => option.value);
   
   // 完全一致をチェック
   if (validStatuses.includes(status)) {
@@ -197,7 +197,6 @@ const normalizeOrderStatus = (status: string | null | undefined): string => {
   }
   
   // どれにも該当しない場合はデフォルト値
-  console.warn(`Unknown order status: "${status}", defaulting to "未完了"`);
   return '未完了';
 };
 
@@ -507,10 +506,6 @@ const OrderEditPage: React.FC = () => {
           const normalizedStatus = normalizeOrderStatus(orderStatus);
           setStatus(normalizedStatus);
           
-          console.log('Original status from DB:', order.status);
-          console.log('Normalized status:', normalizedStatus);
-          console.log('Order details:', order.orderDetails);
-          
           const editableDetails: OrderDetailEdit[] = order.orderDetails.map(detail => ({
             id: detail.id,
             productName: detail.productName,
@@ -699,9 +694,7 @@ const OrderEditPage: React.FC = () => {
       ...detail,
       deliveryStatus: getDeliveryInfo(detail.id, newStatus).deliveryStatus
     })));
-    
-    console.log('Status changed to:', newStatus);
-  }, [status]);
+  }, []);
 
   // 合計金額計算
   const totalAmount = useMemo(() => {
