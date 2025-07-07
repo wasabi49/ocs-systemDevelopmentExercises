@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Customer } from '@/app/generated/prisma';
 import { useStore } from '@/app/contexts/StoreContext';
-// import { fetchAllCustomers } from '@/app/actions/customerActions';
+import { fetchAllCustomers } from '@/app/actions/customerActions';
 import { createOrder } from '@/app/actions/orderActions';
 import { logger } from '@/lib/logger';
 
@@ -57,10 +57,9 @@ const MAX_PRODUCTS = 20;
 // 顧客データ取得関数
 const fetchCustomers = async (): Promise<Customer[]> => {
   try {
-    const response = await fetch('/api/customers');
-    const result = await response.json();
-    if (result.success) {
-      return result.customers;
+    const result = await fetchAllCustomers();
+    if (result.status === 'success') {
+      return result.data;
     }
     return [];
   } catch (error) {
