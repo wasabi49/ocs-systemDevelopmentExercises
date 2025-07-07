@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useTransition, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import type { Customer, Prisma } from '@/app/generated/prisma';
+import { fetchOrderById, updateOrder } from '@/app/actions/orderActions';
+import { fetchAllCustomers } from '@/app/actions/customerActions';
 
 // APIレスポンス用の型（Prismaのinclude結果）
 type OrderWithRelations = Prisma.OrderGetPayload<{
@@ -39,84 +41,8 @@ interface OrderDetailEdit {
 // 定数定義
 const MAX_PRODUCTS = 20;
 
-// API関数
-const fetchOrderDetail = async (orderId: string): Promise<{
-  success: boolean;
-  data?: OrderWithRelations;
-  error?: string;
-}> => {
-  try {
-    const response = await fetch(`/api/orders/${orderId}`);
-    const result = await response.json();
-    
-    if (response.ok && result.success) {
-      return {
-        success: true,
-        data: result.data
-      };
-    } else {
-      return {
-        success: false,
-        error: result.error || 'データの取得に失敗しました'
-      };
-    }
-  } catch (error) {
-    console.error('API呼び出しエラー:', error);
-    return {
-      success: false,
-      error: 'ネットワークエラーが発生しました'
-    };
-  }
-};
 
-const fetchCustomers = async (): Promise<Customer[]> => {
-  try {
-    const response = await fetch('/api/customers');
-    const result = await response.json();
-    if (result.success) {
-      return result.customers;
-    }
-    return [];
-  } catch (error) {
-    console.error('顧客データ取得エラー:', error);
-    return [];
-  }
-};
 
-const updateOrderAPI = async (orderId: string, orderData: OrderUpdateRequest): Promise<{
-  success: boolean;
-  message?: string;
-  error?: string;
-}> => {
-  try {
-    const response = await fetch(`/api/orders/${orderId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(orderData)
-    });
-    const result = await response.json();
-    
-    if (response.ok && result.success) {
-      return {
-        success: true,
-        message: result.message || '注文が正常に更新されました'
-      };
-    } else {
-      return {
-        success: false,
-        error: result.error || '更新に失敗しました'
-      };
-    }
-  } catch (error) {
-    console.error('更新API呼び出しエラー:', error);
-    return {
-      success: false,
-      error: 'ネットワークエラーが発生しました'
-    };
-  }
-};
 
 // ユーティリティ関数
 const formatJPY = (amount: number): string => {
@@ -433,13 +359,13 @@ const OrderEditPage: React.FC = () => {
       }
 
       try {
-        const [orderResult, customersData] = await Promise.all([
-          fetchOrderDetail(orderId),
-          fetchCustomers()
+        const [orderResult, customersResult] = await Promise.all([
+          fetchOrderById(orderId),
+          fetchAllCustomers()
         ]);
 
-        if (orderResult.success && orderResult.data) {
-          const order = orderResult.data;
+        if (orderResult.success && orderResult.order) {
+          const order = orderResult.order;
           setOrderData(order);
           setOrderDate(formatDateForInput(order.orderDate));
           setSelectedCustomerId(order.customerId);
@@ -464,7 +390,11 @@ const OrderEditPage: React.FC = () => {
           });
         }
 
-        setCustomers(customersData);
+        if (customersResult.status === 'success') {
+          setCustomers(customersResult.data);
+        } else {
+          setCustomers([]);
+        }
       } catch (error) {
         console.error('データ取得エラー:', error);
         setErrorModal({
@@ -585,7 +515,7 @@ const OrderEditPage: React.FC = () => {
           }))
         };
 
-        const result = await updateOrderAPI(orderId, updateData);
+        const result = await updateOrder(orderId, updateData);
 
         if (result.success) {
           setSuccessModal(true);

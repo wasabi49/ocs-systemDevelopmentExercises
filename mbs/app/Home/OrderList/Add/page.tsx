@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Customer } from '@/app/generated/prisma';
 import { useStore } from '@/app/contexts/StoreContext';
+import { fetchAllCustomers } from '@/app/actions/customerActions';
+import { createOrder } from '@/app/actions/orderActions';
 
 // 注文作成時のデータ型定義（Prismaの型をベースに）
 type OrderCreateData = {
@@ -628,18 +630,10 @@ export default function OrderCreatePage() {
 
       console.log('送信する注文データ:', apiData);
 
-      // 実際のAPI呼び出し
-      const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(apiData),
-      });
+      // Server Actionを使用して注文を作成
+      const result = await createOrder(apiData);
 
-      const result = await response.json();
-
-      if (!response.ok) {
+      if (!result.success) {
         throw new Error(result.error || 'APIエラーが発生しました');
       }
 

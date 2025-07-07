@@ -79,15 +79,16 @@ export async function fetchOrders() {
  */
 export async function fetchOrderById(id: string) {
   try {
-    const order = await prisma.order.findUnique({
+    const order = await prisma.order.findFirst({
       where: {
         id: id,
         isDeleted: false,
       },
       include: {
-        customer: {
+        customer: true,
+        orderDetails: {
           where: {
-            isDeleted: false, // 削除されていない顧客のみ
+            isDeleted: false,
           },
         },
       },
@@ -101,7 +102,7 @@ export async function fetchOrderById(id: string) {
     }
 
     // 顧客が削除されている場合のチェック
-    if (!order.customer) {
+    if (!order.customer || order.customer.isDeleted) {
       return {
         success: false,
         error: '関連する顧客データが削除されているため、注文情報を表示できません',
@@ -151,6 +152,282 @@ export async function fetchOrdersAction() {
       loading: false,
       error: '注文データの取得中にエラーが発生しました',
       data: [],
+    };
+  }
+}
+
+/**
+ * 注文を作成するServer Action
+ */
+export async function createOrder(data: {
+  orderDetails: {
+    productName: string;
+    unitPrice: number;
+    quantity: number;
+    description: string | null;
+  }[];
+  orderDate: string;
+  customerId: string;
+  note: string | null;
+}) {
+  try {
+    const storeId = await getStoreIdFromCookie();
+
+    if (!storeId) {
+      return {
+        success: false,
+        error: '店舗を選択してください',
+      };
+    }
+
+    // 顧客が存在し、選択された店舗に属しているか確認
+    const customer = await prisma.customer.findFirst({
+      where: {
+        id: data.customerId,
+        storeId: storeId,
+        isDeleted: false,
+      },
+    });
+
+    if (!customer) {
+      return {
+        success: false,
+        error: '指定された顧客が見つかりません',
+      };
+    }
+
+    // トランザクションで注文と注文明細を作成
+    const result = await prisma.$transaction(async (tx) => {
+      // 注文を作成
+      const order = await tx.order.create({
+        data: {
+          orderDate: new Date(data.orderDate),
+          customerId: data.customerId,
+          note: data.note,
+          isDeleted: false,
+        },
+      });
+
+      // 注文明細を作成
+      const orderDetails = await Promise.all(
+        data.orderDetails.map((detail) =>
+          tx.orderDetail.create({
+            data: {
+              orderId: order.id,
+              productName: detail.productName,
+              unitPrice: detail.unitPrice,
+              quantity: detail.quantity,
+              description: detail.description,
+              isDeleted: false,
+            },
+          })
+        )
+      );
+
+      return { order, orderDetails };
+    });
+
+    return {
+      success: true,
+      data: result,
+    };
+  } catch (error) {
+    console.error('注文の作成に失敗しました:', error);
+    return {
+      success: false,
+      error: '注文の作成に失敗しました',
+    };
+  }
+}
+
+/**
+ * 注文を削除するServer Action
+ */
+export async function deleteOrder(orderId: string) {
+  try {
+    const storeId = await getStoreIdFromCookie();
+
+    if (!storeId) {
+      return {
+        success: false,
+        error: '店舗を選択してください',
+      };
+    }
+
+    // 注文が存在し、選択された店舗に属しているか確認
+    const order = await prisma.order.findFirst({
+      where: {
+        id: orderId,
+        customer: {
+          storeId: storeId,
+        },
+        isDeleted: false,
+      },
+    });
+
+    if (!order) {
+      return {
+        success: false,
+        error: '指定された注文が見つかりません',
+      };
+    }
+
+    // 論理削除を実行
+    await prisma.$transaction(async (tx) => {
+      // 注文明細を論理削除
+      await tx.orderDetail.updateMany({
+        where: {
+          orderId: orderId,
+          isDeleted: false,
+        },
+        data: {
+          isDeleted: true,
+          deletedAt: new Date(),
+        },
+      });
+
+      // 注文を論理削除
+      await tx.order.update({
+        where: {
+          id: orderId,
+        },
+        data: {
+          isDeleted: true,
+          deletedAt: new Date(),
+        },
+      });
+    });
+
+    return {
+      success: true,
+      message: '注文が正常に削除されました',
+    };
+  } catch (error) {
+    console.error('注文の削除に失敗しました:', error);
+    return {
+      success: false,
+      error: '注文の削除に失敗しました',
+    };
+  }
+}
+
+/**
+ * 注文を更新するServer Action
+ */
+export async function updateOrder(
+  orderId: string,
+  data: {
+    orderDate: string;
+    customerId: string;
+    note: string | null;
+    status: string;
+    orderDetails: Array<{
+      productName: string;
+      unitPrice: number;
+      quantity: number;
+      description: string | null;
+    }>;
+  }
+) {
+  try {
+    const storeId = await getStoreIdFromCookie();
+
+    if (!storeId) {
+      return {
+        success: false,
+        error: '店舗を選択してください',
+      };
+    }
+
+    // 注文が存在し、選択された店舗に属しているか確認
+    const existingOrder = await prisma.order.findFirst({
+      where: {
+        id: orderId,
+        customer: {
+          storeId: storeId,
+        },
+        isDeleted: false,
+      },
+    });
+
+    if (!existingOrder) {
+      return {
+        success: false,
+        error: '指定された注文が見つかりません',
+      };
+    }
+
+    // 顧客が存在し、選択された店舗に属しているか確認
+    const customer = await prisma.customer.findFirst({
+      where: {
+        id: data.customerId,
+        storeId: storeId,
+        isDeleted: false,
+      },
+    });
+
+    if (!customer) {
+      return {
+        success: false,
+        error: '指定された顧客が見つかりません',
+      };
+    }
+
+    // トランザクションで注文と注文明細を更新
+    const result = await prisma.$transaction(async (tx) => {
+      // 注文を更新
+      const order = await tx.order.update({
+        where: {
+          id: orderId,
+        },
+        data: {
+          orderDate: new Date(data.orderDate),
+          customerId: data.customerId,
+          note: data.note,
+          status: data.status,
+        },
+      });
+
+      // 既存の注文明細を論理削除
+      await tx.orderDetail.updateMany({
+        where: {
+          orderId: orderId,
+          isDeleted: false,
+        },
+        data: {
+          isDeleted: true,
+          deletedAt: new Date(),
+        },
+      });
+
+      // 新しい注文明細を作成
+      const orderDetails = await Promise.all(
+        data.orderDetails.map((detail) =>
+          tx.orderDetail.create({
+            data: {
+              orderId: order.id,
+              productName: detail.productName,
+              unitPrice: detail.unitPrice,
+              quantity: detail.quantity,
+              description: detail.description,
+              isDeleted: false,
+            },
+          })
+        )
+      );
+
+      return { order, orderDetails };
+    });
+
+    return {
+      success: true,
+      data: result,
+    };
+  } catch (error) {
+    console.error('注文の更新に失敗しました:', error);
+    return {
+      success: false,
+      error: '注文の更新に失敗しました',
     };
   }
 }

@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useTransition } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import type { OrderDetail, Prisma } from '@/app/generated/prisma';
+import { fetchOrderById, deleteOrder } from '@/app/actions/orderActions';
+import { generateOrderPDF } from '@/app/components/OrderPDF';
 
 // APIレスポンス用の型（Prismaのinclude結果）
 type OrderWithRelations = Prisma.OrderGetPayload<{
@@ -24,66 +26,7 @@ interface OrderDetailWithDelivery extends OrderDetail {
   deliveryStatus?: string;
 }
 
-// API関数
-const fetchOrderDetail = async (orderId: string): Promise<{
-  success: boolean;
-  data?: OrderWithRelations;
-  error?: string;
-}> => {
-  try {
-    const response = await fetch(`/api/orders/${orderId}`);
-    const result = await response.json();
-    
-    if (response.ok && result.success) {
-      return {
-        success: true,
-        data: result.data
-      };
-    } else {
-      return {
-        success: false,
-        error: result.error || 'データの取得に失敗しました'
-      };
-    }
-  } catch (error) {
-    console.error('API呼び出しエラー:', error);
-    return {
-      success: false,
-      error: 'ネットワークエラーが発生しました'
-    };
-  }
-};
 
-const deleteOrderAPI = async (orderId: string): Promise<{
-  success: boolean;
-  message?: string;
-  error?: string;
-}> => {
-  try {
-    const response = await fetch(`/api/orders/${orderId}`, {
-      method: 'DELETE'
-    });
-    const result = await response.json();
-    
-    if (response.ok && result.success) {
-      return {
-        success: true,
-        message: result.message || '注文が正常に削除されました'
-      };
-    } else {
-      return {
-        success: false,
-        error: result.error || '削除に失敗しました'
-      };
-    }
-  } catch (error) {
-    console.error('削除API呼び出しエラー:', error);
-    return {
-      success: false,
-      error: 'ネットワークエラーが発生しました'
-    };
-  }
-};
 
 // 日本円のフォーマット関数
 const formatJPY = (amount: number): string => {
@@ -313,10 +256,10 @@ const OrderDetailPage: React.FC = () => {
       }
 
       try {
-        const result = await fetchOrderDetail(orderId);
+        const result = await fetchOrderById(orderId);
 
-        if (result.success && result.data) {
-          setOrderData(result.data);
+        if (result.success && result.order) {
+          setOrderData(result.order);
         } else {
           setErrorModal({
             isOpen: true,
@@ -375,7 +318,7 @@ const OrderDetailPage: React.FC = () => {
   const handleDeleteConfirm = () => {
     startDeleteTransition(async () => {
       try {
-        const result = await deleteOrderAPI(orderId);
+        const result = await deleteOrder(orderId);
 
         if (result.success) {
           setShowDeleteModal(false);
@@ -411,12 +354,26 @@ const OrderDetailPage: React.FC = () => {
     setShowDeleteModal(false);
   };
 
-  const handlePdfExport = () => {
-    setErrorModal({
-      isOpen: true,
-      title: 'PDF出力',
-      message: 'PDF出力機能は現在開発中です。'
-    });
+  const handlePdfExport = async () => {
+    if (!orderData) {
+      setErrorModal({
+        isOpen: true,
+        title: 'PDF出力エラー',
+        message: '注文データが読み込まれていません。'
+      });
+      return;
+    }
+
+    try {
+      await generateOrderPDF(orderData);
+    } catch (error) {
+      console.error('PDF生成エラー:', error);
+      setErrorModal({
+        isOpen: true,
+        title: 'PDF出力エラー',
+        message: 'PDFの生成に失敗しました。'
+      });
+    }
   };
 
   // 行の展開/折りたたみハンドラー
