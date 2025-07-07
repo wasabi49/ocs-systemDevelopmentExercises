@@ -48,6 +48,8 @@ vi.mock('@/lib/logger', () => ({
 describe('statisticsActions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // console.errorをモックしてエラーログを非表示にする
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {

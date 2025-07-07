@@ -19,6 +19,8 @@ vi.mock('@/lib/prisma', () => ({
 describe('storeActions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // console.errorをモックしてエラーログを非表示にする
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {

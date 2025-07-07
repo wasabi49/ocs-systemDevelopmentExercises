@@ -53,6 +53,8 @@ vi.mock('@/lib/logger', () => ({
 describe('orderActions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // console.errorをモックしてエラーログを非表示にする
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -138,6 +140,56 @@ describe('orderActions', () => {
       });
     });
 
+    it('顧客が削除されている場合、適切なエラーを返す', async () => {
+      const mockOrder = {
+        id: 'O0000001',
+        orderDate: new Date('2025-01-01'),
+        updatedAt: new Date('2025-01-01'),
+        deletedAt: null,
+        customer: null, // 顧客が削除されている
+        orderDetails: [],
+      };
+
+      vi.mocked(prisma.order.findFirst).mockResolvedValue(mockOrder as any);
+
+      const result = await fetchOrderById('O0000001');
+
+      expect(result).toEqual({
+        success: false,
+        error: '関連する顧客データが削除されているため、注文情報を表示できません',
+      });
+    });
+
+    it('正常な場合、注文データを返す', async () => {
+      const mockOrder = {
+        id: 'O0000001',
+        orderDate: new Date('2025-01-01'),
+        updatedAt: new Date('2025-01-01'),
+        deletedAt: null,
+        customer: {
+          id: 'C-00001',
+          name: '顧客1',
+          isDeleted: false,
+          updatedAt: new Date('2025-01-01'),
+          deletedAt: null,
+        },
+        orderDetails: [
+          {
+            id: 'O0000001-01',
+            productName: '商品1',
+            quantity: 2,
+          },
+        ],
+      };
+
+      vi.mocked(prisma.order.findFirst).mockResolvedValue(mockOrder as any);
+
+      const result = await fetchOrderById('O0000001');
+
+      expect(result.success).toBe(true);
+      expect(result.order.id).toBe('O0000001');
+      expect(typeof result.order.orderDate).toBe('string');
+    });
 
     it('エラーが発生した場合、failureを返す', async () => {
       vi.mocked(prisma.order.findFirst).mockRejectedValue(new Error('Database error'));
@@ -265,6 +317,7 @@ describe('orderActions', () => {
         storeId: 'store-1',
         isDeleted: false,
       } as any);
+      vi.mocked(prisma.order.findFirst).mockResolvedValue(null);
       
       const mockTransactionResult = {
         order: {
@@ -287,9 +340,79 @@ describe('orderActions', () => {
       expect(result.data).toEqual(mockTransactionResult);
     });
 
+    it('顧客が見つからない場合、失敗を返す', async () => {
+      vi.mocked(getStoreIdFromCookie).mockResolvedValue('store-1');
+      vi.mocked(prisma.customer.findFirst).mockResolvedValue(null);
+
+      const result = await createOrder(mockOrderData);
+
+      expect(result).toEqual({
+        success: false,
+        error: '指定された顧客が見つかりません',
+      });
+    });
+
+    it('既存の注文IDがある場合、次の番号を生成する', async () => {
+      vi.mocked(getStoreIdFromCookie).mockResolvedValue('store-1');
+      vi.mocked(prisma.customer.findFirst).mockResolvedValue({
+        id: 'C-00001',
+        name: '顧客1',
+        storeId: 'store-1',
+        isDeleted: false,
+      } as any);
+      // 既存の最後の注文IDを返す
+      vi.mocked(prisma.order.findFirst).mockResolvedValue({ id: 'O0000005' } as any);
+
+      const createMock = vi.fn().mockResolvedValue({ id: 'O0000006' });
+      const createDetailMock = vi.fn();
+      vi.mocked(prisma.$transaction).mockImplementation(async (fn: any) => {
+        const tx = {
+          order: {
+            create: createMock,
+          },
+          orderDetail: {
+            create: createDetailMock,
+          },
+        };
+        return await fn(tx);
+      });
+
+      await createOrder(mockOrderData);
+
+      expect(createMock).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          id: 'O0000006',
+        }),
+      });
+    });
+
+    it('エラーが発生した場合、失敗を返す', async () => {
+      vi.mocked(getStoreIdFromCookie).mockResolvedValue('store-1');
+      vi.mocked(prisma.customer.findFirst).mockRejectedValue(new Error('Database error'));
+
+      const result = await createOrder(mockOrderData);
+
+      expect(result).toEqual({
+        success: false,
+        error: '注文の作成に失敗しました',
+      });
+      expect(logger.error).toHaveBeenCalled();
+    });
+
   });
 
   describe('deleteOrder', () => {
+    it('店舗IDがない場合、失敗を返す', async () => {
+      vi.mocked(getStoreIdFromCookie).mockResolvedValue(null);
+
+      const result = await deleteOrder('O0000001');
+
+      expect(result).toEqual({
+        success: false,
+        error: '店舗を選択してください',
+      });
+    });
+
     it('注文が見つからない場合、失敗を返す', async () => {
       vi.mocked(getStoreIdFromCookie).mockResolvedValue('store-1');
       vi.mocked(prisma.order.findFirst).mockResolvedValue(null);
@@ -306,13 +429,46 @@ describe('orderActions', () => {
       vi.mocked(getStoreIdFromCookie).mockResolvedValue('store-1');
       const mockOrder = { id: 'O0000001' };
       vi.mocked(prisma.order.findFirst).mockResolvedValue(mockOrder as any);
-      vi.mocked(prisma.$transaction).mockResolvedValue(undefined);
+
+      const updateManyMock = vi.fn().mockResolvedValue({ count: 1 });
+      const updateMock = vi.fn().mockResolvedValue({ id: 'O0000001' });
+      vi.mocked(prisma.$transaction).mockImplementation(async (fn: any) => {
+        const tx = {
+          orderDetail: {
+            updateMany: updateManyMock,
+          },
+          order: {
+            update: updateMock,
+          },
+        };
+        await fn(tx);
+        return undefined;
+      });
 
       const result = await deleteOrder('O0000001');
 
       expect(result).toEqual({
         success: true,
         message: '注文が正常に削除されました',
+      });
+      expect(updateManyMock).toHaveBeenCalledWith({
+        where: {
+          orderId: 'O0000001',
+          isDeleted: false,
+        },
+        data: {
+          isDeleted: true,
+          deletedAt: expect.any(Date),
+        },
+      });
+      expect(updateMock).toHaveBeenCalledWith({
+        where: {
+          id: 'O0000001',
+        },
+        data: {
+          isDeleted: true,
+          deletedAt: expect.any(Date),
+        },
       });
     });
 
@@ -347,6 +503,17 @@ describe('orderActions', () => {
       ],
     };
 
+    it('店舗IDがない場合、失敗を返す', async () => {
+      vi.mocked(getStoreIdFromCookie).mockResolvedValue(null);
+
+      const result = await updateOrder('O0000001', mockUpdateData);
+
+      expect(result).toEqual({
+        success: false,
+        error: '店舗を選択してください',
+      });
+    });
+
     it('注文が見つからない場合、失敗を返す', async () => {
       vi.mocked(getStoreIdFromCookie).mockResolvedValue('store-1');
       vi.mocked(prisma.order.findFirst).mockResolvedValue(null);
@@ -359,6 +526,19 @@ describe('orderActions', () => {
       });
     });
 
+    it('顧客が見つからない場合、失敗を返す', async () => {
+      vi.mocked(getStoreIdFromCookie).mockResolvedValue('store-1');
+      vi.mocked(prisma.order.findFirst).mockResolvedValue({ id: 'O0000001' } as any);
+      vi.mocked(prisma.customer.findFirst).mockResolvedValue(null);
+
+      const result = await updateOrder('O0000001', mockUpdateData);
+
+      expect(result).toEqual({
+        success: false,
+        error: '指定された顧客が見つかりません',
+      });
+    });
+
     it('正常な場合、成功を返す', async () => {
       vi.mocked(getStoreIdFromCookie).mockResolvedValue('store-1');
       vi.mocked(prisma.customer.findFirst).mockResolvedValue({
@@ -367,28 +547,64 @@ describe('orderActions', () => {
         storeId: 'store-1',
         isDeleted: false,
       } as any);
-      const mockOrder = { id: 'O0000001' };
-      const mockTransactionResult = {
-        order: {
-          id: 'O0000001',
-          orderDate: new Date('2025-01-01'),
-        },
-        orderDetails: [
-          {
-            id: 'O0000001-02',
-            productName: '更新された商品',
-          },
-        ],
-      };
+      vi.mocked(prisma.order.findFirst).mockResolvedValue({ id: 'O0000001' } as any);
 
-      vi.mocked(prisma.order.findFirst).mockResolvedValue(mockOrder as any);
-      vi.mocked(prisma.$transaction).mockResolvedValue(mockTransactionResult);
+      const updateMock = vi.fn().mockResolvedValue({ id: 'O0000001' });
+      const updateManyMock = vi.fn().mockResolvedValue({ count: 1 });
+      const createMock = vi.fn().mockResolvedValue({ id: 'O0000001-02' });
+      const findManyMock = vi.fn().mockResolvedValue([{ id: 'O0000001-01' }]);
+
+      vi.mocked(prisma.$transaction).mockImplementation(async (fn: any) => {
+        const tx = {
+          order: {
+            update: updateMock,
+          },
+          orderDetail: {
+            updateMany: updateManyMock,
+            create: createMock,
+            findMany: findManyMock,
+          },
+        };
+        return await fn(tx);
+      });
 
       const result = await updateOrder('O0000001', mockUpdateData);
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual(mockTransactionResult);
+      expect(updateMock).toHaveBeenCalledWith({
+        where: {
+          id: 'O0000001',
+        },
+        data: {
+          orderDate: new Date('2025-01-01'),
+          customerId: 'C-00001',
+          note: '更新されたメモ',
+          status: '完了',
+        },
+      });
+      expect(updateManyMock).toHaveBeenCalledWith({
+        where: {
+          orderId: 'O0000001',
+          isDeleted: false,
+        },
+        data: {
+          isDeleted: true,
+          deletedAt: expect.any(Date),
+        },
+      });
     });
 
+    it('エラーが発生した場合、失敗を返す', async () => {
+      vi.mocked(getStoreIdFromCookie).mockResolvedValue('store-1');
+      vi.mocked(prisma.order.findFirst).mockRejectedValue(new Error('Database error'));
+
+      const result = await updateOrder('O0000001', mockUpdateData);
+
+      expect(result).toEqual({
+        success: false,
+        error: '注文の更新に失敗しました',
+      });
+      expect(logger.error).toHaveBeenCalled();
+    });
   });
 });
