@@ -59,7 +59,11 @@ const fetchCustomers = async (): Promise<Customer[]> => {
   try {
     const result = await fetchAllCustomers();
     if (result.status === 'success') {
-      return result.data;
+      return result.data.map(customer => ({
+        ...customer,
+        updatedAt: new Date(customer.updatedAt),
+        deletedAt: customer.deletedAt ? new Date(customer.deletedAt) : null
+      }));
     }
     return [];
   } catch (error) {
