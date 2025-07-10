@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderHook } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useStoreRedirect } from '../useStoreRedirect';
@@ -228,7 +227,7 @@ describe('useStoreRedirect', () => {
       const { logger } = await import('@/lib/logger');
       const { usePathname } = await import('next/navigation');
       const { useStore } = await import('@/app/contexts/StoreContext');
-      vi.mocked(useStore).mockReturnValue({ selectedStore: false as any });
+      vi.mocked(useStore).mockReturnValue({ selectedStore: false as unknown as { id: string, name: string } });
       vi.mocked(usePathname).mockReturnValue('/dashboard');
 
       renderHook(() => useStoreRedirect());

@@ -165,8 +165,8 @@ describe('useServerActionStoreCheck', () => {
       const { result } = renderHook(() => useServerActionStoreCheck());
 
       act(() => {
-        const redirected1 = result.current.checkStoreRequirement(undefined as any);
-        const redirected2 = result.current.checkStoreRequirement(null as any);
+        const redirected1 = result.current.checkStoreRequirement(undefined as unknown as Record<string, unknown>);
+        const redirected2 = result.current.checkStoreRequirement(null as unknown as Record<string, unknown>);
         expect(redirected1).toBe(false);
         expect(redirected2).toBe(false);
       });

@@ -149,7 +149,7 @@ describe('useFilteredOrders', () => {
   describe('未知のfieldでの動作', () => {
     it('未知のfieldの場合、全フィールド検索として動作する', () => {
       const { result } = renderHook(() =>
-        useFilteredOrders(mockOrders, '田中', 'unknownField' as any)
+        useFilteredOrders(mockOrders, '田中', 'unknownField' as keyof typeof mockOrders[0])
       );
 
       expect(result.current).toHaveLength(2);

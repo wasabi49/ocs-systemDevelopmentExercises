@@ -5,7 +5,6 @@ import {
 } from '../statisticsActions';
 import prisma from '@/lib/prisma';
 import { getStoreIdFromCookie } from '@/app/utils/storeUtils';
-import { logger } from '@/lib/logger';
 
 // Mock prisma
 vi.mock('@/lib/prisma', () => ({
@@ -97,7 +96,7 @@ describe('statisticsActions', () => {
 
       vi.mocked(getStoreIdFromCookie).mockResolvedValue(mockStoreId);
       vi.mocked(prisma.store.findUnique).mockResolvedValue({ id: mockStoreId });
-      vi.mocked(prisma.statistics.findMany).mockResolvedValue(mockStatistics as any);
+      vi.mocked(prisma.statistics.findMany).mockResolvedValue(mockStatistics as unknown as Array<{ customerId: string; averageLeadTime: number; totalSales: number; updatedAt: Date; customer: { id: string; name: string } }>);
 
       const result = await fetchStatistics();
 
@@ -172,12 +171,12 @@ describe('statisticsActions', () => {
       ];
 
       vi.mocked(getStoreIdFromCookie).mockResolvedValue(mockStoreId);
-      vi.mocked(prisma.customer.findMany).mockResolvedValue(mockCustomers as any);
-      vi.mocked(prisma.order.findMany).mockResolvedValue(mockOrders as any);
+      vi.mocked(prisma.customer.findMany).mockResolvedValue(mockCustomers as unknown as Array<{ id: string }>);
+      vi.mocked(prisma.order.findMany).mockResolvedValue(mockOrders as unknown as Array<{ id: string; customerId: string; orderDate: Date; orderDetails: Array<{ unitPrice: number; quantity: number; isDeleted: boolean }> }>);
       vi.mocked(prisma.delivery.findFirst).mockResolvedValue({
         deliveryDate: new Date('2025-01-06'),
-      } as any);
-      vi.mocked(prisma.statistics.upsert).mockResolvedValue({} as any);
+      } as unknown as { deliveryDate: Date });
+      vi.mocked(prisma.statistics.upsert).mockResolvedValue({} as unknown as Record<string, unknown>);
 
       const result = await recalculateStatistics();
 
@@ -224,9 +223,9 @@ describe('statisticsActions', () => {
       ];
 
       vi.mocked(getStoreIdFromCookie).mockResolvedValue(mockStoreId);
-      vi.mocked(prisma.customer.findMany).mockResolvedValue(mockCustomers as any);
+      vi.mocked(prisma.customer.findMany).mockResolvedValue(mockCustomers as unknown as Array<{ id: string }>);
       vi.mocked(prisma.order.findMany).mockResolvedValue([]); // 注文なし
-      vi.mocked(prisma.statistics.upsert).mockResolvedValue({} as any);
+      vi.mocked(prisma.statistics.upsert).mockResolvedValue({} as unknown as Record<string, unknown>);
 
       const result = await recalculateStatistics();
 
@@ -253,7 +252,7 @@ describe('statisticsActions', () => {
       const mockCustomers = [{ id: 'C-00001' }];
 
       vi.mocked(getStoreIdFromCookie).mockResolvedValue(mockStoreId);
-      vi.mocked(prisma.customer.findMany).mockResolvedValue(mockCustomers as any);
+      vi.mocked(prisma.customer.findMany).mockResolvedValue(mockCustomers as unknown as Array<{ id: string }>);
       vi.mocked(prisma.order.findMany).mockResolvedValue([]);
       vi.mocked(prisma.statistics.upsert).mockRejectedValue(new Error('Upsert error'));
 

@@ -40,7 +40,7 @@ describe('storeActions', () => {
         },
       ];
 
-      vi.mocked(prisma.store.findMany).mockResolvedValue(mockStores as any);
+      vi.mocked(prisma.store.findMany).mockResolvedValue(mockStores as unknown as Array<{ id: string; name: string }>);
 
       const result = await getAllStores();
 
@@ -81,7 +81,7 @@ describe('storeActions', () => {
         },
       ];
 
-      vi.mocked(prisma.store.findMany).mockResolvedValue(mockStores as any);
+      vi.mocked(prisma.store.findMany).mockResolvedValue(mockStores as unknown as Array<{ id: string; name: string }>);
 
       const result = await fetchStoresAction({
         stores: [],
@@ -120,7 +120,7 @@ describe('storeActions', () => {
         name: '店舗1',
       };
 
-      vi.mocked(prisma.store.findUnique).mockResolvedValue(mockStore as any);
+      vi.mocked(prisma.store.findUnique).mockResolvedValue(mockStore as unknown as { id: string; name: string });
 
       const result = await getStoreById('store-1');
 

@@ -274,7 +274,7 @@ describe('useGenericSearch', () => {
 
     it('存在しないフィールドを指定してもエラーにならない', () => {
       const { result } = renderHook(() =>
-        useGenericSearch(mockItems, 'test', ['nonExistentField' as any])
+        useGenericSearch(mockItems, 'test', ['nonExistentField' as keyof TestItem])
       );
 
       expect(result.current).toEqual([]);

@@ -177,9 +177,9 @@ describe('sortUtils', () => {
 
     it('文字列形式の日付を正しくソートできる', () => {
       const itemsWithStringDates = [
-        { id: '3', name: 'Charlie', date: '2025-01-03' as any, count: 30 },
-        { id: '1', name: 'Alice', date: '2025-01-01' as any, count: 10 },
-        { id: '2', name: 'Bob', date: '2025-01-02' as any, count: 20 },
+        { id: '3', name: 'Charlie', date: '2025-01-03' as unknown as Date, count: 30 },
+        { id: '1', name: 'Alice', date: '2025-01-01' as unknown as Date, count: 10 },
+        { id: '2', name: 'Bob', date: '2025-01-02' as unknown as Date, count: 20 },
       ];
 
       const result = sortItems(itemsWithStringDates, 'date', null, setSortConfigMock);
@@ -193,9 +193,9 @@ describe('sortUtils', () => {
 
     it('null/undefined値を含むデータを正しくソートできる', () => {
       const itemsWithNulls = [
-        { id: '3', name: null as any, date: new Date('2025-01-03'), count: 30 },
+        { id: '3', name: null as unknown as string, date: new Date('2025-01-03'), count: 30 },
         { id: '1', name: 'Alice', date: new Date('2025-01-01'), count: 10 },
-        { id: '2', name: undefined as any, date: new Date('2025-01-02'), count: 20 },
+        { id: '2', name: undefined as unknown as string, date: new Date('2025-01-02'), count: 20 },
       ];
 
       const result = sortItems(itemsWithNulls, 'name', null, setSortConfigMock);

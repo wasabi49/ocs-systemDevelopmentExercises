@@ -90,8 +90,8 @@ describe('customerActions', () => {
       ];
 
       vi.mocked(getStoreIdFromCookie).mockResolvedValue(mockStoreId);
-      vi.mocked(prisma.store.findUnique).mockResolvedValue({ id: mockStoreId, name: 'Store 1' } as any);
-      vi.mocked(prisma.customer.findMany).mockResolvedValue(mockCustomers as any);
+      vi.mocked(prisma.store.findUnique).mockResolvedValue({ id: mockStoreId, name: 'Store 1' } as unknown as { id: string; name: string });
+      vi.mocked(prisma.customer.findMany).mockResolvedValue(mockCustomers as unknown as Array<{ id: string; name: string; updatedAt: Date; deletedAt: Date | null }>);
 
       const result = await fetchCustomers();
 
@@ -168,7 +168,7 @@ describe('customerActions', () => {
         },
       };
 
-      vi.mocked(prisma.customer.findFirst).mockResolvedValue(mockCustomer as any);
+      vi.mocked(prisma.customer.findFirst).mockResolvedValue(mockCustomer as unknown as { id: string; name: string; updatedAt: Date; deletedAt: Date | null });
 
       const result = await fetchCustomerById('C-00001');
 
@@ -208,7 +208,7 @@ describe('customerActions', () => {
         statistics: null,
       };
 
-      vi.mocked(prisma.customer.findFirst).mockResolvedValue(mockCustomer as any);
+      vi.mocked(prisma.customer.findFirst).mockResolvedValue(mockCustomer as unknown as { id: string; name: string; updatedAt: Date; deletedAt: Date | null });
 
       const result = await fetchCustomerById('C-00001');
 
@@ -235,7 +235,7 @@ describe('customerActions', () => {
         },
       };
 
-      vi.mocked(prisma.customer.findFirst).mockResolvedValue(mockCustomer as any);
+      vi.mocked(prisma.customer.findFirst).mockResolvedValue(mockCustomer as unknown as { id: string; name: string; updatedAt: Date; deletedAt: Date | null });
 
       const result = await fetchCustomerById('C-00001');
 
@@ -266,7 +266,7 @@ describe('customerActions', () => {
         },
       };
 
-      vi.mocked(prisma.customer.findFirst).mockResolvedValue(mockCustomer as any);
+      vi.mocked(prisma.customer.findFirst).mockResolvedValue(mockCustomer as unknown as { id: string; name: string; updatedAt: Date; deletedAt: Date | null });
 
       const result = await fetchCustomerById('C-00001');
 
@@ -328,7 +328,7 @@ describe('customerActions', () => {
       ];
 
       vi.mocked(getStoreIdFromCookie).mockResolvedValue(mockStoreId);
-      vi.mocked(prisma.customer.findMany).mockResolvedValue(mockCustomers as any);
+      vi.mocked(prisma.customer.findMany).mockResolvedValue(mockCustomers as unknown as Array<{ id: string; name: string; updatedAt: Date; deletedAt: Date | null }>);
 
       const result = await fetchAllCustomers();
 
@@ -470,12 +470,12 @@ describe('customerActions', () => {
       ];
 
       vi.mocked(prisma.store.findUnique).mockResolvedValue(mockStore);
-      vi.mocked(prisma.customer.findMany).mockResolvedValue(mockExistingCustomers as any);
-      vi.mocked(prisma.customer.findFirst).mockResolvedValue({ id: 'C-00002' } as any);
+      vi.mocked(prisma.customer.findMany).mockResolvedValue(mockExistingCustomers as unknown as Array<{ id: string; name: string }>);
+      vi.mocked(prisma.customer.findFirst).mockResolvedValue({ id: 'C-00002' } as unknown as { id: string });
       vi.mocked(prisma.customer.findUnique).mockResolvedValue(null);
 
       // トランザクション内の処理をモック
-      vi.mocked(prisma.$transaction).mockImplementation(async (fn: any) => {
+      vi.mocked(prisma.$transaction).mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
         const tx = {
           customer: {
             create: vi.fn(),
@@ -558,10 +558,10 @@ describe('customerActions', () => {
         };
 
         vi.mocked(prisma.store.findUnique).mockResolvedValue(mockStore);
-        vi.mocked(prisma.customer.findMany).mockResolvedValue([mockExistingCustomer] as any);
+        vi.mocked(prisma.customer.findMany).mockResolvedValue([mockExistingCustomer] as unknown as Array<{ id: string; name: string }>);
 
         const updateMock = vi.fn();
-        vi.mocked(prisma.$transaction).mockImplementation(async (fn: any) => {
+        vi.mocked(prisma.$transaction).mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
           const tx = {
             customer: {
               update: updateMock,
@@ -602,13 +602,13 @@ describe('customerActions', () => {
       ];
 
       vi.mocked(getStoreIdFromCookie).mockResolvedValue('store-1');
-      vi.mocked(prisma.store.findUnique).mockResolvedValue({ id: 'store-1', name: 'Store 1' } as any);
+      vi.mocked(prisma.store.findUnique).mockResolvedValue({ id: 'store-1', name: 'Store 1' } as unknown as { id: string; name: string });
       vi.mocked(prisma.customer.findMany).mockResolvedValue([{
         id: 'C-00001',
         name: '顧客1',
         contactPerson: '担当者1',
         store: { name: '店舗1' },
-      }] as any);
+      }] as unknown as Array<{ id: string; name: string; updatedAt: Date; deletedAt: Date | null }>);
 
       const result = await fetchCustomersAction();
 
@@ -657,11 +657,11 @@ describe('customerActions', () => {
 
       vi.mocked(prisma.store.findUnique).mockResolvedValue({ id: 'store-1', name: '店舗1' });
       vi.mocked(prisma.customer.findMany).mockResolvedValue([]);
-      vi.mocked(prisma.customer.findFirst).mockResolvedValue({ id: 'C-00005' } as any);
+      vi.mocked(prisma.customer.findFirst).mockResolvedValue({ id: 'C-00005' } as unknown as { id: string });
       vi.mocked(prisma.customer.findUnique).mockResolvedValue(null);
 
       const createMock = vi.fn();
-      vi.mocked(prisma.$transaction).mockImplementation(async (fn: any) => {
+      vi.mocked(prisma.$transaction).mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
         const tx = {
           customer: {
             create: createMock,
@@ -695,7 +695,7 @@ describe('customerActions', () => {
       vi.mocked(prisma.customer.findUnique).mockResolvedValue(null);
 
       const createMock = vi.fn();
-      vi.mocked(prisma.$transaction).mockImplementation(async (fn: any) => {
+      vi.mocked(prisma.$transaction).mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
         const tx = {
           customer: {
             create: createMock,
@@ -724,7 +724,7 @@ describe('customerActions', () => {
       vi.mocked(prisma.store.findUnique).mockResolvedValue({ id: 'store-1', name: '店舗1' });
       vi.mocked(prisma.customer.findMany).mockResolvedValue([]);
       
-      const dbError: any = new Error('Unique constraint failed');
+      const dbError = new Error('Unique constraint failed') as Error & { code: string };
       dbError.code = 'P2002';
       vi.mocked(prisma.$transaction).mockRejectedValue(dbError);
 
@@ -745,7 +745,7 @@ describe('customerActions', () => {
       vi.mocked(prisma.store.findUnique).mockResolvedValue({ id: 'store-1', name: '店舗1' });
       vi.mocked(prisma.customer.findMany).mockResolvedValue([]);
       
-      const dbError: any = new Error('Foreign key constraint failed');
+      const dbError = new Error('Foreign key constraint failed') as Error & { code: string };
       dbError.code = 'P2003';
       vi.mocked(prisma.$transaction).mockRejectedValue(dbError);
 

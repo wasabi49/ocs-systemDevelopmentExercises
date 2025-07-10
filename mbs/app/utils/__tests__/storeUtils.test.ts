@@ -25,7 +25,7 @@ describe('storeUtils', () => {
           .mockReturnValueOnce({ value: 'store-1' }) // selectedStoreId
           .mockReturnValueOnce({ value: '店舗1' }),  // selectedStoreName
       };
-      vi.mocked(cookies).mockResolvedValue(mockCookieStore as any);
+      vi.mocked(cookies).mockResolvedValue(mockCookieStore as unknown as ReturnType<typeof import('next/headers').cookies>);
 
       const result = await getStoreFromCookie();
 
@@ -44,7 +44,7 @@ describe('storeUtils', () => {
           .mockReturnValueOnce({ value: 'store-1' }) // selectedStoreId
           .mockReturnValueOnce(undefined),           // selectedStoreName
       };
-      vi.mocked(cookies).mockResolvedValue(mockCookieStore as any);
+      vi.mocked(cookies).mockResolvedValue(mockCookieStore as unknown as ReturnType<typeof import('next/headers').cookies>);
 
       const result = await getStoreFromCookie();
 
@@ -59,7 +59,7 @@ describe('storeUtils', () => {
       const mockCookieStore = {
         get: vi.fn().mockReturnValue(undefined),
       };
-      vi.mocked(cookies).mockResolvedValue(mockCookieStore as any);
+      vi.mocked(cookies).mockResolvedValue(mockCookieStore as unknown as ReturnType<typeof import('next/headers').cookies>);
 
       const result = await getStoreFromCookie();
 
@@ -72,7 +72,7 @@ describe('storeUtils', () => {
       const mockCookieStore = {
         get: vi.fn().mockReturnValue({ value: '' }),
       };
-      vi.mocked(cookies).mockResolvedValue(mockCookieStore as any);
+      vi.mocked(cookies).mockResolvedValue(mockCookieStore as unknown as ReturnType<typeof import('next/headers').cookies>);
 
       const result = await getStoreFromCookie();
 
@@ -95,7 +95,7 @@ describe('storeUtils', () => {
           throw new Error('Parse error');
         }),
       };
-      vi.mocked(cookies).mockResolvedValue(mockCookieStore as any);
+      vi.mocked(cookies).mockResolvedValue(mockCookieStore as unknown as ReturnType<typeof import('next/headers').cookies>);
 
       const result = await getStoreFromCookie();
 
@@ -109,7 +109,7 @@ describe('storeUtils', () => {
           .mockReturnValueOnce({ value: 'store-1' }) // selectedStoreId
           .mockReturnValueOnce({ value: null }),     // selectedStoreName with null value
       };
-      vi.mocked(cookies).mockResolvedValue(mockCookieStore as any);
+      vi.mocked(cookies).mockResolvedValue(mockCookieStore as unknown as ReturnType<typeof import('next/headers').cookies>);
 
       const result = await getStoreFromCookie();
 
@@ -126,7 +126,7 @@ describe('storeUtils', () => {
       const mockCookieStore = {
         get: vi.fn().mockReturnValue({ value: 'store-1' }),
       };
-      vi.mocked(cookies).mockResolvedValue(mockCookieStore as any);
+      vi.mocked(cookies).mockResolvedValue(mockCookieStore as unknown as ReturnType<typeof import('next/headers').cookies>);
 
       const result = await getStoreIdFromCookie();
 
@@ -139,7 +139,7 @@ describe('storeUtils', () => {
       const mockCookieStore = {
         get: vi.fn().mockReturnValue(undefined),
       };
-      vi.mocked(cookies).mockResolvedValue(mockCookieStore as any);
+      vi.mocked(cookies).mockResolvedValue(mockCookieStore as unknown as ReturnType<typeof import('next/headers').cookies>);
 
       const result = await getStoreIdFromCookie();
 
@@ -151,7 +151,7 @@ describe('storeUtils', () => {
       const mockCookieStore = {
         get: vi.fn().mockReturnValue({ value: '' }),
       };
-      vi.mocked(cookies).mockResolvedValue(mockCookieStore as any);
+      vi.mocked(cookies).mockResolvedValue(mockCookieStore as unknown as ReturnType<typeof import('next/headers').cookies>);
 
       const result = await getStoreIdFromCookie();
 
@@ -174,7 +174,7 @@ describe('storeUtils', () => {
           throw new Error('Parse error');
         }),
       };
-      vi.mocked(cookies).mockResolvedValue(mockCookieStore as any);
+      vi.mocked(cookies).mockResolvedValue(mockCookieStore as unknown as ReturnType<typeof import('next/headers').cookies>);
 
       const result = await getStoreIdFromCookie();
 
@@ -186,7 +186,7 @@ describe('storeUtils', () => {
       const mockCookieStore = {
         get: vi.fn().mockReturnValue({ value: null }),
       };
-      vi.mocked(cookies).mockResolvedValue(mockCookieStore as any);
+      vi.mocked(cookies).mockResolvedValue(mockCookieStore as unknown as ReturnType<typeof import('next/headers').cookies>);
 
       const result = await getStoreIdFromCookie();
 
@@ -198,7 +198,7 @@ describe('storeUtils', () => {
       const mockCookieStore = {
         get: vi.fn().mockReturnValue({ value: undefined }),
       };
-      vi.mocked(cookies).mockResolvedValue(mockCookieStore as any);
+      vi.mocked(cookies).mockResolvedValue(mockCookieStore as unknown as ReturnType<typeof import('next/headers').cookies>);
 
       const result = await getStoreIdFromCookie();
 
@@ -213,7 +213,7 @@ describe('storeUtils', () => {
         const mockCookieStore = {
           get: vi.fn().mockReturnValue({ value: storeId }),
         };
-        vi.mocked(cookies).mockResolvedValue(mockCookieStore as any);
+        vi.mocked(cookies).mockResolvedValue(mockCookieStore as unknown as ReturnType<typeof import('next/headers').cookies>);
 
         const result = await getStoreIdFromCookie();
 
