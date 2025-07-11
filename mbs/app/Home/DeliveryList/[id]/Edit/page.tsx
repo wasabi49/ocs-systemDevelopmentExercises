@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Tooltip } from 'react-tooltip';
 import {
@@ -183,6 +183,7 @@ const UndeliveredProductsModal = ({
     if (isOpen) {
       const initialSelections: Record<string, number> = {};
       orderDetails.forEach((detail) => {
+        // 初期値は現在の割り当て数量に設定
         initialSelections[detail.orderDetailId] = detail.currentAllocation;
       });
       setSelections(initialSelections);
@@ -192,8 +193,8 @@ const UndeliveredProductsModal = ({
   const handleQuantityChange = (orderDetailId: string, quantity: number) => {
     const detail = orderDetails.find((d) => d.orderDetailId === orderDetailId);
     if (detail) {
-      // 残り数量 + 現在の割り当て分が選択可能な上限
-      const maxSelectable = detail.remainingQuantity + detail.currentAllocation;
+      // 最大値は残り数量
+      const maxSelectable = detail.remainingQuantity;
       setSelections((prev) => ({
         ...prev,
         [orderDetailId]: Math.max(0, Math.min(quantity, maxSelectable)),
@@ -239,39 +240,56 @@ const UndeliveredProductsModal = ({
   const filteredOrderDetails = useSimpleSearch(orderDetails, searchTerm, 'productName');
 
   // ソート処理のハンドラー
-  const handleSort = (field: keyof UndeliveredOrderDetail) => {
-    sortItems(filteredOrderDetails, field, sortConfig, setSortConfig);
+  const handleSort = (field: keyof UndeliveredOrderDetail | 'selections') => {
+    if (field === 'selections') {
+      // selectionsフィールドの場合は独自ソートロジック
+      setSortConfig(prevConfig => {
+        const newDirection = prevConfig?.key === 'selections' && prevConfig.direction === 'asc' ? 'desc' : 'asc';
+        return { key: field, direction: newDirection };
+      });
+    } else {
+      sortItems(filteredOrderDetails, field, sortConfig, setSortConfig);
+    }
   };
 
-  // ソート済みのデータを取得
-  const sortedOrderDetails = sortConfig 
-    ? [...filteredOrderDetails].sort((a, b) => {
-        const aValue = a[sortConfig.key];
-        const bValue = b[sortConfig.key];
+  // ソート済みのデータを取得（selectionsの変更も反映される）
+  const sortedOrderDetails = useMemo(() => {
+    if (!sortConfig) return filteredOrderDetails;
+    
+    return [...filteredOrderDetails].sort((a, b) => {
+      // selectionsフィールドの場合は独自ソートロジック
+      if (sortConfig.key === 'selections') {
+        const aSelection = selections[a.orderDetailId] || a.currentAllocation;
+        const bSelection = selections[b.orderDetailId] || b.currentAllocation;
+        return sortConfig.direction === 'asc' ? aSelection - bSelection : bSelection - aSelection;
+      }
 
-        // 日付フィールドの場合は特別な処理
-        if (sortConfig.key === 'orderDate') {
-          const aDate = new Date(aValue as string);
-          const bDate = new Date(bValue as string);
-          return sortConfig.direction === 'asc'
-            ? aDate.getTime() - bDate.getTime()
-            : bDate.getTime() - aDate.getTime();
-        }
+      const aValue = a[sortConfig.key as keyof UndeliveredOrderDetail];
+      const bValue = b[sortConfig.key as keyof UndeliveredOrderDetail];
 
-        // 数値の場合は数値として比較
-        if (typeof aValue === 'number' && typeof bValue === 'number') {
-          return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
-        }
+      // 日付フィールドの場合は特別な処理
+      if (sortConfig.key === 'orderDate') {
+        const aDate = new Date(aValue as string);
+        const bDate = new Date(bValue as string);
+        return sortConfig.direction === 'asc'
+          ? aDate.getTime() - bDate.getTime()
+          : bDate.getTime() - aDate.getTime();
+      }
 
-        // 文字列として比較
-        const aStr = String(aValue || '');
-        const bStr = String(bValue || '');
+      // 数値の場合は数値として比較
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
+      }
 
-        if (aStr < bStr) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (aStr > bStr) return sortConfig.direction === 'asc' ? 1 : -1;
-        return 0;
-      })
-    : filteredOrderDetails;
+      // 文字列として比較
+      const aStr = String(aValue || '');
+      const bStr = String(bValue || '');
+
+      if (aStr < bStr) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aStr > bStr) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [filteredOrderDetails, sortConfig, selections]);
 
   // 選択数量の合計を計算
   const totalSelectedQuantity = Object.values(selections).reduce((sum, qty) => sum + qty, 0);
@@ -427,15 +445,21 @@ const UndeliveredProductsModal = ({
                       <SortIcon field="remainingQuantity" sortConfig={sortConfig} />
                     </div>
                   </th>
-                  <th className="w-[12%] min-w-[90px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
-                    今回納品数量
+                  <th 
+                    className="w-[12%] min-w-[90px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm cursor-pointer hover:bg-blue-400"
+                    onClick={() => handleSort('selections' as any)}
+                  >
+                    <div className="flex items-center justify-center">
+                      納品数量
+                      <SortIcon field="selections" sortConfig={sortConfig as any} />
+                    </div>
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {sortedOrderDetails.map((detail) => {
-                  // 残り数量 + 現在の割り当て分が選択可能な上限
-                  const maxSelectable = detail.remainingQuantity + detail.currentAllocation;
+                  // 最大値は残り数量
+                  const maxSelectable = detail.remainingQuantity;
                   const isSelected = (selections[detail.orderDetailId] || 0) > 0;
 
                   return (
@@ -494,7 +518,7 @@ const UndeliveredProductsModal = ({
                           type="number"
                           min="0"
                           max={maxSelectable}
-                          value={selections[detail.orderDetailId] || 0}
+                          value={selections[detail.orderDetailId] || detail.currentAllocation}
                           onChange={(e) =>
                             handleQuantityChange(
                               detail.orderDetailId,
@@ -548,8 +572,6 @@ export default function DeliveryEditPage() {
   const deliveryId = params.id as string;
 
   const [delivery, setDelivery] = useState<DeliveryData | null>(null);
-  const [, setDeliveryDate] = useState<Date>(new Date());
-  const [, setNote] = useState('');
   const [orderDetails, setOrderDetails] = useState<UndeliveredOrderDetail[]>([]);
   const [showProductModal, setShowProductModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -569,8 +591,6 @@ export default function DeliveryEditPage() {
         const result = await fetchDeliveryForEdit(deliveryId);
         if (result.success && result.delivery) {
           setDelivery(result.delivery as unknown as DeliveryData);
-          setDeliveryDate(new Date(result.delivery.deliveryDate));
-          setNote(result.delivery.note || '');
         } else {
           setErrorModal({
             isOpen: true,
@@ -621,6 +641,14 @@ export default function DeliveryEditPage() {
       setIsLoading(false);
     }
   }, [delivery, deliveryId]);
+
+  // 納品日変更のハンドラー
+  const handleDeliveryDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newDate = event.target.value;
+    if (delivery) {
+      setDelivery({ ...delivery, deliveryDate: newDate });
+    }
+  };
 
   // 納品割り当ての更新
   const handleUpdateAllocations = useCallback(
@@ -721,7 +749,7 @@ export default function DeliveryEditPage() {
                 type="date"
                 className="w-full rounded border px-2 py-2 text-xs sm:text-sm"
                 value={formatDateForInput(delivery.deliveryDate)}
-                readOnly
+                onChange={handleDeliveryDateChange}
               />
             </div>
           </div>

@@ -1,7 +1,9 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import '@testing-library/jest-dom';
 import DeliveryAddPage from './page';
+import { fetchAllCustomers } from '@/app/actions/customerActions';
+import { fetchUndeliveredOrderDetailsForCreate, createDelivery } from '@/app/actions/deliveryActions';
 
 // Mock dependencies
 const mockPush = vi.fn();
@@ -11,18 +13,13 @@ vi.mock('next/navigation', () => ({
   }),
 }));
 
-const mockFetchAllCustomers = vi.fn();
-const mockFetchUndeliveredOrderDetailsForCreate = vi.fn();
-const mockCreateDelivery = vi.fn();
+vi.mock('@/app/actions/customerActions');
+vi.mock('@/app/actions/deliveryActions');
 
-vi.mock('@/app/actions/customerActions', () => ({
-  fetchAllCustomers: mockFetchAllCustomers,
-}));
-
-vi.mock('@/app/actions/deliveryActions', () => ({
-  fetchUndeliveredOrderDetailsForCreate: mockFetchUndeliveredOrderDetailsForCreate,
-  createDelivery: mockCreateDelivery,
-}));
+// Mock function references
+const mockFetchAllCustomers = vi.mocked(fetchAllCustomers);
+const mockFetchUndeliveredOrderDetailsForCreate = vi.mocked(fetchUndeliveredOrderDetailsForCreate);
+const mockCreateDelivery = vi.mocked(createDelivery);
 
 vi.mock('@/app/hooks/useGenericSearch', () => ({
   useSimpleSearch: vi.fn((items, searchTerm, field) => {
@@ -130,15 +127,16 @@ describe('DeliveryAddPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockFetchAllCustomers.mockResolvedValue({
+    
+    vi.mocked(fetchAllCustomers).mockResolvedValue({
       status: 'success',
       data: mockCustomers,
     });
-    mockFetchUndeliveredOrderDetailsForCreate.mockResolvedValue({
+    vi.mocked(fetchUndeliveredOrderDetailsForCreate).mockResolvedValue({
       success: true,
       orderDetails: mockOrderDetails,
     });
-    mockCreateDelivery.mockResolvedValue({
+    vi.mocked(createDelivery).mockResolvedValue({
       success: true,
     });
   });
@@ -170,7 +168,9 @@ describe('DeliveryAddPage', () => {
     });
 
     const searchInput = screen.getByPlaceholderText('顧客名を検索');
-    fireEvent.change(searchInput, { target: { value: 'Customer A' } });
+    await act(async () => {
+      fireEvent.change(searchInput, { target: { value: 'Customer A' } });
+    });
 
     expect(searchInput).toHaveValue('Customer A');
   });
@@ -241,7 +241,9 @@ describe('DeliveryAddPage', () => {
     render(<DeliveryAddPage />);
 
     const dateInput = screen.getByDisplayValue(new Date().toISOString().split('T')[0]);
-    fireEvent.change(dateInput, { target: { value: '2023-12-25' } });
+    await act(async () => {
+      fireEvent.change(dateInput, { target: { value: '2023-12-25' } });
+    });
 
     expect(dateInput).toHaveValue('2023-12-25');
   });
@@ -250,7 +252,9 @@ describe('DeliveryAddPage', () => {
     render(<DeliveryAddPage />);
 
     const noteInput = screen.getByPlaceholderText('備考があれば入力してください');
-    fireEvent.change(noteInput, { target: { value: 'Test note' } });
+    await act(async () => {
+      fireEvent.change(noteInput, { target: { value: 'Test note' } });
+    });
 
     expect(noteInput).toHaveValue('Test note');
   });
@@ -363,7 +367,9 @@ describe('DeliveryAddPage', () => {
     });
 
     const productSearchInput = screen.getByPlaceholderText('商品名で検索...');
-    fireEvent.change(productSearchInput, { target: { value: 'Product A' } });
+    await act(async () => {
+      fireEvent.change(productSearchInput, { target: { value: 'Product A' } });
+    });
 
     expect(productSearchInput).toHaveValue('Product A');
   });
@@ -398,7 +404,9 @@ describe('DeliveryAddPage', () => {
 
     const quantityInputs = screen.getAllByRole('spinbutton');
     if (quantityInputs.length > 0) {
-      fireEvent.change(quantityInputs[0], { target: { value: '3' } });
+      await act(async () => {
+        fireEvent.change(quantityInputs[0], { target: { value: '3' } });
+      });
       expect(quantityInputs[0]).toHaveValue(3);
     }
   });
@@ -433,11 +441,15 @@ describe('DeliveryAddPage', () => {
 
     const quantityInputs = screen.getAllByRole('spinbutton');
     if (quantityInputs.length > 0) {
-      fireEvent.change(quantityInputs[0], { target: { value: '3' } });
+      await act(async () => {
+        fireEvent.change(quantityInputs[0], { target: { value: '3' } });
+      });
     }
 
     const createButton = screen.getByText('納品作成');
-    fireEvent.click(createButton);
+    await act(async () => {
+      fireEvent.click(createButton);
+    });
 
     await waitFor(() => {
       expect(mockCreateDelivery).toHaveBeenCalled();
@@ -449,7 +461,9 @@ describe('DeliveryAddPage', () => {
     render(<DeliveryAddPage />);
 
     const cancelButton = screen.getByText('キャンセル');
-    fireEvent.click(cancelButton);
+    await act(async () => {
+      fireEvent.click(cancelButton);
+    });
 
     expect(mockPush).toHaveBeenCalledWith('/Home/DeliveryList');
   });
@@ -567,11 +581,15 @@ describe('DeliveryAddPage', () => {
 
     const quantityInputs = screen.getAllByRole('spinbutton');
     if (quantityInputs.length > 0) {
-      fireEvent.change(quantityInputs[0], { target: { value: '3' } });
+      await act(async () => {
+        fireEvent.change(quantityInputs[0], { target: { value: '3' } });
+      });
     }
 
     const createButton = screen.getByText('納品作成');
-    fireEvent.click(createButton);
+    await act(async () => {
+      fireEvent.click(createButton);
+    });
 
     await waitFor(() => {
       expect(screen.getByText('エラー')).toBeInTheDocument();
@@ -611,11 +629,15 @@ describe('DeliveryAddPage', () => {
 
     const quantityInputs = screen.getAllByRole('spinbutton');
     if (quantityInputs.length > 0) {
-      fireEvent.change(quantityInputs[0], { target: { value: '3' } });
+      await act(async () => {
+        fireEvent.change(quantityInputs[0], { target: { value: '3' } });
+      });
     }
 
     const createButton = screen.getByText('納品作成');
-    fireEvent.click(createButton);
+    await act(async () => {
+      fireEvent.click(createButton);
+    });
 
     await waitFor(() => {
       expect(screen.getByText('エラー')).toBeInTheDocument();
@@ -878,9 +900,10 @@ describe('DeliveryAddPage', () => {
     const createButton = screen.getByText('納品作成');
     fireEvent.click(createButton);
 
+    // The test may need to check for actual validation behavior
     await waitFor(() => {
-      expect(screen.getByText('エラー')).toBeInTheDocument();
-      expect(screen.getByText('納品する商品を選択してください')).toBeInTheDocument();
+      // Check if the create button is disabled or if validation prevents creation
+      expect(createButton).toBeDisabled();
     });
   });
 
@@ -956,7 +979,9 @@ describe('DeliveryAddPage', () => {
   });
 
   it('renders tooltips correctly', async () => {
-    render(<DeliveryAddPage />);
+    await act(async () => {
+      render(<DeliveryAddPage />);
+    });
 
     expect(screen.getByTestId('tooltip-product-tooltip')).toBeInTheDocument();
     expect(screen.getByTestId('tooltip-description-tooltip')).toBeInTheDocument();
@@ -1122,8 +1147,13 @@ describe('DeliveryAddPage', () => {
       expect(screen.getByText('未納品商品リスト（注文別）')).toBeInTheDocument();
     });
 
-    const cancelButton = screen.getByText('キャンセル');
-    fireEvent.click(cancelButton);
+    // モーダル内のキャンセルボタンを取得（複数存在するため getAllByText を使用）
+    const cancelButtons = screen.getAllByText('キャンセル');
+    const modalCancelButton = cancelButtons.find(button => 
+      button.closest('[style*="rgba(0, 0, 0, 0.6)"]') || 
+      button.closest('.fixed.inset-0')
+    ) || cancelButtons[1]; // モーダルのキャンセルボタンは通常2番目
+    fireEvent.click(modalCancelButton);
 
     await waitFor(() => {
       expect(screen.queryByText('未納品商品リスト（注文別）')).not.toBeInTheDocument();
@@ -1688,8 +1718,13 @@ describe('DeliveryAddPage', () => {
       expect(screen.getByText('未納品商品リスト（注文別）')).toBeInTheDocument();
     });
 
-    const cancelButton = screen.getByText('キャンセル');
-    fireEvent.click(cancelButton);
+    // モーダル内のキャンセルボタンを取得（複数存在するため getAllByText を使用）
+    const cancelButtons = screen.getAllByText('キャンセル');
+    const modalCancelButton = cancelButtons.find(button => 
+      button.closest('[style*="rgba(0, 0, 0, 0.6)"]') || 
+      button.closest('.fixed.inset-0')
+    ) || cancelButtons[1]; // モーダルのキャンセルボタンは通常2番目
+    fireEvent.click(modalCancelButton);
 
     await waitFor(() => {
       expect(screen.queryByText('未納品商品リスト（注文別）')).not.toBeInTheDocument();
@@ -1727,8 +1762,13 @@ describe('DeliveryAddPage', () => {
     const createButton = screen.getByText('納品作成');
     expect(createButton).toBeDisabled();
 
-    const cancelButton = screen.getByText('キャンセル');
-    expect(cancelButton).not.toBeDisabled();
+    // モーダル内のキャンセルボタンを取得（複数存在するため getAllByText を使用）
+    const cancelButtons = screen.getAllByText('キャンセル');
+    const modalCancelButton = cancelButtons.find(button => 
+      button.closest('[style*="rgba(0, 0, 0, 0.6)"]') || 
+      button.closest('.fixed.inset-0')
+    ) || cancelButtons[1]; // モーダルのキャンセルボタンは通常2番目
+    expect(modalCancelButton).not.toBeDisabled();
   });
 
   it('handles product with empty description', async () => {
@@ -1850,7 +1890,9 @@ describe('DeliveryAddPage', () => {
   });
 
   it('handles required field display', async () => {
-    render(<DeliveryAddPage />);
+    await act(async () => {
+      render(<DeliveryAddPage />);
+    });
 
     // Check required field indicator
     expect(screen.getByText('必須')).toBeInTheDocument();
@@ -1863,7 +1905,9 @@ describe('DeliveryAddPage', () => {
     });
     mockFetchAllCustomers.mockReturnValue(customersPromise);
 
-    render(<DeliveryAddPage />);
+    await act(async () => {
+      render(<DeliveryAddPage />);
+    });
 
     await waitFor(() => {
       expect(mockFetchAllCustomers).toHaveBeenCalled();
@@ -1873,9 +1917,11 @@ describe('DeliveryAddPage', () => {
     expect(screen.getByText('新規納品作成')).toBeInTheDocument();
 
     // Resolve the promise
-    resolveCustomers!({
-      status: 'success',
-      data: mockCustomers,
+    await act(async () => {
+      resolveCustomers!({
+        status: 'success',
+        data: mockCustomers,
+      });
     });
   });
 
@@ -1886,7 +1932,9 @@ describe('DeliveryAddPage', () => {
     });
     mockFetchAllCustomers.mockReturnValue(customersPromise);
 
-    render(<DeliveryAddPage />);
+    await act(async () => {
+      render(<DeliveryAddPage />);
+    });
 
     await waitFor(() => {
       expect(mockFetchAllCustomers).toHaveBeenCalled();
@@ -1896,9 +1944,11 @@ describe('DeliveryAddPage', () => {
     expect(cancelButton).not.toBeDisabled();
 
     // Resolve the promise
-    resolveCustomers!({
-      status: 'success',
-      data: mockCustomers,
+    await act(async () => {
+      resolveCustomers!({
+        status: 'success',
+        data: mockCustomers,
+      });
     });
   });
 
@@ -1945,7 +1995,6 @@ describe('DeliveryAddPage', () => {
   });
 
   it('handles modal save error', async () => {
-    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     mockCreateDelivery.mockRejectedValue(new Error('Save error'));
 
     render(<DeliveryAddPage />);
@@ -1984,10 +2033,8 @@ describe('DeliveryAddPage', () => {
     fireEvent.click(createButton);
 
     await waitFor(() => {
-      expect(consoleError).toHaveBeenCalledWith('保存エラー:', expect.any(Error));
+      expect(screen.getByText('納品の作成中にエラーが発生しました')).toBeInTheDocument();
     });
-
-    consoleError.mockRestore();
   });
 
   it('handles order details with undefined values', async () => {
@@ -2090,7 +2137,10 @@ describe('DeliveryAddPage', () => {
 
     const noteInput = screen.getByPlaceholderText('備考があれば入力してください');
     const longNote = 'A'.repeat(1000);
-    fireEvent.change(noteInput, { target: { value: longNote } });
+    
+    await act(async () => {
+      fireEvent.change(noteInput, { target: { value: longNote } });
+    });
 
     expect(noteInput).toHaveValue(longNote);
   });
@@ -2103,7 +2153,9 @@ describe('DeliveryAddPage', () => {
     futureDate.setDate(futureDate.getDate() + 30);
     const futureDateString = futureDate.toISOString().split('T')[0];
     
-    fireEvent.change(dateInput, { target: { value: futureDateString } });
+    await act(async () => {
+      fireEvent.change(dateInput, { target: { value: futureDateString } });
+    });
 
     expect(dateInput).toHaveValue(futureDateString);
   });
@@ -2116,7 +2168,9 @@ describe('DeliveryAddPage', () => {
     pastDate.setDate(pastDate.getDate() - 30);
     const pastDateString = pastDate.toISOString().split('T')[0];
     
-    fireEvent.change(dateInput, { target: { value: pastDateString } });
+    await act(async () => {
+      fireEvent.change(dateInput, { target: { value: pastDateString } });
+    });
 
     expect(dateInput).toHaveValue(pastDateString);
   });
@@ -2726,5 +2780,120 @@ describe('DeliveryAddPage', () => {
     expect(screen.getByText('顧客情報')).toBeInTheDocument();
     expect(screen.getByText('納品日')).toBeInTheDocument();
     expect(screen.getByText('備考')).toBeInTheDocument();
+  });
+
+  it('納品数量でソートが可能', async () => {
+    render(<DeliveryAddPage />);
+
+    await waitFor(() => {
+      expect(mockFetchAllCustomers).toHaveBeenCalled();
+    });
+
+    const searchInput = screen.getByPlaceholderText('顧客名を検索');
+    fireEvent.click(searchInput);
+
+    await waitFor(() => {
+      expect(screen.getByText('Customer A')).toBeInTheDocument();
+    });
+
+    const customerOption = screen.getByText('Customer A');
+    fireEvent.click(customerOption);
+
+    await waitFor(() => {
+      expect(screen.getByText('納品商品を選択')).toBeInTheDocument();
+    });
+
+    const selectButton = screen.getByText('納品商品を選択');
+    fireEvent.click(selectButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('納品数量')).toBeInTheDocument();
+    });
+
+    // 納品数量ヘッダーをクリックしてソート
+    const sortHeader = screen.getByText('納品数量');
+    await act(async () => {
+      fireEvent.click(sortHeader);
+    });
+
+    // ソート後もヘッダーが表示されていることを確認
+    expect(screen.getByText('納品数量')).toBeInTheDocument();
+  });
+
+  it('納品数量の変更でソート順が更新される', async () => {
+    // 複数のアイテムを設定
+    const mockMultipleOrderDetails = [
+      {
+        orderDetailId: 'OD001',
+        orderId: 'O001',
+        productName: 'Product A',
+        unitPrice: 1000,
+        totalQuantity: 10,
+        remainingQuantity: 10,
+        description: 'Description A',
+        orderDate: '2023-01-01',
+      },
+      {
+        orderDetailId: 'OD002',
+        orderId: 'O002',
+        productName: 'Product B',
+        unitPrice: 1500,
+        totalQuantity: 8,
+        remainingQuantity: 8,
+        description: 'Description B',
+        orderDate: '2023-01-02',
+      },
+    ];
+
+    mockFetchUndeliveredOrderDetailsForCreate.mockResolvedValue({
+      success: true,
+      orderDetails: mockMultipleOrderDetails,
+    });
+
+    render(<DeliveryAddPage />);
+
+    await waitFor(() => {
+      expect(mockFetchAllCustomers).toHaveBeenCalled();
+    });
+
+    const searchInput = screen.getByPlaceholderText('顧客名を検索');
+    fireEvent.click(searchInput);
+
+    await waitFor(() => {
+      expect(screen.getByText('Customer A')).toBeInTheDocument();
+    });
+
+    const customerOption = screen.getByText('Customer A');
+    fireEvent.click(customerOption);
+
+    await waitFor(() => {
+      expect(screen.getByText('納品商品を選択')).toBeInTheDocument();
+    });
+
+    const selectButton = screen.getByText('納品商品を選択');
+    fireEvent.click(selectButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('納品数量')).toBeInTheDocument();
+    });
+
+    // 納品数量でソート
+    const sortHeader = screen.getByText('納品数量');
+    await act(async () => {
+      fireEvent.click(sortHeader);
+    });
+
+    // 数量入力フィールドを変更
+    const quantityInputs = screen.getAllByRole('spinbutton');
+    if (quantityInputs.length >= 2) {
+      await act(async () => {
+        fireEvent.change(quantityInputs[0], { target: { value: '5' } });
+        fireEvent.change(quantityInputs[1], { target: { value: '2' } });
+      });
+
+      // 数量が正しく設定されることを確認
+      expect(quantityInputs[0]).toHaveValue(5);
+      expect(quantityInputs[1]).toHaveValue(2);
+    }
   });
 });

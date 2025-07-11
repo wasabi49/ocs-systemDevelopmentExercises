@@ -249,39 +249,56 @@ const UndeliveredProductsModal = ({
   const filteredOrderDetails = useSimpleSearch(orderDetails, searchTerm, 'productName');
 
   // ソート処理のハンドラー
-  const handleSort = (field: keyof UndeliveredOrderDetail) => {
-    sortItems(filteredOrderDetails, field, sortConfig, setSortConfig);
+  const handleSort = (field: keyof UndeliveredOrderDetail | 'selections') => {
+    if (field === 'selections') {
+      // selectionsフィールドの場合は独自ソートロジック
+      setSortConfig(prevConfig => {
+        const newDirection = prevConfig?.key === 'selections' && prevConfig.direction === 'asc' ? 'desc' : 'asc';
+        return { key: field, direction: newDirection };
+      });
+    } else {
+      sortItems(filteredOrderDetails, field, sortConfig, setSortConfig);
+    }
   };
 
-  // ソート済みのデータを取得
-  const sortedOrderDetails = sortConfig 
-    ? [...filteredOrderDetails].sort((a, b) => {
-        const aValue = a[sortConfig.key];
-        const bValue = b[sortConfig.key];
+  // ソート済みのデータを取得（selectionsの変更も反映される）
+  const sortedOrderDetails = useMemo(() => {
+    if (!sortConfig) return filteredOrderDetails;
+    
+    return [...filteredOrderDetails].sort((a, b) => {
+      // selectionsフィールドの場合は独自ソートロジック
+      if (sortConfig.key === 'selections') {
+        const aSelection = selections[a.orderDetailId] || 0;
+        const bSelection = selections[b.orderDetailId] || 0;
+        return sortConfig.direction === 'asc' ? aSelection - bSelection : bSelection - aSelection;
+      }
 
-        // 日付フィールドの場合は特別な処理
-        if (sortConfig.key === 'orderDate') {
-          const aDate = new Date(aValue as string);
-          const bDate = new Date(bValue as string);
-          return sortConfig.direction === 'asc'
-            ? aDate.getTime() - bDate.getTime()
-            : bDate.getTime() - aDate.getTime();
-        }
+      const aValue = a[sortConfig.key as keyof UndeliveredOrderDetail];
+      const bValue = b[sortConfig.key as keyof UndeliveredOrderDetail];
 
-        // 数値の場合は数値として比較
-        if (typeof aValue === 'number' && typeof bValue === 'number') {
-          return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
-        }
+      // 日付フィールドの場合は特別な処理
+      if (sortConfig.key === 'orderDate') {
+        const aDate = new Date(aValue as string);
+        const bDate = new Date(bValue as string);
+        return sortConfig.direction === 'asc'
+          ? aDate.getTime() - bDate.getTime()
+          : bDate.getTime() - aDate.getTime();
+      }
 
-        // 文字列として比較
-        const aStr = String(aValue || '');
-        const bStr = String(bValue || '');
+      // 数値の場合は数値として比較
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
+      }
 
-        if (aStr < bStr) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (aStr > bStr) return sortConfig.direction === 'asc' ? 1 : -1;
-        return 0;
-      })
-    : filteredOrderDetails;
+      // 文字列として比較
+      const aStr = String(aValue || '');
+      const bStr = String(bValue || '');
+
+      if (aStr < bStr) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aStr > bStr) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [filteredOrderDetails, sortConfig, selections]);
 
   // 選択数量の合計を計算
   const totalSelectedQuantity = Object.values(selections).reduce((sum, qty) => sum + qty, 0);
@@ -430,8 +447,14 @@ const UndeliveredProductsModal = ({
                       <SortIcon field="remainingQuantity" sortConfig={sortConfig} />
                     </div>
                   </th>
-                  <th className="w-[12%] min-w-[90px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm">
-                    今回納品数量
+                  <th 
+                    className="w-[12%] min-w-[90px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm cursor-pointer hover:bg-blue-400"
+                    onClick={() => handleSort('selections')}
+                  >
+                    <div className="flex items-center justify-center">
+                      納品数量
+                      <SortIcon field="selections" sortConfig={sortConfig} />
+                    </div>
                   </th>
                 </tr>
               </thead>

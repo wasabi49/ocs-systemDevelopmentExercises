@@ -199,7 +199,7 @@ export async function fetchUndeliveredOrderDetails(customerId: string, deliveryI
           .filter((allocation) => allocation.deliveryDetail.deliveryId === deliveryId)
           .reduce((sum, allocation) => sum + allocation.allocatedQuantity, 0);
 
-        // 残り数量を計算
+        // 残り数量を計算（編集画面では現在の納品分を戻して表示）
         const remainingQuantity = orderDetail.quantity - totalAllocatedInOtherDeliveries;
 
         // 残り数量がある場合のみ返す
