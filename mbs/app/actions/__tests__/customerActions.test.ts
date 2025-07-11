@@ -90,8 +90,8 @@ describe('customerActions', () => {
       ];
 
       vi.mocked(getStoreIdFromCookie).mockResolvedValue(mockStoreId);
-      vi.mocked(prisma.store.findUnique).mockResolvedValue({ id: mockStoreId, name: 'Store 1' } as unknown as { id: string; name: string });
-      vi.mocked(prisma.customer.findMany).mockResolvedValue(mockCustomers as unknown as Array<{ id: string; name: string; updatedAt: Date; deletedAt: Date | null }>);
+      vi.mocked(prisma.store.findUnique).mockResolvedValue({ id: mockStoreId, name: 'Store 1' });
+      vi.mocked(prisma.customer.findMany).mockResolvedValue(mockCustomers);
 
       const result = await fetchCustomers();
 
@@ -168,7 +168,7 @@ describe('customerActions', () => {
         },
       };
 
-      vi.mocked(prisma.customer.findFirst).mockResolvedValue(mockCustomer as unknown as { id: string; name: string; updatedAt: Date; deletedAt: Date | null });
+      vi.mocked(prisma.customer.findFirst).mockResolvedValue(mockCustomer);
 
       const result = await fetchCustomerById('C-00001');
 
@@ -208,7 +208,7 @@ describe('customerActions', () => {
         statistics: null,
       };
 
-      vi.mocked(prisma.customer.findFirst).mockResolvedValue(mockCustomer as unknown as { id: string; name: string; updatedAt: Date; deletedAt: Date | null });
+      vi.mocked(prisma.customer.findFirst).mockResolvedValue(mockCustomer);
 
       const result = await fetchCustomerById('C-00001');
 
@@ -235,7 +235,7 @@ describe('customerActions', () => {
         },
       };
 
-      vi.mocked(prisma.customer.findFirst).mockResolvedValue(mockCustomer as unknown as { id: string; name: string; updatedAt: Date; deletedAt: Date | null });
+      vi.mocked(prisma.customer.findFirst).mockResolvedValue(mockCustomer);
 
       const result = await fetchCustomerById('C-00001');
 
@@ -266,7 +266,7 @@ describe('customerActions', () => {
         },
       };
 
-      vi.mocked(prisma.customer.findFirst).mockResolvedValue(mockCustomer as unknown as { id: string; name: string; updatedAt: Date; deletedAt: Date | null });
+      vi.mocked(prisma.customer.findFirst).mockResolvedValue(mockCustomer);
 
       const result = await fetchCustomerById('C-00001');
 
@@ -328,7 +328,7 @@ describe('customerActions', () => {
       ];
 
       vi.mocked(getStoreIdFromCookie).mockResolvedValue(mockStoreId);
-      vi.mocked(prisma.customer.findMany).mockResolvedValue(mockCustomers as unknown as Array<{ id: string; name: string; updatedAt: Date; deletedAt: Date | null }>);
+      vi.mocked(prisma.customer.findMany).mockResolvedValue(mockCustomers);
 
       const result = await fetchAllCustomers();
 
@@ -391,8 +391,8 @@ describe('customerActions', () => {
   describe('importCustomersFromCSV', () => {
     const mockCSVData = [
       ['顧客ID', '店舗名', '顧客名', '担当者名', '住所', '電話番号', '配送条件', '備考'],
-      ['C-00001', '店舗1', '顧客1', '担当者1', '住所1', '090-1234-5678', '配送条件1', '備考1'],
-      ['', '店舗1', '新規顧客', '担当者2', '住所2', '090-8765-4321', '配送条件2', '備考2'],
+      ['00001', '店舗1', '顧客1', '担当者1', '住所1', '090-1234-5678', '配送条件1', '備考1'],
+      ['00003', '店舗1', '新規顧客', '担当者2', '住所2', '090-8765-4321', '配送条件2', '備考2'],
     ];
 
     it('店舗IDがない場合、エラーを返す', async () => {
@@ -436,6 +436,9 @@ describe('customerActions', () => {
       // Mock existing customers query
       vi.mocked(prisma.customer.findMany).mockResolvedValue([]);
       
+      // Mock ID validation
+      vi.mocked(prisma.customer.findUnique).mockResolvedValue(null);
+      
       vi.mocked(prisma.$transaction).mockRejectedValue(new Error('Transaction error'));
 
       const result = await importCustomersFromCSV(mockCSVData, 'store-1');
@@ -470,8 +473,7 @@ describe('customerActions', () => {
       ];
 
       vi.mocked(prisma.store.findUnique).mockResolvedValue(mockStore);
-      vi.mocked(prisma.customer.findMany).mockResolvedValue(mockExistingCustomers as unknown as Array<{ id: string; name: string }>);
-      vi.mocked(prisma.customer.findFirst).mockResolvedValue({ id: 'C-00002' } as unknown as { id: string });
+      vi.mocked(prisma.customer.findMany).mockResolvedValue(mockExistingCustomers);
       vi.mocked(prisma.customer.findUnique).mockResolvedValue(null);
 
       // トランザクション内の処理をモック
@@ -503,7 +505,7 @@ describe('customerActions', () => {
     it('店舗名が異なる場合、エラーを返す', async () => {
       const wrongStoreData = [
         ['顧客ID', '店舗名', '顧客名', '担当者名', '住所', '電話番号', '配送条件', '備考'],
-        ['C-00001', '異なる店舗', '顧客1', '担当者1', '住所1', '090-1234-5678', '配送条件1', '備考1'],
+        ['00001', '異なる店舗', '顧客1', '担当者1', '住所1', '090-1234-5678', '配送条件1', '備考1'],
       ];
 
       vi.mocked(prisma.store.findUnique).mockResolvedValue({ id: 'store-1', name: '店舗1' });
@@ -515,7 +517,7 @@ describe('customerActions', () => {
       expect(result.errorData).toEqual({
         currentStoreName: '店舗1',
         invalidCustomers: [{
-          customerId: 'C-00001',
+          customerId: '00001',
           storeName: '異なる店舗',
         }],
         moreCount: 0,
@@ -537,7 +539,7 @@ describe('customerActions', () => {
         
         const csvData = [
           ['顧客ID', '店舗名', '顧客名', '担当者名', '住所', '電話番号', '配送条件', '備考'],
-          ['C-00001', '店舗1', '顧客1', 
+          ['00001', '店舗1', '顧客1', 
            testCase.field === 'contactPerson' ? testCase.csvValue : '担当者1',
            testCase.field === 'address' ? testCase.csvValue : '住所1',
            testCase.field === 'phone' ? testCase.csvValue : '090-1234-5678',
@@ -602,7 +604,7 @@ describe('customerActions', () => {
       ];
 
       vi.mocked(getStoreIdFromCookie).mockResolvedValue('store-1');
-      vi.mocked(prisma.store.findUnique).mockResolvedValue({ id: 'store-1', name: 'Store 1' } as unknown as { id: string; name: string });
+      vi.mocked(prisma.store.findUnique).mockResolvedValue({ id: 'store-1', name: 'Store 1' });
       vi.mocked(prisma.customer.findMany).mockResolvedValue([{
         id: 'C-00001',
         name: '顧客1',
@@ -647,9 +649,8 @@ describe('customerActions', () => {
     });
   });
 
-  describe('generateCustomerId', () => {
-    // generateCustomerIdが内部関数のため、importCustomersFromCSVを通じてテスト
-    it('既存の顧客IDがある場合、次の番号を生成する', async () => {
+  describe('顧客ID検証', () => {
+    it('空の顧客番号の場合、エラーを返す', async () => {
       const csvData = [
         ['顧客ID', '店舗名', '顧客名', '担当者名', '住所', '電話番号', '配送条件', '備考'],
         ['', '店舗1', '新規顧客', '担当者', '住所', '電話', '条件', '備考'],
@@ -657,68 +658,36 @@ describe('customerActions', () => {
 
       vi.mocked(prisma.store.findUnique).mockResolvedValue({ id: 'store-1', name: '店舗1' });
       vi.mocked(prisma.customer.findMany).mockResolvedValue([]);
-      vi.mocked(prisma.customer.findFirst).mockResolvedValue({ id: 'C-00005' } as unknown as { id: string });
-      vi.mocked(prisma.customer.findUnique).mockResolvedValue(null);
 
-      const createMock = vi.fn();
-      vi.mocked(prisma.$transaction).mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
-        const tx = {
-          customer: {
-            create: createMock,
-            updateMany: vi.fn().mockResolvedValue({ count: 0 }),
-          },
-        };
-        await fn(tx);
-        return undefined;
-      });
+      const result = await importCustomersFromCSV(csvData, 'store-1');
 
-      await importCustomersFromCSV(csvData, 'store-1');
-
-      expect(createMock).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          id: 'C-00006',
-          storeId: 'store-1',
-          name: '新規顧客',
-        }),
+      expect(result).toEqual({
+        status: 'error',
+        error: '顧客IDの検証エラー:\n顧客「新規顧客」: 顧客番号が入力されていません',
       });
     });
 
-    it('既存の顧客IDがない場合、C-00001から開始する', async () => {
+    it('不正な形式の顧客番号の場合、エラーを返す', async () => {
       const csvData = [
         ['顧客ID', '店舗名', '顧客名', '担当者名', '住所', '電話番号', '配送条件', '備考'],
-        ['', '店舗1', '新規顧客', '担当者', '住所', '電話', '条件', '備考'],
+        ['INVALID', '店舗1', '新規顧客', '担当者', '住所', '電話', '条件', '備考'],
       ];
 
       vi.mocked(prisma.store.findUnique).mockResolvedValue({ id: 'store-1', name: '店舗1' });
       vi.mocked(prisma.customer.findMany).mockResolvedValue([]);
-      vi.mocked(prisma.customer.findFirst).mockResolvedValue(null);
-      vi.mocked(prisma.customer.findUnique).mockResolvedValue(null);
 
-      const createMock = vi.fn();
-      vi.mocked(prisma.$transaction).mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
-        const tx = {
-          customer: {
-            create: createMock,
-            updateMany: vi.fn().mockResolvedValue({ count: 0 }),
-          },
-        };
-        await fn(tx);
-        return undefined;
-      });
+      const result = await importCustomersFromCSV(csvData, 'store-1');
 
-      await importCustomersFromCSV(csvData, 'store-1');
-
-      expect(createMock).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          id: 'C-00001',
-        }),
+      expect(result).toEqual({
+        status: 'error',
+        error: '顧客IDの検証エラー:\n顧客「新規顧客」: 顧客番号「INVALID」が正しい形式ではありません（1-5桁の数字である必要があります）',
       });
     });
 
     it('P2002エラーの場合、重複エラーメッセージを返す', async () => {
       const csvData = [
         ['顧客ID', '店舗名', '顧客名', '担当者名', '住所', '電話番号', '配送条件', '備考'],
-        ['C-00001', '店舗1', '顧客1', '担当者1', '住所1', '090-1234-5678', '配送条件1', '備考1'],
+        ['00001', '店舗1', '顧客1', '担当者1', '住所1', '090-1234-5678', '配送条件1', '備考1'],
       ];
       
       vi.mocked(prisma.store.findUnique).mockResolvedValue({ id: 'store-1', name: '店舗1' });
@@ -739,7 +708,7 @@ describe('customerActions', () => {
     it('その他のデータベースエラーの場合、エラーコードを含むメッセージを返す', async () => {
       const csvData = [
         ['顧客ID', '店舗名', '顧客名', '担当者名', '住所', '電話番号', '配送条件', '備考'],
-        ['C-00001', '店舗1', '顧客1', '担当者1', '住所1', '090-1234-5678', '配送条件1', '備考1'],
+        ['00001', '店舗1', '顧客1', '担当者1', '住所1', '090-1234-5678', '配送条件1', '備考1'],
       ];
       
       vi.mocked(prisma.store.findUnique).mockResolvedValue({ id: 'store-1', name: '店舗1' });
@@ -755,6 +724,169 @@ describe('customerActions', () => {
         status: 'error',
         error: 'データベースエラー（P2003）',
       });
+    });
+  });
+
+  describe('CSVの5桁数字からC-XXXXX形式への変換機能', () => {
+    it('CSVに5桁数字が指定されている場合、C-XXXXX形式に変換してIDを使用する', async () => {
+      const csvData = [
+        ['顧客ID', '店舗名', '顧客名', '担当者名', '住所', '電話番号', '配送条件', '備考'],
+        ['12345', '店舗1', '新規顧客', '担当者', '住所', '電話', '条件', '備考'],
+      ];
+      
+      vi.mocked(prisma.store.findUnique).mockResolvedValue({ id: 'store-1', name: '店舗1' });
+      vi.mocked(prisma.customer.findMany).mockResolvedValue([]);
+      vi.mocked(prisma.customer.findUnique).mockResolvedValue(null); // IDが使用可能
+      
+      const createMock = vi.fn();
+      vi.mocked(prisma.$transaction).mockImplementation(async (fn) => {
+        const tx = {
+          customer: { create: createMock, update: vi.fn(), updateMany: vi.fn() },
+        };
+        await fn(tx);
+        return undefined;
+      });
+
+      const result = await importCustomersFromCSV(csvData, 'store-1');
+
+      expect(result.status).toBe('success');
+      expect(createMock).toHaveBeenCalledWith({
+        data: {
+          id: 'C-12345', // CSVの5桁数字がC-XXXXX形式に変換される
+          storeId: 'store-1',
+          name: '新規顧客',
+          contactPerson: '担当者',
+          address: '住所',
+          phone: '電話',
+          deliveryCondition: '条件',
+          note: '備考',
+        },
+      });
+    });
+
+    it('CSVに1-3桁数字が指定されている場合、0埋めしてC-XXXXX形式に変換してIDを使用する', async () => {
+      const csvData = [
+        ['顧客ID', '店舗名', '顧客名', '担当者名', '住所', '電話番号', '配送条件', '備考'],
+        ['123', '店舗1', '新規顧客', '担当者', '住所', '電話', '条件', '備考'],
+      ];
+      
+      vi.mocked(prisma.store.findUnique).mockResolvedValue({ id: 'store-1', name: '店舗1' });
+      vi.mocked(prisma.customer.findMany).mockResolvedValue([]);
+      vi.mocked(prisma.customer.findUnique).mockResolvedValue(null); // IDが使用可能
+      
+      const createMock = vi.fn();
+      vi.mocked(prisma.$transaction).mockImplementation(async (fn) => {
+        const tx = {
+          customer: { create: createMock, update: vi.fn(), updateMany: vi.fn() },
+        };
+        await fn(tx);
+        return undefined;
+      });
+
+      const result = await importCustomersFromCSV(csvData, 'store-1');
+
+      expect(result.status).toBe('success');
+      expect(createMock).toHaveBeenCalledWith({
+        data: {
+          id: 'C-00123', // CSVの3桁数字が0埋めしてC-XXXXX形式に変換される
+          storeId: 'store-1',
+          name: '新規顧客',
+          contactPerson: '担当者',
+          address: '住所',
+          phone: '電話',
+          deliveryCondition: '条件',
+          note: '備考',
+        },
+      });
+    });
+
+    it('CSVに顧客番号が空の場合、エラーを返す', async () => {
+      const csvData = [
+        ['顧客ID', '店舗名', '顧客名', '担当者名', '住所', '電話番号', '配送条件', '備考'],
+        ['', '店舗1', '新規顧客', '担当者', '住所', '電話', '条件', '備考'],
+      ];
+      
+      vi.mocked(prisma.store.findUnique).mockResolvedValue({ id: 'store-1', name: '店舗1' });
+      vi.mocked(prisma.customer.findMany).mockResolvedValue([]);
+
+      const result = await importCustomersFromCSV(csvData, 'store-1');
+
+      expect(result).toEqual({
+        status: 'error',
+        error: '顧客IDの検証エラー:\n顧客「新規顧客」: 顧客番号が入力されていません',
+      });
+    });
+
+    it('CSV内で顧客番号が重複している場合、エラーを返す', async () => {
+      const csvData = [
+        ['顧客ID', '店舗名', '顧客名', '担当者名', '住所', '電話番号', '配送条件', '備考'],
+        ['12345', '店舗1', '顧客1', '担当者1', '住所1', '電話1', '条件1', '備考1'],
+        ['12345', '店舗1', '顧客2', '担当者2', '住所2', '電話2', '条件2', '備考2'],
+      ];
+      
+      vi.mocked(prisma.store.findUnique).mockResolvedValue({ id: 'store-1', name: '店舗1' });
+
+      const result = await importCustomersFromCSV(csvData, 'store-1');
+
+      expect(result).toEqual({
+        status: 'error',
+        error: 'CSVファイル内で重複している顧客IDがあります: 12345',
+      });
+    });
+
+    it('CSVの顧客番号が既にデータベースに存在する場合、エラーを返す', async () => {
+      const csvData = [
+        ['顧客ID', '店舗名', '顧客名', '担当者名', '住所', '電話番号', '配送条件', '備考'],
+        ['12345', '店舗1', '新規顧客', '担当者', '住所', '電話', '条件', '備考'],
+      ];
+      
+      vi.mocked(prisma.store.findUnique).mockResolvedValue({ id: 'store-1', name: '店舗1' });
+      vi.mocked(prisma.customer.findMany).mockResolvedValue([]);
+      vi.mocked(prisma.customer.findUnique).mockResolvedValue({ id: 'C-12345' }); // 既存のID
+
+      const result = await importCustomersFromCSV(csvData, 'store-1');
+
+      expect(result).toEqual({
+        status: 'error',
+        error: expect.stringContaining('顧客ID「C-12345」は既に使用されています'),
+      });
+    });
+
+    it('CSVの顧客番号が正しい形式でない場合、エラーを返す', async () => {
+      const csvData = [
+        ['顧客ID', '店舗名', '顧客名', '担当者名', '住所', '電話番号', '配送条件', '備考'],
+        ['INVALID-ID', '店舗1', '新規顧客', '担当者', '住所', '電話', '条件', '備考'],
+      ];
+      
+      vi.mocked(prisma.store.findUnique).mockResolvedValue({ id: 'store-1', name: '店舗1' });
+      vi.mocked(prisma.customer.findMany).mockResolvedValue([]);
+
+      const result = await importCustomersFromCSV(csvData, 'store-1');
+
+      expect(result).toEqual({
+        status: 'error',
+        error: expect.stringContaining('顧客番号「INVALID-ID」が正しい形式ではありません（1-5桁の数字である必要があります）'),
+      });
+    });
+
+    it('複数の顧客番号エラーがある場合、すべてのエラーを表示する', async () => {
+      const csvData = [
+        ['顧客ID', '店舗名', '顧客名', '担当者名', '住所', '電話番号', '配送条件', '備考'],
+        ['INVALID1', '店舗1', '顧客1', '担当者1', '住所1', '電話1', '条件1', '備考1'],
+        ['INVALID2', '店舗1', '顧客2', '担当者2', '住所2', '電話2', '条件2', '備考2'],
+      ];
+      
+      vi.mocked(prisma.store.findUnique).mockResolvedValue({ id: 'store-1', name: '店舗1' });
+      vi.mocked(prisma.customer.findMany).mockResolvedValue([]);
+
+      const result = await importCustomersFromCSV(csvData, 'store-1');
+
+      expect(result.status).toBe('error');
+      expect(result.error).toContain('顧客IDの検証エラー:');
+      expect(result.error).toContain('顧客1');
+      expect(result.error).toContain('顧客2');
+      expect(result.error).toContain('INVALID1');
+      expect(result.error).toContain('INVALID2');
     });
   });
 });

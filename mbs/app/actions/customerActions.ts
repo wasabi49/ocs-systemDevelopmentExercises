@@ -4,6 +4,68 @@ import prisma from '@/lib/prisma';
 import { getStoreIdFromCookie } from '@/app/utils/storeUtils';
 
 /**
+ * CSVの5桁数字からC-XXXXX形式の顧客IDを生成・検証する関数
+ * @param csvCustomerNumber CSVから取得した5桁数字（必須）
+ * @param usedIds 既に使用予定のIDセット（トランザクション内で重複を避けるため）
+ * @returns 検証結果
+ */
+async function validateAndFormatCustomerId(
+  csvCustomerNumber: string | null,
+  usedIds: Set<string> = new Set(),
+): Promise<{ id: string; isValid: boolean; error?: string }> {
+  // CSVに顧客番号が指定されていない場合
+  if (!csvCustomerNumber || csvCustomerNumber.trim() === '') {
+    return {
+      id: '',
+      isValid: false,
+      error: '顧客番号が入力されていません',
+    };
+  }
+
+  const trimmedNumber = csvCustomerNumber.trim();
+  
+  // 1-5桁の数字かチェック
+  const numberPattern = /^\d{1,5}$/;
+  if (!numberPattern.test(trimmedNumber)) {
+    return {
+      id: trimmedNumber,
+      isValid: false,
+      error: `顧客番号「${trimmedNumber}」が正しい形式ではありません（1-5桁の数字である必要があります）`,
+    };
+  }
+  
+  // 5桁の0埋めでC-XXXXX形式に変換
+  const paddedNumber = trimmedNumber.padStart(5, '0');
+  const formattedId = `C-${paddedNumber}`;
+  
+  // 既存データベースでの重複チェック
+  const existingCustomer = await prisma.customer.findUnique({
+    where: { id: formattedId },
+    select: { id: true },
+  });
+  
+  if (existingCustomer) {
+    return {
+      id: formattedId,
+      isValid: false,
+      error: `顧客ID「${formattedId}」は既に使用されています`,
+    };
+  }
+  
+  // 同一CSVファイル内での重複チェック
+  if (usedIds.has(formattedId)) {
+    return {
+      id: formattedId,
+      isValid: false,
+      error: `顧客ID「${formattedId}」がCSVファイル内で重複しています`,
+    };
+  }
+  
+  usedIds.add(formattedId);
+  return { id: formattedId, isValid: true };
+}
+
+/**
  * 新しい顧客IDを生成する
  * 形式: C-NNNNN (C-00001)
  * @param storeId 店舗ID
@@ -270,11 +332,35 @@ export async function importCustomersFromCSV(csvData: string[][], storeId?: stri
       };
     }
 
+    // CSV内の顧客ID重複チェック
+    const csvCustomerIds = new Set<string>();
+    const duplicateIds: string[] = [];
+    
+    for (const row of validRows) {
+      const customerId = row[0]?.toString().trim();
+      if (customerId) {
+        if (csvCustomerIds.has(customerId)) {
+          duplicateIds.push(customerId);
+        } else {
+          csvCustomerIds.add(customerId);
+        }
+      }
+    }
+    
+    if (duplicateIds.length > 0) {
+      return {
+        status: 'error' as const,
+        error: `CSVファイル内で重複している顧客IDがあります: ${duplicateIds.join(', ')}`,
+      };
+    }
+
     // CSVデータを顧客名をキーとしてマップ化
     const csvCustomersMap = new Map();
     for (const row of validRows) {
       const customerName = row[2]?.toString().trim();
+      const customerId = row[0]?.toString().trim();
       csvCustomersMap.set(customerName, {
+        id: customerId || null, // CSVの顧客IDを保存
         name: customerName,
         contactPerson: row[3]?.toString().trim() || null,
         address: row[4]?.toString().trim() || null,
@@ -340,13 +426,28 @@ export async function importCustomersFromCSV(csvData: string[][], storeId?: stri
     let updatedCount = 0;
     let deletedCount = 0;
 
-    // 事前に必要なIDを生成（重複を避けるため）
+    // 事前に必要なIDを検証・生成（重複を避けるため）
     const usedIds = new Set<string>();
     const newCustomerIds: { [customerName: string]: string } = {};
+    const idValidationErrors: string[] = [];
 
     for (const customerName of toAdd) {
-      const newId = await generateCustomerId(storeId, usedIds);
-      newCustomerIds[customerName] = newId;
+      const csvCustomer = csvCustomersMap.get(customerName);
+      const idResult = await validateAndFormatCustomerId(csvCustomer.id, usedIds);
+      
+      if (!idResult.isValid) {
+        idValidationErrors.push(`顧客「${customerName}」: ${idResult.error}`);
+      } else {
+        newCustomerIds[customerName] = idResult.id;
+      }
+    }
+    
+    // ID検証エラーがある場合はエラーを返す
+    if (idValidationErrors.length > 0) {
+      return {
+        status: 'error' as const,
+        error: `顧客IDの検証エラー:\n${idValidationErrors.join('\n')}`,
+      };
     }
 
     // トランザクションで実行
