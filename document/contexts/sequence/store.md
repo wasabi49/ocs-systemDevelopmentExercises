@@ -39,9 +39,9 @@ sequenceDiagram
     
     alt store が存在する
         Provider->>Cookie: setCookie('selectedStoreId', store.id)
-        Note over Provider,Cookie: maxAge: 30日, sameSite: 'lax'
+        Note over Provider,Cookie: "maxAge: 30日, sameSite: 'lax'"
         Provider->>Cookie: setCookie('selectedStoreName', store.name)
-        Note over Provider,Cookie: maxAge: 30日, sameSite: 'lax'
+        Note over Provider,Cookie: "maxAge: 30日, sameSite: 'lax'"
     else store が null
         Provider->>Cookie: deleteCookie('selectedStoreId')
         Provider->>Cookie: deleteCookie('selectedStoreName')
@@ -79,7 +79,7 @@ sequenceDiagram
     participant Browser as ブラウザ
 
     Provider->>CookieNext: setCookie('selectedStoreId', store.id, options)
-    Note over Provider,CookieNext: options: {<br/>  maxAge: 30 * 24 * 60 * 60,<br/>  sameSite: 'lax',<br/>  secure: NODE_ENV === 'production',<br/>  path: '/'<br/>}
+    Note over Provider,CookieNext: "options: {<br/>  maxAge: 30 * 24 * 60 * 60,<br/>  sameSite: 'lax',<br/>  secure: NODE_ENV === 'production',<br/>  path: '/'<br/>}"
     CookieNext->>Browser: Set-Cookie ヘッダー送信
     
     Provider->>CookieNext: setCookie('selectedStoreName', store.name, options)
@@ -149,7 +149,7 @@ sequenceDiagram
     
     alt context が undefined
         Hook-->>Component: throw Error('useStore must be used within a StoreProvider')
-        Note over Component: エラー境界でキャッチされる
+        Note over Component: "エラー境界でキャッチされる"
     else context が存在
         Hook-->>Component: context 返却
     end

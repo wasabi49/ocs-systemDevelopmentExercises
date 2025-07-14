@@ -14,7 +14,7 @@ sequenceDiagram
 
     Component->>PDFComp: generateOrderPDF(order) / generateDeliveryPDF(delivery)
     PDFComp->>Font: Font.register() 実行
-    Note over Font: NotoSansJP フォント登録<br/>src: '/NotoSansJP-VariableFont_wght.ttf'
+    Note over Font: "NotoSansJP フォント登録<br/>src: '/NotoSansJP-VariableFont_wght.ttf'"
     Font-->>PDFComp: フォント登録完了
     PDFComp->>ReactPDF: Document コンポーネント作成
 ```
@@ -29,11 +29,11 @@ sequenceDiagram
 
     PDFComp->>StyleSheet: StyleSheet.create() 実行
     StyleSheet->>Styles: ページスタイル定義
-    Note over Styles: page: { fontFamily: 'NotoSansJP', fontSize: 9, padding: 20 }
+    Note over Styles: "page: { fontFamily: 'NotoSansJP', fontSize: 9, padding: 20 }"
     StyleSheet->>Styles: ヘッダースタイル定義
-    Note over Styles: header: { flexDirection: 'row', justifyContent: 'space-between' }
+    Note over Styles: "header: { flexDirection: 'row', justifyContent: 'space-between' }"
     StyleSheet->>Styles: テーブルスタイル定義
-    Note over Styles: table, tableRow, tableCell など
+    Note over Styles: "table, tableRow, tableCell など"
     Styles-->>PDFComp: 完成したスタイルオブジェクト
 ```
 
@@ -49,13 +49,13 @@ sequenceDiagram
     PDFComp->>Document: <Document> 作成
     Document->>Page: <Page style={styles.page}> 作成
     Page->>View: ヘッダーセクション構築
-    Note over View: タイトル、日付、ドキュメント番号
+    Note over View: "タイトル、日付、ドキュメント番号"
     Page->>View: 顧客情報セクション構築
-    Note over View: 顧客名、担当者、住所、電話番号
+    Note over View: "顧客名、担当者、住所、電話番号"
     Page->>View: テーブルセクション構築
-    Note over View: 商品一覧、数量、単価、金額
+    Note over View: "商品一覧、数量、単価、金額"
     Page->>View: フッターセクション構築
-    Note over View: 合計金額、備考
+    Note over View: "合計金額、備考"
 ```
 
 ## 4. 注文書PDF生成 (OrderPDF)
@@ -71,15 +71,15 @@ sequenceDiagram
     OrderPDF->>OrderPDF: OrderDocument コンポーネント作成
     
     OrderPDF->>OrderPDF: ヘッダー情報設定
-    Note over OrderPDF: タイトル: "注文書"<br/>注文日: order.orderDate<br/>注文番号: order.id
+    Note over OrderPDF: "タイトル: "注文書"<br/>注文日: order.orderDate<br/>注文番号: order.id"
     
     OrderPDF->>OrderPDF: 顧客情報設定
-    Note over OrderPDF: 顧客名: order.customer.name<br/>担当者: order.customer.contactPerson<br/>住所: order.customer.address
+    Note over OrderPDF: "顧客名: order.customer.name<br/>担当者: order.customer.contactPerson<br/>住所: order.customer.address"
     
     OrderPDF->>OrderPDF: 注文明細テーブル作成
     loop 各注文明細
         OrderPDF->>OrderPDF: 商品行追加
-        Note over OrderPDF: 商品名、数量、単価、金額
+        Note over OrderPDF: "商品名、数量、単価、金額"
     end
     
     OrderPDF->>PDF: pdf(OrderDocument).toBlob()
@@ -101,15 +101,15 @@ sequenceDiagram
     DeliveryPDF->>DeliveryPDF: DeliveryDocument コンポーネント作成
     
     DeliveryPDF->>DeliveryPDF: ヘッダー情報設定
-    Note over DeliveryPDF: タイトル: "納品書"<br/>納品日: delivery.deliveryDate<br/>納品番号: delivery.id
+    Note over DeliveryPDF: "タイトル: "納品書"<br/>納品日: delivery.deliveryDate<br/>納品番号: delivery.id"
     
     DeliveryPDF->>DeliveryPDF: 顧客情報設定
-    Note over DeliveryPDF: 顧客名: delivery.customer.name<br/>担当者: delivery.customer.contactPerson<br/>住所: delivery.customer.address
+    Note over DeliveryPDF: "顧客名: delivery.customer.name<br/>担当者: delivery.customer.contactPerson<br/>住所: delivery.customer.address"
     
     DeliveryPDF->>DeliveryPDF: 納品明細テーブル作成
     loop 各納品明細
         DeliveryPDF->>DeliveryPDF: 商品行追加
-        Note over DeliveryPDF: 商品名、数量、単価、金額
+        Note over DeliveryPDF: "商品名、数量、単価、金額"
     end
     
     DeliveryPDF->>PDF: pdf(DeliveryDocument).toBlob()
@@ -162,7 +162,7 @@ sequenceDiagram
     DateFormat->>DateFormat: toLocaleDateString('ja-JP')
     DateFormat-->>PDFComp: フォーマット済み日付
     
-    Note over DateFormat: 例: "2024/12/25"
+    Note over DateFormat: "例: "2024/12/25""
     
     PDFComp->>Display: 日付表示
 ```
@@ -178,10 +178,10 @@ sequenceDiagram
     PDFComp->>AmountFormat: amount.toLocaleString('ja-JP')
     AmountFormat-->>PDFComp: カンマ区切り金額
     
-    Note over AmountFormat: 例: 150,000 → "150,000"
+    Note over AmountFormat: "例: 150,000 → "150,000""
     
     PDFComp->>Display: "¥{formattedAmount}"
-    Note over Display: 例: "¥150,000"
+    Note over Display: "例: "¥150,000""
 ```
 
 ## 共通スタイル構造

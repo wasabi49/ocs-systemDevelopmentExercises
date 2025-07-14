@@ -13,7 +13,7 @@ sequenceDiagram
 
     Parent->>Pagination: <Pagination currentPage={1} totalPages={10} onPageChange={handler} />
     Pagination->>Props: プロパティ受け取り
-    Note over Props: currentPage, totalPages, onPageChange, itemsInfo?, maxVisiblePages=5
+    Note over Props: "currentPage, totalPages, onPageChange, itemsInfo?, maxVisiblePages=5"
     Pagination->>Pagination: getPageNumbers() 実行
     Pagination-->>Parent: ページネーションUI
 ```
@@ -31,16 +31,16 @@ sequenceDiagram
     
     alt totalPages <= maxVisiblePages
         GetPages->>Array: 1 から totalPages まで全て追加
-        Note over Array: [1, 2, 3, 4, 5]
+        Note over Array: "[1, 2, 3, 4, 5]"
     else currentPage <= 3 (先頭付近)
         GetPages->>Array: 1 から maxVisiblePages まで追加
-        Note over Array: [1, 2, 3, 4, 5]
+        Note over Array: "[1, 2, 3, 4, 5]"
     else currentPage >= totalPages - 2 (末尾付近)
         GetPages->>Array: (totalPages - maxVisiblePages + 1) から totalPages まで
-        Note over Array: [6, 7, 8, 9, 10]
+        Note over Array: "[6, 7, 8, 9, 10]"
     else 中央位置
         GetPages->>Array: (currentPage - 2) から (currentPage + 2) まで
-        Note over Array: [3, 4, 5, 6, 7]
+        Note over Array: "[3, 4, 5, 6, 7]"
     end
     
     GetPages-->>Pagination: pages配列
@@ -133,7 +133,7 @@ sequenceDiagram
         
         alt totalItems > 0
             ItemsInfo->>Display: "{startIndex + 1}-{endIndex} / {totalItems}件"
-            Note over Display: 例: "1-10 / 25件"
+            Note over Display: "例: "1-10 / 25件""
         else totalItems === 0
             ItemsInfo->>Display: "0件"
         end
@@ -156,13 +156,13 @@ sequenceDiagram
     Pagination->>Layout: レスポンシブクラス適用
     
     Layout->>Mobile: モバイル時
-    Note over Mobile: flex-col, gap-2, text-xs, px-2 py-1
+    Note over Mobile: "flex-col, gap-2, text-xs, px-2 py-1"
     
     Layout->>Desktop: デスクトップ時 (sm:)
-    Note over Desktop: flex-row, gap-4, text-sm, px-3 py-2
+    Note over Desktop: "flex-row, gap-4, text-sm, px-3 py-2"
     
     Layout->>Layout: アイテム情報位置調整
-    Note over Layout: mb-2 sm:mb-0 (モバイル下マージン)
+    Note over Layout: "mb-2 sm:mb-0 (モバイル下マージン)"
 ```
 
 ## データ型とProps

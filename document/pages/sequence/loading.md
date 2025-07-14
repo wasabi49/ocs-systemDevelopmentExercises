@@ -14,7 +14,7 @@ sequenceDiagram
 
     NextJS->>LoadingPage: ページ遷移中にローディング表示要求
     LoadingPage->>Props: Loading コンポーネントのプロパティ設定
-    Note over Props: variant: "spinner"<br/>size: "lg"<br/>text: "データを読み込み中です"<br/>fullScreen: true
+    Note over Props: "variant: "spinner"<br/>size: "lg"<br/>text: "データを読み込み中です"<br/>fullScreen: true"
     
     Props->>LoadingComp: <Loading {...props} /> レンダリング
     LoadingComp->>LoadingComp: プロパティに基づくUI構築
@@ -33,7 +33,7 @@ sequenceDiagram
     Import-->>LoadingPage: Loading コンポーネント
     
     LoadingPage->>LoadingComp: コンポーネント呼び出し
-    Note over LoadingComp: variant="spinner"<br/>size="lg"<br/>text="データを読み込み中です"<br/>fullScreen={true}
+    Note over LoadingComp: "variant="spinner"<br/>size="lg"<br/>text="データを読み込み中です"<br/>fullScreen={true}"
     
     LoadingComp-->>LoadingPage: レンダリング結果
 ```
@@ -49,16 +49,16 @@ sequenceDiagram
     LoadingPage->>PropsConfig: Loading プロパティ定義
     
     PropsConfig->>LoadingVariants: variant: "spinner"
-    Note over LoadingVariants: スピナーアニメーション選択
+    Note over LoadingVariants: "スピナーアニメーション選択"
     
     PropsConfig->>LoadingVariants: size: "lg"
-    Note over LoadingVariants: 大きいサイズ指定
+    Note over LoadingVariants: "大きいサイズ指定"
     
     PropsConfig->>LoadingVariants: text: "データを読み込み中です"
-    Note over LoadingVariants: 日本語メッセージ
+    Note over LoadingVariants: "日本語メッセージ"
     
     PropsConfig->>LoadingVariants: fullScreen: true
-    Note over LoadingVariants: 全画面表示モード
+    Note over LoadingVariants: "全画面表示モード"
     
     LoadingVariants-->>LoadingPage: 設定完了
 ```
@@ -77,11 +77,11 @@ sequenceDiagram
     LoadingPage->>LoadingPage: Loading コンポーネント表示
     
     NextRouter->>NextRouter: ページデータ取得処理
-    Note over NextRouter: サーバーコンポーネント実行<br/>データフェッチ<br/>レンダリング準備
+    Note over NextRouter: "サーバーコンポーネント実行<br/>データフェッチ<br/>レンダリング準備"
     
     NextRouter->>TargetPage: ページ準備完了
     TargetPage-->>User: 新しいページ表示
-    Note over LoadingPage: ローディング画面終了
+    Note over LoadingPage: "ローディング画面終了"
 ```
 
 ## 5. フルスクリーンローディング表示
@@ -97,13 +97,13 @@ sequenceDiagram
     LoadingComp->>FullScreen: 全画面モード処理
     
     FullScreen->>UI: 画面全体をカバー
-    Note over UI: position: fixed<br/>inset: 0<br/>z-index: 高い値
+    Note over UI: "position: fixed<br/>inset: 0<br/>z-index: 高い値"
     
     FullScreen->>UI: 中央配置
-    Note over UI: flex items-center justify-center
+    Note over UI: "flex items-center justify-center"
     
     FullScreen->>UI: 背景オーバーレイ
-    Note over UI: 半透明背景で既存UI隠蔽
+    Note over UI: "半透明背景で既存UI隠蔽"
     
     UI-->>LoadingPage: 没入的ローディング体験
 ```
@@ -170,16 +170,16 @@ sequenceDiagram
 
     Router->>Loading: 表示開始
     Loading->>Display: スピナー表示
-    Note over Display: 回転アニメーション
+    Note over Display: "回転アニメーション"
     
     Loading->>Display: テキスト表示
     Note over Display: "データを読み込み中です"
     
     Loading->>Display: 全画面オーバーレイ
-    Note over Display: 背景の非活性化
+    Note over Display: "背景の非活性化"
     
     Router->>Router: バックグラウンド処理
-    Note over Router: データ取得<br/>ページ準備
+    Note over Router: "データ取得<br/>ページ準備"
     
     Router->>Loading: 表示終了
     Loading->>Display: フェードアウト
@@ -199,7 +199,7 @@ sequenceDiagram
     
     SpinnerAnim->>CSS: rotation キーフレーム実行
     CSS->>CSS: 360度回転ループ
-    Note over CSS: animation: spin 1s linear infinite
+    Note over CSS: "animation: spin 1s linear infinite"
     
     CSS->>SpinnerAnim: 滑らかな回転表示
     SpinnerAnim-->>LoadingPage: 視覚的フィードバック

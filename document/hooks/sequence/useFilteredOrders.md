@@ -118,7 +118,7 @@ sequenceDiagram
     participant Hook as useFilteredOrders
     participant Cache as メモ化キャッシュ
 
-    Note over Component: 初回レンダリング
+    Note over Component: "初回レンダリング"
     Component->>Hook: useFilteredOrders(orders, "John", "customerName")
     Hook->>Cache: キャッシュ確認
     Cache-->>Hook: キャッシュなし
@@ -126,13 +126,13 @@ sequenceDiagram
     Hook->>Cache: 結果をキャッシュ
     Hook-->>Component: フィルタリング結果
     
-    Note over Component: 再レンダリング（同じ引数）
+    Note over Component: "再レンダリング（同じ引数）"
     Component->>Hook: useFilteredOrders(orders, "John", "customerName")
     Hook->>Cache: キャッシュ確認
     Cache-->>Hook: キャッシュヒット
     Hook-->>Component: キャッシュされた結果
     
-    Note over Component: 再レンダリング（keyword変更）
+    Note over Component: "再レンダリング（keyword変更）"
     Component->>Hook: useFilteredOrders(orders, "Jane", "customerName")
     Hook->>Cache: キャッシュ確認
     Cache-->>Hook: キャッシュミス

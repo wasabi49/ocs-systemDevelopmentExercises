@@ -7,7 +7,57 @@
 
 ```mermaid
 sequenceDiagram
-    participant Client as クライアント
+    participant Client as クライアントsequenceDiagram
+    participant Breadcrumbs as BreadcrumbssequenceDiagram
+    participant Breadcrumbs as Breadcrumbs
+    participant Segments as pathSegments
+    participant Link as Link
+    participant ChevronRight as ChevronRight
+
+    Breadcrumbs->>Breadcrumbs: pathSegments.length チェック
+    
+    alt pathSegments.length <= 1
+        Breadcrumbs->>Breadcrumbs: 空の span 返却
+        Note over Breadcrumbs: "ホームページなど"
+    else pathSegments.length > 1
+        loop 各セグメントに対して
+            Breadcrumbs->>Breadcrumbs: index < pathSegments.length - 1 チェック
+            
+            alt 最後のセグメントでない
+                Breadcrumbs->>Link: Link コンポーネント生成
+                Note over Link: "href: /${pathSegments.slice(0, index + 1).join('/')}"
+                Link->>Link: "pathNames[segment] でラベル設定"
+                Breadcrumbs->>ChevronRight: 区切り矢印追加
+            else 最後のセグメント
+                Breadcrumbs->>Breadcrumbs: span でテキスト表示
+                Note over Breadcrumbs: "pathNames[segment] (リンクなし)"
+            end
+        end
+    end
+    participant Segments as pathSegments
+    participant Link as Link
+    participant ChevronRight as ChevronRight
+
+    Breadcrumbs->>Breadcrumbs: pathSegments.length チェック
+    
+    alt pathSegments.length <= 1
+        Breadcrumbs->>Breadcrumbs: 空の span 返却
+        Note over Breadcrumbs: "ホームページなど"
+    else pathSegments.length > 1
+        loop 各セグメントに対して
+            Breadcrumbs->>Breadcrumbs: index < pathSegments.length - 1 チェック
+            
+            alt 最後のセグメントでない
+                Breadcrumbs->>Link: Link コンポーネント生成
+                Note over Link: "href: /${pathSegments.slice(0, index + 1).join('/')}"
+                Link->>Link: "pathNames[segment] でラベル設定"
+                Breadcrumbs->>ChevronRight: 区切り矢印追加
+            else 最後のセグメント
+                Breadcrumbs->>Breadcrumbs: span でテキスト表示
+                Note over Breadcrumbs: "pathNames[segment] (リンクなし)"
+            end
+        end
+    end
     participant Action as fetchCustomers
     participant Store as getStoreIdFromCookie
     participant DB as Prisma Database

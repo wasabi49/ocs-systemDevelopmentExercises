@@ -14,7 +14,7 @@ sequenceDiagram
 
     Parent->>Modal: <Modal open={true} onCancel={fn} onSuccess={fn} />
     Modal->>State: useState フック初期化
-    Note over State: csvFile: File | null<br/>isProcessing: boolean<br/>validationResult: CSVValidationResult<br/>importResult: ImportResult<br/>step: 'upload' | 'validate' | 'import' | 'result'
+    Note over State: "csvFile: File | null<br/>isProcessing: boolean<br/>validationResult: CSVValidationResult<br/>importResult: ImportResult<br/>step: 'upload' | 'validate' | 'import' | 'result'"
     
     State->>UI: モーダル表示
     UI-->>Parent: CSVインポート画面表示
@@ -34,11 +34,11 @@ sequenceDiagram
     FileInput->>Validation: validateCSV(file) 実行
     
     Validation->>PapaParse: Papa.parse(file) 実行
-    Note over PapaParse: header: true<br/>skipEmptyLines: true<br/>encoding: 'UTF-8'
+    Note over PapaParse: "header: true<br/>skipEmptyLines: true<br/>encoding: 'UTF-8'"
     
     PapaParse-->>Validation: パース結果
     Validation->>Validation: データ検証実行
-    Note over Validation: ヘッダー確認<br/>必須フィールドチェック<br/>データ形式確認
+    Note over Validation: "ヘッダー確認<br/>必須フィールドチェック<br/>データ形式確認"
     
     Validation->>Result: CSVValidationResult 生成
     Result-->>User: 検証結果表示
@@ -54,7 +54,7 @@ sequenceDiagram
     participant ErrorCollect as エラー収集
 
     Validation->>HeaderCheck: 必須ヘッダー確認
-    Note over HeaderCheck: - customerId<br/>- customerName<br/>- managerName<br/>- storeId
+    Note over HeaderCheck: "- customerId<br/>- customerName<br/>- managerName<br/>- storeId"
     
     HeaderCheck->>DataCheck: 各行データ検証
     loop 各データ行
@@ -64,7 +64,7 @@ sequenceDiagram
     end
     
     ErrorCollect->>Validation: 検証結果集計
-    Note over Validation: isValid: boolean<br/>error?: string<br/>warnings?: string[]<br/>details: 詳細情報
+    Note over Validation: "isValid: boolean<br/>error?: string<br/>warnings?: string[]<br/>details: 詳細情報"
 ```
 
 ## 4. インポート実行処理
@@ -80,10 +80,10 @@ sequenceDiagram
     User->>Modal: "インポート実行" ボタンクリック
     Modal->>StoreContext: selectedStore 取得
     Modal->>ImportAPI: importCustomersFromCSV() 実行
-    Note over ImportAPI: csvData, selectedStore.id 渡し
+    Note over ImportAPI: "csvData, selectedStore.id 渡し"
     
     ImportAPI->>ImportAPI: サーバーサイド処理
-    Note over ImportAPI: データベース操作<br/>顧客データ追加/更新<br/>トランザクション処理
+    Note over ImportAPI: "データベース操作<br/>顧客データ追加/更新<br/>トランザクション処理"
     
     ImportAPI-->>Modal: ImportResult 返却
     Modal->>Logger: 結果ログ出力
@@ -104,10 +104,10 @@ sequenceDiagram
     
     alt status === 'success'
         ResultDisplay->>SuccessUI: 成功表示コンポーネント
-        Note over SuccessUI: 緑のアイコン<br/>処理件数表示<br/>- 追加: X件<br/>- 更新: Y件<br/>- 削除: Z件
+        Note over SuccessUI: "緑のアイコン<br/>処理件数表示<br/>- 追加: X件<br/>- 更新: Y件<br/>- 削除: Z件"
     else status === 'error'
         ResultDisplay->>ErrorUI: エラー表示コンポーネント
-        Note over ErrorUI: 赤いアイコン<br/>エラーメッセージ<br/>無効な顧客情報<br/>店舗不一致など
+        Note over ErrorUI: "赤いアイコン<br/>エラーメッセージ<br/>無効な顧客情報<br/>店舗不一致など"
     end
     
     ResultDisplay-->>Modal: 結果表示完了
@@ -125,7 +125,7 @@ sequenceDiagram
     ResultDisplay->>Modal: "閉じる" ボタンクリック
     Modal->>Parent: onSuccess() コールバック実行
     Parent->>DataRefresh: データ再読み込み処理
-    Note over DataRefresh: loadCustomers()<br/>最新データ取得
+    Note over DataRefresh: "loadCustomers()<br/>最新データ取得"
     
     DataRefresh-->>Parent: 更新されたデータ表示
     Modal->>Modal: モーダル状態リセット
@@ -216,11 +216,11 @@ sequenceDiagram
     Processing->>API: Server Action実行
     
     API->>Database: データベース操作開始
-    Note over Database: トランザクション開始<br/>既存データチェック<br/>追加/更新/削除処理
+    Note over Database: "トランザクション開始<br/>既存データチェック<br/>追加/更新/削除処理"
     
     Database-->>API: 操作結果
     API->>Result: ImportResult生成
-    Note over Result: status: 'success' | 'error'<br/>data: 処理統計<br/>error: エラー情報
+    Note over Result: "status: 'success' | 'error'<br/>data: 処理統計<br/>error: エラー情報"
     
     Result-->>Modal: 最終結果
     Modal->>Processing: setIsProcessing(false)
@@ -243,10 +243,10 @@ sequenceDiagram
         ErrorType->>ErrorDisplay: "必須ヘッダーが不足しています"
     else データエラー
         ErrorType->>ErrorDisplay: "無効なデータが含まれています"
-        Note over ErrorDisplay: 行番号と具体的なエラー内容
+        Note over ErrorDisplay: "行番号と具体的なエラー内容"
     else 店舗不一致エラー
         ErrorType->>ErrorDisplay: "異なる店舗の顧客が含まれています"
-        Note over ErrorDisplay: 現在の店舗と不一致データの詳細
+        Note over ErrorDisplay: "現在の店舗と不一致データの詳細"
     else APIエラー
         ErrorType->>ErrorDisplay: "インポート処理中にエラーが発生しました"
     end

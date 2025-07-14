@@ -16,7 +16,7 @@ sequenceDiagram
     Browser->>Page: /Home/DeliveryList アクセス
     Page->>Actions: fetchDeliveries() 実行
     Actions->>Database: 納品データ取得クエリ
-    Note over Database: JOIN customer, order テーブル<br/>store条件でフィルタ
+    Note over Database: "JOIN customer, order テーブル<br/>store条件でフィルタ"
     
     Database-->>Actions: 納品データ + 関連情報
     Actions-->>Page: { status: 'success', data: deliveries }
@@ -63,10 +63,10 @@ sequenceDiagram
     
     alt success
         Result->>DataArray: result.data 設定
-        Note over DataArray: 取得された納品データ配列
+        Note over DataArray: "取得された納品データ配列"
     else error または その他
         Result->>DataArray: [] (空配列) 設定
-        Note over DataArray: フォールバック処理
+        Note over DataArray: "フォールバック処理"
     end
     
     DataArray->>TypeDef: Delivery[] 型保証
@@ -129,7 +129,7 @@ sequenceDiagram
 
     Page->>Import: DeliveryListClient, { Delivery } インポート
     Import->>TypeDef: Delivery型定義取得
-    Note over TypeDef: クライアントコンポーネントから<br/>型定義をインポート
+    Note over TypeDef: "クライアントコンポーネントから<br/>型定義をインポート"
     
     TypeDef->>Page: 型安全性確保
     Page->>Client: 同じ型定義でデータ渡し
@@ -179,7 +179,7 @@ sequenceDiagram
     API-->>Response: APIレスポンス受信
     
     Response->>Processing: レスポンス構造確認
-    Note over Processing: {<br/>  status: 'success' | 'error' | 'store_required',<br/>  data?: Delivery[],<br/>  error?: string<br/>}
+    Note over Processing: "{<br/>  status: 'success' | 'error' | 'store_required',<br/>  data?: Delivery[],<br/>  error?: string<br/>}"
     
     Processing->>Processing: 条件分岐処理
     Processing-->>Page: 処理済みデータ
@@ -229,7 +229,7 @@ sequenceDiagram
     Logger->>ErrorMessage: '納品データの取得に失敗しました:'
     ErrorMessage->>ErrorMessage: result.error 詳細追加
     
-    Note over ErrorMessage: 開発者向けデバッグ情報<br/>本番環境での問題特定に使用
+    Note over ErrorMessage: "開発者向けデバッグ情報<br/>本番環境での問題特定に使用"
     
     ErrorMessage-->>Page: ログ出力完了
 ```
@@ -248,7 +248,7 @@ sequenceDiagram
     
     Database->>Filter: WHERE store_id = ? 条件
     Filter->>Filter: 店舗固有の納品データのみ取得
-    Note over Filter: セキュリティとデータ分離
+    Note over Filter: "セキュリティとデータ分離"
     
     Filter-->>Page: 店舗専用納品リスト
 ```

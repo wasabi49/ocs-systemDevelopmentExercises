@@ -36,14 +36,14 @@ sequenceDiagram
     
     alt isOpen === true
         Header->>Body: document.body.style.overflow = 'hidden'
-        Note over Body: スクロール防止
+        Note over Body: "スクロール防止"
     else isOpen === false
         Header->>Body: document.body.style.overflow = 'unset'
-        Note over Body: スクロール復元
+        Note over Body: "スクロール復元"
     end
     
     Header->>EventListener: keydown イベント監視
-    Note over EventListener: Escape キーでメニューを閉じる
+    Note over EventListener: "Escape キーでメニューを閉じる"
 ```
 
 ## 3. キーボードイベント処理
@@ -80,7 +80,7 @@ sequenceDiagram
 
     Header->>Header: isStoreSelectionPage チェック
     Header->>MenuItems: menuItems 配列
-    Note over MenuItems: [CustomerList, OrderList, DeliveryList, Statistics, stores]
+    Note over MenuItems: "[CustomerList, OrderList, DeliveryList, Statistics, stores]"
     
     alt isStoreSelectionPage === true
         Header->>MenuItems: filter(item.href === '/stores')
@@ -93,9 +93,9 @@ sequenceDiagram
     Header->>Context: selectedStore チェック
     
     alt !selectedStore && !isStoreSelectionPage
-        Note over Header: 選択中店舗表示なし
+        Note over Header: "選択中店舗表示なし"
     else selectedStore 存在
-        Note over Header: 選択中店舗表示
+        Note over Header: "選択中店舗表示"
     end
 ```
 
@@ -138,7 +138,7 @@ sequenceDiagram
     User->>Header: メニューボタンクリック
     Header->>Header: setIsOpen(true)
     Header->>SideMenu: transform: translateX(0)
-    Note over SideMenu: 右から左にスライドイン
+    Note over SideMenu: "右から左にスライドイン"
     Header->>Overlay: 背景オーバーレイ表示
     
     alt ユーザーがメニュー項目クリック
@@ -223,7 +223,7 @@ sequenceDiagram
     Effect2->>DOM: keydown イベントリスナー追加
     Effect2->>Effect2: クリーンアップ関数登録
     
-    Note over Header: コンポーネントアンマウント時
+    Note over Header: "コンポーネントアンマウント時"
     Effect1->>DOM: body.style.overflow = 'unset'
     Effect2->>DOM: removeEventListener('keydown')
 ```

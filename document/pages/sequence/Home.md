@@ -15,7 +15,7 @@ sequenceDiagram
     Browser->>Page: /Home アクセス
     Page->>ButtonsConfig: メニューボタン配列作成
     ButtonsConfig->>Icons: アイコンコンポーネント取得
-    Note over Icons: User, ShoppingCart, Truck, BarChart3
+    Note over Icons: "User, ShoppingCart, Truck, BarChart3"
     Icons-->>ButtonsConfig: アイコンコンポーネント
     ButtonsConfig-->>Page: 完成したボタン設定
 ```
@@ -31,16 +31,16 @@ sequenceDiagram
     Page->>ButtonConfig: buttons配列定義
     
     ButtonConfig->>MenuItems: 顧客管理ボタン
-    Note over MenuItems: label: "顧客管理"<br/>path: "/Home/CustomerList"<br/>icon: User<br/>color: "text-blue-500"
+    Note over MenuItems: "label: "顧客管理"<br/>path: "/Home/CustomerList"<br/>icon: User<br/>color: "text-blue-500""
     
     ButtonConfig->>MenuItems: 注文管理ボタン
-    Note over MenuItems: label: "注文管理"<br/>path: "/Home/OrderList"<br/>icon: ShoppingCart<br/>color: "text-blue-500"
+    Note over MenuItems: "label: "注文管理"<br/>path: "/Home/OrderList"<br/>icon: ShoppingCart<br/>color: "text-blue-500""
     
     ButtonConfig->>MenuItems: 納品管理ボタン
-    Note over MenuItems: label: "納品管理"<br/>path: "/Home/DeliveryList"<br/>icon: Truck<br/>color: "text-blue-500"
+    Note over MenuItems: "label: "納品管理"<br/>path: "/Home/DeliveryList"<br/>icon: Truck<br/>color: "text-blue-500""
     
     ButtonConfig->>MenuItems: 統計情報ボタン
-    Note over MenuItems: label: "統計情報"<br/>path: "/Home/Statistics"<br/>icon: BarChart3<br/>color: "text-blue-500"
+    Note over MenuItems: "label: "統計情報"<br/>path: "/Home/Statistics"<br/>icon: BarChart3<br/>color: "text-blue-500""
 ```
 
 ## 3. レンダリング処理
@@ -54,10 +54,10 @@ sequenceDiagram
 
     Page->>JSX: return文実行
     JSX->>JSX: ヘッダーセクション作成
-    Note over JSX: タイトル: "管理メニュー"<br/>説明: "管理したい項目を選択してください"
+    Note over JSX: "タイトル: "管理メニュー"<br/>説明: "管理したい項目を選択してください""
     
     JSX->>Grid: グリッドレイアウト初期化
-    Note over Grid: grid-cols-1 sm:grid-cols-2<br/>レスポンシブ対応
+    Note over Grid: "grid-cols-1 sm:grid-cols-2<br/>レスポンシブ対応"
     
     loop 各ボタンアイテム
         Grid->>Link: Link コンポーネント作成
@@ -85,7 +85,7 @@ sequenceDiagram
         ButtonItem->>IconComponent: const IconComponent = btn.icon
         IconComponent->>IconComponent: 動的アイコン設定
         ButtonItem->>ButtonItem: スタイル適用
-        Note over ButtonItem: hover効果、レスポンシブサイズ<br/>shadow-sm → shadow-md
+        Note over ButtonItem: "hover効果、レスポンシブサイズ<br/>shadow-sm → shadow-md"
         ButtonItem->>ButtonItem: key={idx} 設定
     end
     
@@ -104,10 +104,10 @@ sequenceDiagram
     Page->>TailwindCSS: レスポンシブクラス適用
     
     TailwindCSS->>Breakpoints: モバイル設定
-    Note over Breakpoints: grid-cols-1<br/>h-24, text-base<br/>h-6 w-6 アイコン
+    Note over Breakpoints: "grid-cols-1<br/>h-24, text-base<br/>h-6 w-6 アイコン"
     
     TailwindCSS->>Breakpoints: デスクトップ設定 (sm:)
-    Note over Breakpoints: grid-cols-2<br/>h-48, text-xl<br/>h-12 w-12 アイコン
+    Note over Breakpoints: "grid-cols-2<br/>h-48, text-xl<br/>h-12 w-12 アイコン"
     
     Breakpoints->>Layout: 適応的レイアウト
     Layout-->>Page: デバイス対応表示
@@ -128,7 +128,7 @@ sequenceDiagram
     Link->>Router: ページ遷移実行
     Router->>TargetPage: 対応するページへナビゲート
     
-    Note over TargetPage: /Home/CustomerList<br/>/Home/OrderList<br/>/Home/DeliveryList<br/>/Home/Statistics
+    Note over TargetPage: "/Home/CustomerList<br/>/Home/OrderList<br/>/Home/DeliveryList<br/>/Home/Statistics"
     
     TargetPage-->>User: 新しいページ表示
 ```
@@ -192,16 +192,16 @@ sequenceDiagram
     participant Button as 個別ボタン
 
     Container->>Container: 絶対配置 + 背景色設定
-    Note over Container: absolute inset-0 top-16<br/>bg-sky-50
+    Note over Container: "absolute inset-0 top-16<br/>bg-sky-50"
     
     Container->>Header: ヘッダーセクション
-    Note over Header: text-center<br/>タイトル + 説明
+    Note over Header: "text-center<br/>タイトル + 説明"
     
     Container->>Grid: フレックスレイアウト
-    Note over Grid: flex-1 items-center justify-center
+    Note over Grid: "flex-1 items-center justify-center"
     
     Grid->>Button: ボタンスタイル
-    Note over Button: rounded-lg border<br/>bg-white shadow-sm<br/>hover:shadow-md
+    Note over Button: "rounded-lg border<br/>bg-white shadow-sm<br/>hover:shadow-md"
 ```
 
 ## 特徴

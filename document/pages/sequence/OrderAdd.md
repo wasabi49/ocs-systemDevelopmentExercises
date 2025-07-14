@@ -22,9 +22,9 @@ sequenceDiagram
     Component->>Component: setCustomers(customerData)
 
     Component->>Component: 初期フォーム状態設定
-    Note over Component: 初期状態: 1行の空明細
+    Note over Component: "初期状態: 1行の空明細"
 
-    Note over Component: 商品明細編集
+    Note over Component: "商品明細編集"
     User->>Component: 商品情報入力
     Component->>Component: handleEditOrderDetail(index, field, value)
     Component->>Component: リアルタイム状態更新
@@ -54,7 +54,7 @@ sequenceDiagram
         Component->>Component: handleConfirmDelete()
     end
 
-    Note over Component: 顧客選択システム
+    Note over Component: "顧客選択システム"
     User->>Component: 顧客検索入力
     Component->>Component: handleCustomerSearchChange()
     Component->>Component: filteredCustomersを動的更新
@@ -63,7 +63,7 @@ sequenceDiagram
     Dropdown->>Component: handleSelectCustomer(customer)
     Component->>Component: 選択顧客を状態に設定
 
-    Note over Component: 注文作成処理
+    Note over Component: "注文作成処理"
     User->>Component: 「注文を追加」ボタンクリック
     Component->>Validation: validateOrderData()
     Validation-->>Component: バリデーション結果

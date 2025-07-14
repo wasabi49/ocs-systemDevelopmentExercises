@@ -13,7 +13,7 @@ sequenceDiagram
 
     Client->>Action: getAllStores()
     Action->>DB: store.findMany()
-    Note over Action,DB: select: { id: true, name: true }<br/>orderBy: { name: 'asc' }
+    Note over Action,DB: "select: { id: true, name: true }<br/>orderBy: { name: 'asc' }"
     DB-->>Action: stores
     Action-->>Client: stores: Store[]
 ```
@@ -50,7 +50,7 @@ sequenceDiagram
 
     Client->>Action: getStoreById(id)
     Action->>DB: store.findUnique(id)
-    Note over Action,DB: where: { id }<br/>select: { id: true, name: true }
+    Note over Action,DB: "where: { id }<br/>select: { id: true, name: true }"
     DB-->>Action: store
     
     alt store が存在する
@@ -108,23 +108,23 @@ sequenceDiagram
     participant GetStores as getAllStores
     participant DB as Prisma Database
 
-    Note over Client: useActionState で呼び出し
+    Note over Client: "useActionState で呼び出し"
     Client->>Action: fetchStoresAction(prevState, formData)
     
-    Note over Action: パラメータは使用されない
-    Note over Action: _prevState, _formData (未使用)
+    Note over Action: "パラメータは使用されない"
+    Note over Action: "_prevState, _formData (未使用)"
     
     Action->>GetStores: getAllStores()
     
     GetStores->>DB: prisma.store.findMany()
-    Note over GetStores,DB: {<br/>  select: { id: true, name: true },<br/>  orderBy: { name: 'asc' }<br/>}
+    Note over GetStores,DB: "{<br/>  select: { id: true, name: true },<br/>  orderBy: { name: 'asc' }<br/>}"
     
     alt データベース操作成功
         DB-->>GetStores: stores: Store[]
         GetStores-->>Action: stores: Store[]
         
         Action->>Action: StoreActionState 構築
-        Note over Action: {<br/>  stores: stores,<br/>  error: null,<br/>  isLoading: false<br/>}
+        Note over Action: "{<br/>  stores: stores,<br/>  error: null,<br/>  isLoading: false<br/>}"
         
         Action-->>Client: StoreActionState
         
@@ -135,7 +135,7 @@ sequenceDiagram
         GetStores-->>Action: Error
         
         Action->>Action: StoreActionState 構築 (エラー)
-        Note over Action: {<br/>  stores: [],<br/>  error: error.message,<br/>  isLoading: false<br/>}
+        Note over Action: "{<br/>  stores: [],<br/>  error: error.message,<br/>  isLoading: false<br/>}"
         
         Action-->>Client: StoreActionState (エラー)
     end

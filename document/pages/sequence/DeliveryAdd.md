@@ -15,7 +15,7 @@ sequenceDiagram
 
     Browser->>Page: /Home/DeliveryList/Add アクセス
     Page->>State: useState フック初期化
-    Note over State: customers, selectedCustomer<br/>deliveryDate, note<br/>orderDetails, modals
+    Note over State: "customers, selectedCustomer<br/>deliveryDate, note<br/>orderDetails, modals"
     
     Page->>CustomerAPI: fetchAllCustomers() 実行
     CustomerAPI-->>Page: { status: 'success', data: customers }
@@ -88,7 +88,7 @@ sequenceDiagram
     Validation->>State: setSelections() 更新
     
     State->>Summary: 選択状況計算
-    Note over Summary: totalSelectedQuantity<br/>totalSelectedAmount
+    Note over Summary: "totalSelectedQuantity<br/>totalSelectedAmount"
     
     Summary->>UI: 選択状況表示更新
     Note over UI: "選択状況: X個 / 合計金額: ¥X"
@@ -108,7 +108,7 @@ sequenceDiagram
 
     User->>Modal: "納品作成" ボタンクリック
     Modal->>Validation: 選択データ検証
-    Note over Validation: selectedCustomer 存在確認<br/>allocations.length > 0 確認
+    Note over Validation: "selectedCustomer 存在確認<br/>allocations.length > 0 確認"
     
     alt バリデーション成功
         Validation->>CreateAPI: createDelivery(deliveryData, allocations)
@@ -134,7 +134,7 @@ sequenceDiagram
     ErrorState->>ErrorModal: setErrorModal({ isOpen: true, title, message })
     
     ErrorModal->>UI: エラーモーダル表示
-    Note over UI: 赤いアイコンとエラーメッセージ<br/>ユーザーフレンドリーな説明
+    Note over UI: "赤いアイコンとエラーメッセージ<br/>ユーザーフレンドリーな説明"
     
     User->>ErrorModal: "OK" ボタンクリック
     ErrorModal->>ErrorState: setErrorModal({ isOpen: false })
@@ -246,7 +246,7 @@ sequenceDiagram
 
     User->>Search: 検索キーワード入力
     Search->>Filter: フィルタリング実行
-    Note over Filter: productName フィールドで検索<br/>大小文字区別なし
+    Note over Filter: "productName フィールドで検索<br/>大小文字区別なし"
     
     Filter->>Display: フィルタ結果表示
     Display->>Display: 検索結果件数表示
@@ -268,10 +268,10 @@ sequenceDiagram
     SortHeader->>SortLogic: handleSort(field) 実行
     
     SortLogic->>SortLogic: sortConfig 状態更新
-    Note over SortLogic: field, direction (asc/desc)
+    Note over SortLogic: "field, direction (asc/desc)"
     
     SortLogic->>SortLogic: データソート実行
-    Note over SortLogic: 日付: Date比較<br/>数値: 数値比較<br/>文字列: 文字列比較
+    Note over SortLogic: "日付: Date比較<br/>数値: 数値比較<br/>文字列: 文字列比較"
     
     SortLogic->>Display: ソート済みデータ表示
     Display->>Display: SortIcon 方向表示
@@ -296,7 +296,7 @@ sequenceDiagram
     Modal->>Page: モーダル非表示 (isOpen=false)
     
     Modal->>Modal: stopPropagation() でバブリング停止
-    Note over Modal: モーダル内クリックは閉じない
+    Note over Modal: "モーダル内クリックは閉じない"
 ```
 
 ## 特徴

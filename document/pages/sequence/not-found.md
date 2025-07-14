@@ -17,7 +17,7 @@ sequenceDiagram
     NextJS->>NextJS: ルート解決試行
     
     NextJS->>NextJS: 該当ページが見つからない
-    Note over NextJS: 404 ステータス判定
+    Note over NextJS: "404 ステータス判定"
     
     NextJS->>NotFound: not-found.tsx 実行
     NotFound->>NotFound: エラーページレンダリング
@@ -42,7 +42,7 @@ sequenceDiagram
     Note over JSX: "お探しのページは見つかりませんでした"<br/>"404 - not found"
     
     JSX->>JSX: レイアウト構築
-    Note over JSX: flex h-screen flex-col<br/>items-center justify-center<br/>bg-gray-100
+    Note over JSX: "flex h-screen flex-col<br/>items-center justify-center<br/>bg-gray-100"
     
     JSX-->>NotFound: 完成したエラーページ
 ```
@@ -60,10 +60,10 @@ sequenceDiagram
     Container->>TailwindCSS: CSS クラス適用
     
     TailwindCSS->>TailwindCSS: レイアウトクラス
-    Note over TailwindCSS: flex h-screen flex-col<br/>items-center justify-center
+    Note over TailwindCSS: "flex h-screen flex-col<br/>items-center justify-center"
     
     TailwindCSS->>TailwindCSS: 背景色設定
-    Note over TailwindCSS: bg-gray-100
+    Note over TailwindCSS: "bg-gray-100"
     
     Container->>Typography: h1 要素作成
     Typography->>Typography: メインメッセージ
@@ -109,10 +109,10 @@ sequenceDiagram
     NotFound->>Responsive: レスポンシブクラス適用
     
     Responsive->>Mobile: モバイル対応
-    Note over Mobile: 縦配置レイアウト<br/>全画面高さ使用<br/>中央揃え
+    Note over Mobile: "縦配置レイアウト<br/>全画面高さ使用<br/>中央揃え"
     
     Responsive->>Desktop: デスクトップ対応
-    Note over Desktop: 同じレイアウト適用<br/>画面サイズに応じた調整
+    Note over Desktop: "同じレイアウト適用<br/>画面サイズに応じた調整"
     
     Mobile-->>NotFound: モバイル最適化表示
     Desktop-->>NotFound: デスクトップ最適化表示
@@ -133,7 +133,7 @@ sequenceDiagram
     User->>Browser: ブラウザの戻るボタン
     Browser->>Navigation: 前のページに戻る
     
-    Note over User: または手動でURLを修正
+    Note over User: "または手動でURLを修正"
     User->>Browser: 正しいURL入力
     Browser->>Navigation: 新しいページへ遷移
 ```
@@ -180,10 +180,10 @@ sequenceDiagram
     FlexLayout->>FlexLayout: display: flex 設定
     
     FlexLayout->>Positioning: レイアウト調整
-    Note over Positioning: h-screen: height: 100vh<br/>flex-col: flex-direction: column<br/>items-center: align-items: center<br/>justify-center: justify-content: center
+    Note over Positioning: "h-screen: height: 100vh<br/>flex-col: flex-direction: column<br/>items-center: align-items: center<br/>justify-center: justify-content: center"
     
     Positioning->>Styling: 背景とスタイル
-    Note over Styling: bg-gray-100: background-color: #f3f4f6
+    Note over Styling: "bg-gray-100: background-color: #f3f4f6"
     
     Styling-->>Component: 完成したレイアウト
 ```

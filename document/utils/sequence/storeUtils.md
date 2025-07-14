@@ -26,7 +26,7 @@ sequenceDiagram
         Utils-->>Component: null
     else storeIdCookie.value が存在する
         Utils->>Utils: Store オブジェクト構築
-        Note over Utils: {<br/>  id: storeIdCookie.value,<br/>  name: storeNameCookie?.value || ''<br/>}
+        Note over Utils: "{<br/>  id: storeIdCookie.value,<br/>  name: storeNameCookie?.value || ''<br/>}"
         Utils-->>Component: Store オブジェクト
     end
 ```
@@ -105,14 +105,14 @@ sequenceDiagram
     participant GetStore as getStoreFromCookie
     participant GetId as getStoreIdFromCookie
 
-    Note over ServerComp,ServerAction: 異なる使用場面
+    Note over ServerComp,ServerAction: "異なる使用場面"
 
     ServerComp->>GetStore: getStoreFromCookie()
-    Note over ServerComp,GetStore: 完全な店舗情報が必要
+    Note over ServerComp,GetStore: "完全な店舗情報が必要"
     GetStore-->>ServerComp: Store | null
 
     ServerAction->>GetId: getStoreIdFromCookie()
-    Note over ServerAction,GetId: IDのみが必要（効率的）
+    Note over ServerAction,GetId: "IDのみが必要（効率的）"
     GetId-->>ServerAction: string | null
 ```
 

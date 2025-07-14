@@ -30,10 +30,10 @@ sequenceDiagram
 
     Breadcrumbs->>PathNames: pathNames オブジェクト作成
     PathNames->>PathNames: 静的マッピング設定
-    Note over PathNames: Home: 'ホーム'<br/>CustomerList: '顧客一覧'<br/>OrderList: '注文一覧'<br/>DeliveryList: '納品一覧'<br/>Add: '追加'<br/>Edit: '編集'<br/>Statistics: '統計情報'
+    Note over PathNames: "Home: 'ホーム'<br/>CustomerList: '顧客一覧'<br/>OrderList: '注文一覧'<br/>DeliveryList: '納品一覧'<br/>Add: '追加'<br/>Edit: '編集'<br/>Statistics: '統計情報'"
     
     Params->>PathNames: 動的マッピング追加
-    Note over PathNames: [`${id}`]: `${id}` (IDセグメント)
+    Note over PathNames: "[`${id}`]: `${id}` (IDセグメント)"
     
     PathNames-->>Breadcrumbs: 完成したマッピング
 ```
@@ -48,11 +48,11 @@ sequenceDiagram
 
     Breadcrumbs->>Path: path.split('/') 実行
     Path-->>Breadcrumbs: 分割された配列
-    Note over Path: [, "Home", "CustomerList", "C-00001", "Edit"]
+    Note over Path: "[, "Home", "CustomerList", "C-00001", "Edit"]"
     
     Breadcrumbs->>Segments: filter(segment => segment !== '')
     Segments-->>Breadcrumbs: 空文字を除去した配列
-    Note over Segments: ["Home", "CustomerList", "C-00001", "Edit"]
+    Note over Segments: "["Home", "CustomerList", "C-00001", "Edit"]"
 ```
 
 ## 4. パンくずリスト生成
@@ -68,19 +68,19 @@ sequenceDiagram
     
     alt pathSegments.length <= 1
         Breadcrumbs->>Breadcrumbs: 空の span 返却
-        Note over Breadcrumbs: ホームページなど
+        Note over Breadcrumbs: "ホームページなど"
     else pathSegments.length > 1
         loop 各セグメントに対して
             Breadcrumbs->>Breadcrumbs: index < pathSegments.length - 1 チェック
             
             alt 最後のセグメントでない
                 Breadcrumbs->>Link: Link コンポーネント生成
-                Note over Link: href: /${pathSegments.slice(0, index + 1).join('/')}
+                Note over Link: "href: /${pathSegments.slice(0, index + 1).join('/')}"
                 Link->>Link: pathNames[segment] でラベル設定
                 Breadcrumbs->>ChevronRight: 区切り矢印追加
             else 最後のセグメント
                 Breadcrumbs->>Breadcrumbs: span でテキスト表示
-                Note over Breadcrumbs: pathNames[segment] (リンクなし)
+                Note over Breadcrumbs: "pathNames[segment] (リンクなし)"
             end
         end
     end
@@ -125,7 +125,7 @@ sequenceDiagram
     Params-->>Breadcrumbs: { id: "C-00001" }
     
     Breadcrumbs->>PathNames: 動的キー作成
-    Note over PathNames: [`${id}`]: `${id}`<br/>結果: ["C-00001"]: "C-00001"
+    Note over PathNames: "[`${id}`]: `${id}`<br/>結果: ["C-00001"]: "C-00001""
     
     PathNames-->>Breadcrumbs: IDセグメント用マッピング
 ```
@@ -163,19 +163,19 @@ sequenceDiagram
     participant Breadcrumbs as 表示結果
 
     URL->>Breadcrumbs: /Home
-    Note over Breadcrumbs: 表示なし（単一セグメント）
+    Note over Breadcrumbs: "表示なし（単一セグメント）"
     
     URL->>Breadcrumbs: /Home/CustomerList
-    Note over Breadcrumbs: ホーム > 顧客一覧
+    Note over Breadcrumbs: "ホーム > 顧客一覧"
     
     URL->>Breadcrumbs: /Home/OrderList/Add
-    Note over Breadcrumbs: ホーム > 注文一覧 > 追加
+    Note over Breadcrumbs: "ホーム > 注文一覧 > 追加"
     
     URL->>Breadcrumbs: /Home/CustomerList/C-00001/Edit
-    Note over Breadcrumbs: ホーム > 顧客一覧 > C-00001 > 編集
+    Note over Breadcrumbs: "ホーム > 顧客一覧 > C-00001 > 編集"
     
     URL->>Breadcrumbs: /Home/DeliveryList/D0000001
-    Note over Breadcrumbs: ホーム > 納品一覧 > D0000001
+    Note over Breadcrumbs: "ホーム > 納品一覧 > D0000001"
 ```
 
 ## リンク生成ロジック
@@ -187,11 +187,11 @@ sequenceDiagram
     participant Link as Link
 
     Breadcrumbs->>SliceJoin: pathSegments.slice(0, index + 1)
-    Note over SliceJoin: 現在の位置まで切り取り
+    Note over SliceJoin: "現在の位置まで切り取り"
     SliceJoin->>SliceJoin: .join('/') でパス構築
     SliceJoin-->>Link: href パス
     
-    Note over Link: 例: index=1 の場合<br/>["Home", "CustomerList"] → "/Home/CustomerList"
+    Note over Link: "例: index=1 の場合<br/>["Home", "CustomerList"] → "/Home/CustomerList""
     
     Link->>Link: Link コンポーネント生成
     Link-->>Breadcrumbs: クリック可能なリンク

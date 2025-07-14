@@ -50,10 +50,10 @@ sequenceDiagram
     SortIcon->>SortIcon: direction = sortConfig?.direction
     
     SortIcon->>Lucide: ChevronUp({ className })
-    Note over SortIcon,Lucide: active && direction === 'asc' ? 'text-gray-800' : 'text-gray-400'
+    Note over SortIcon,Lucide: "active && direction === 'asc' ? 'text-gray-800' : 'text-gray-400'"
     
     SortIcon->>Lucide: ChevronDown({ className })
-    Note over SortIcon,Lucide: active && direction === 'desc' ? 'text-gray-800' : 'text-gray-400'
+    Note over SortIcon,Lucide: "active && direction === 'desc' ? 'text-gray-800' : 'text-gray-400'"
     
     SortIcon-->>TableHeader: ソートアイコン JSX
 ```

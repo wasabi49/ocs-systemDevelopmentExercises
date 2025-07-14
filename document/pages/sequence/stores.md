@@ -76,17 +76,17 @@ sequenceDiagram
     participant Page as StoreSelectionPage
     participant Client as Client Browser
 
-    Note over Server,Page: Server Component として実行
+    Note over Server,Page: "Server Component として実行"
     
     Server->>Page: async 関数実行
     Page->>Page: await getAllStores()
-    Note over Page: サーバーサイドでDB操作
+    Note over Page: "サーバーサイドでDB操作"
     Page->>Page: try-catch でエラーハンドリング
     Page->>Server: React コンポーネント返却
     Server->>Server: HTML にレンダリング
     Server->>Client: 完全な HTML 送信
     
-    Note over Client: JavaScript ハイドレーション<br/>StoreSelection は Client Component
+    Note over Client: "JavaScript ハイドレーション<br/>StoreSelection は Client Component"
 ```
 
 ## 5. データフロー
@@ -126,7 +126,7 @@ sequenceDiagram
     Selection->>Selection: Client Component として初期化
     Selection->>Context: 店舗リスト設定
     
-    Note over Selection: ユーザーが店舗選択
+    Note over Selection: "ユーザーが店舗選択"
     Selection->>Context: setSelectedStore(store)
     Context->>Context: Cookie に保存
     Selection->>Router: router.push('/Home')

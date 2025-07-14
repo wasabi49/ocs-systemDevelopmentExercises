@@ -107,7 +107,7 @@ sequenceDiagram
 
     Page->>LoadingComp: Loading コンポーネント表示
     LoadingComp->>UI: ローディングスピナー表示
-    Note over UI: variant="spinner"<br/>size="md"<br/>text="読み込み中..."
+    Note over UI: "variant="spinner"<br/>size="md"<br/>text="読み込み中...""
     
     Page->>Redirect: バックグラウンドでリダイレクト処理
     Redirect->>Redirect: 非同期処理実行
@@ -129,7 +129,7 @@ sequenceDiagram
     NextRouter->>ClientSide: クライアントサイドルーティング
     
     ClientSide->>ClientSide: ページ遷移準備
-    Note over ClientSide: プリフェッチ<br/>データ準備<br/>レンダリング準備
+    Note over ClientSide: "プリフェッチ<br/>データ準備<br/>レンダリング準備"
     
     ClientSide->>NewPage: 新しいページ表示
     NewPage-->>Page: 遷移完了
@@ -221,7 +221,7 @@ sequenceDiagram
     Effects->>Effects: リダイレクト処理
     
     Effects->>Unmount: 遷移によるアンマウント
-    Note over Unmount: クリーンアップ処理<br/>メモリ解放
+    Note over Unmount: "クリーンアップ処理<br/>メモリ解放"
 ```
 
 ## 特徴

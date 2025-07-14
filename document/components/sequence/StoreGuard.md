@@ -19,7 +19,7 @@ sequenceDiagram
     Guard->>Pathname: usePathname()
     Pathname-->>Guard: pathname
     Guard->>Hook: useStoreRedirect()
-    Note over Hook: 自動リダイレクト処理開始
+    Note over Hook: "自動リダイレクト処理開始"
 ```
 
 ## 2. ページ判定とレンダリング制御
@@ -30,7 +30,7 @@ sequenceDiagram
     participant Children as children
 
     Guard->>Guard: isStoreSelectionPage 判定
-    Note over Guard: pathname === '/stores' || pathname === '/'
+    Note over Guard: "pathname === '/stores' || pathname === '/'"
     
     alt isStoreSelectionPage === true
         Guard->>Children: そのまま children を返却
@@ -40,7 +40,7 @@ sequenceDiagram
         
         alt selectedStore が存在しない
             Guard->>Guard: リダイレクト中UI生成
-            Note over Guard: ローディングスピナー表示
+            Note over Guard: "ローディングスピナー表示"
             Guard-->>Guard: リダイレクト中画面
         else selectedStore が存在する
             Guard->>Children: children を返却
@@ -62,9 +62,9 @@ sequenceDiagram
     
     alt !selectedStore && !isStoreSelectionPage
         Hook->>Router: router.push('/stores')
-        Note over Guard: リダイレクト中UIを表示
+        Note over Guard: "リダイレクト中UIを表示"
     else selectedStore 存在 or 店舗選択ページ
-        Note over Guard: 通常のレンダリング継続
+        Note over Guard: "通常のレンダリング継続"
     end
 ```
 
@@ -104,7 +104,7 @@ sequenceDiagram
     UI->>UI: div (min-h-screen flex)
     UI->>UI: div (text-center)
     UI->>UI: div (animate-spin スピナー)
-    Note over UI: border-b-2 border-blue-600
+    Note over UI: "border-b-2 border-blue-600"
     UI->>UI: p "店舗選択画面にリダイレクト中..."
     
     UI-->>Guard: リダイレクト中画面

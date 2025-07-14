@@ -16,7 +16,7 @@ sequenceDiagram
     Browser->>Page: /Home/OrderList アクセス
     Page->>Actions: fetchOrders() 実行
     Actions->>Database: 注文データ取得クエリ
-    Note over Database: JOIN customer テーブル<br/>store条件でフィルタ
+    Note over Database: "JOIN customer テーブル<br/>store条件でフィルタ"
     
     Database-->>Actions: 注文データ + 顧客情報
     Actions-->>Page: { status: 'success', data: orders }
@@ -63,13 +63,13 @@ sequenceDiagram
     
     loop 各注文データ
         DataTransform->>TypeDef: 型変換処理
-        Note over TypeDef: id, customerId, note, status<br/>isDeleted フィールド直接コピー
+        Note over TypeDef: "id, customerId, note, status<br/>isDeleted フィールド直接コピー"
         
         DataTransform->>DateConvert: 日付フィールド変換
-        Note over DateConvert: orderDate: new Date(orderData.orderDate)<br/>updatedAt: new Date(orderData.updatedAt)<br/>deletedAt: orderData.deletedAt ? new Date() : null
+        Note over DateConvert: "orderDate: new Date(orderData.orderDate)<br/>updatedAt: new Date(orderData.updatedAt)<br/>deletedAt: orderData.deletedAt ? new Date() : null"
         
         DataTransform->>TypeDef: 顧客情報フラット化
-        Note over TypeDef: customerName: orderData.customer.name<br/>customerContactPerson: orderData.customer.contactPerson || ''
+        Note over TypeDef: "customerName: orderData.customer.name<br/>customerContactPerson: orderData.customer.contactPerson || ''"
     end
     
     DataTransform-->>Page: OrderWithCustomer[] 配列
@@ -86,10 +86,10 @@ sequenceDiagram
 
     Page->>Interface: OrderWithCustomer インターフェース定義
     Interface->>PrismaType: Order型を継承
-    Note over PrismaType: @/app/generated/prisma から型取得
+    Note over PrismaType: "@/app/generated/prisma から型取得"
     
     Interface->>ExtendedType: 追加フィールド定義
-    Note over ExtendedType: customerName: string<br/>customerContactPerson: string
+    Note over ExtendedType: "customerName: string<br/>customerContactPerson: string"
     
     ExtendedType-->>Page: 型安全なデータ構造
 ```
@@ -189,7 +189,7 @@ sequenceDiagram
     API-->>Response: APIレスポンス受信
     
     Response->>Transform: データ構造確認
-    Note over Transform: {<br/>  status: 'success',<br/>  data: [{<br/>    id, customerId, orderDate,<br/>    customer: { name, contactPerson }<br/>  }]<br/>}
+    Note over Transform: "{<br/>  status: 'success',<br/>  data: [{<br/>    id, customerId, orderDate,<br/>    customer: { name, contactPerson }<br/>  }]<br/>}"
     
     Transform->>Transform: フラット化処理
     Transform-->>Page: 変換済みデータ

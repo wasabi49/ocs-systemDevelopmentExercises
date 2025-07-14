@@ -26,7 +26,7 @@ sequenceDiagram
     Component->>Component: setShowProductModal(true)
     Component->>Modal: UndeliveredProductsModal表示
 
-    Note over Modal: モーダル内での操作
+    Note over Modal: "モーダル内での操作"
     User->>Modal: 商品名で検索
     Modal->>Search: useSimpleSearch(orderDetails, searchTerm, 'productName')
     Search-->>Modal: フィルター済み商品リスト

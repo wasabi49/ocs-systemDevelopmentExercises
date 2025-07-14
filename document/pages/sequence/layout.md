@@ -17,10 +17,10 @@ sequenceDiagram
     Layout->>Fonts: next/font/google からフォントインポート
     
     Fonts->>Geist: Geist フォント初期化
-    Note over Geist: variable: '--font-geist-sans'<br/>subsets: ['latin']
+    Note over Geist: "variable: '--font-geist-sans'<br/>subsets: ['latin']"
     
     Fonts->>GeistMono: Geist_Mono フォント初期化
-    Note over GeistMono: variable: '--font-geist-mono'<br/>subsets: ['latin']
+    Note over GeistMono: "variable: '--font-geist-mono'<br/>subsets: ['latin']"
     
     Geist-->>Layout: geistSans オブジェクト
     GeistMono-->>Layout: geistMono オブジェクト
@@ -61,7 +61,7 @@ sequenceDiagram
 
     Layout->>HTML: <html lang="ja"> 作成
     HTML->>Body: <body> 作成 + フォントクラス適用
-    Note over Body: ${geistSans.variable} ${geistMono.variable} antialiased
+    Note over Body: "${geistSans.variable} ${geistMono.variable} antialiased"
     
     Body->>StoreProvider: <StoreProvider initialStore={initialStore}>
     StoreProvider->>StoreGuard: <StoreGuard>
@@ -85,7 +85,7 @@ sequenceDiagram
     Layout->>StoreProvider: initialStore 渡し
     StoreProvider->>Context: Context.Provider 作成
     Context->>Context: 初期状態設定
-    Note over Context: selectedStore: initialStore<br/>setSelectedStore関数
+    Note over Context: "selectedStore: initialStore<br/>setSelectedStore関数"
     
     StoreProvider->>StoreGuard: プロバイダー内でレンダリング
     StoreGuard->>StoreGuard: 店舗チェック実行
@@ -114,7 +114,7 @@ sequenceDiagram
     FontVars->>FontVars: --font-geist-mono 定義
     
     FontVars->>Body: className で変数適用
-    Note over Body: geistSans.variable<br/>geistMono.variable<br/>antialiased
+    Note over Body: "geistSans.variable<br/>geistMono.variable<br/>antialiased"
     
     Body->>Body: フォントレンダリング最適化
 ```
@@ -135,7 +135,7 @@ sequenceDiagram
     StoreUtils-->>Layout: 初期店舗データ
     
     Layout->>HTML: 完全なHTML構造生成
-    Note over HTML: フォント、CSS、初期データを<br/>含む完成されたマークアップ
+    Note over HTML: "フォント、CSS、初期データを<br/>含む完成されたマークアップ"
     
     HTML-->>Request: ハイドレーション対応のHTML
 ```
@@ -224,7 +224,7 @@ sequenceDiagram
 
     Layout->>NextFont: フォント設定定義
     NextFont->>NextFont: 最適化処理
-    Note over NextFont: プリロード最適化<br/>FOUT/FOIT対策<br/>サブセット指定
+    Note over NextFont: "プリロード最適化<br/>FOUT/FOIT対策<br/>サブセット指定"
     
     NextFont->>Browser: 最適化されたフォント配信
     Browser->>FontDisplay: antialiased レンダリング

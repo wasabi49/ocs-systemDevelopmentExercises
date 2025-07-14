@@ -38,12 +38,12 @@ sequenceDiagram
     participant Page as HomePage
     participant Loading as Loading Component
 
-    Note over Page: リダイレクト処理中の表示
+    Note over Page: "リダイレクト処理中の表示"
     
     Page->>Loading: <Loading variant="spinner" size="md" text="読み込み中..." />
     Loading-->>Page: ローディングコンポーネントレンダリング
     Page->>Page: JSX 構築
-    Note over Page: <div className="flex min-h-screen items-center justify-center bg-gray-50">
+    Note over Page: "<div className="flex min-h-screen items-center justify-center bg-gray-50">"
     Page-->>Page: ローディング画面表示
 ```
 
@@ -86,10 +86,10 @@ sequenceDiagram
     Context-->>Page: { selectedStore }
     
     alt Cookie に店舗情報あり
-        Note over Page: selectedStore に店舗オブジェクト
+        Note over Page: "selectedStore に店舗オブジェクト"
         Page->>Page: /Home へのリダイレクト準備
     else Cookie に店舗情報なし
-        Note over Page: selectedStore は null
+        Note over Page: "selectedStore は null"
         Page->>Page: /stores へのリダイレクト準備
     end
 ```
@@ -104,7 +104,7 @@ sequenceDiagram
     participant Hooks as React Hooks
 
     Server->>Client: 初期 HTML 送信
-    Note over Server,Client: 'use client' により Client Component
+    Note over Server,Client: "'use client' により Client Component"
     
     Client->>Page: ハイドレーション開始
     Page->>Hooks: useState, useEffect 初期化
@@ -125,10 +125,10 @@ sequenceDiagram
     participant CSS as Tailwind CSS
 
     Page->>LoadingComp: props 渡し
-    Note over Page,LoadingComp: variant="spinner", size="md", text="読み込み中..."
+    Note over Page,LoadingComp: "variant="spinner", size="md", text="読み込み中...""
     
     LoadingComp->>CSS: クラス適用
-    Note over LoadingComp,CSS: flex min-h-screen items-center justify-center bg-gray-50
+    Note over LoadingComp,CSS: "flex min-h-screen items-center justify-center bg-gray-50"
     
     LoadingComp->>LoadingComp: スピナーアニメーション
     LoadingComp->>LoadingComp: テキスト表示

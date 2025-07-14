@@ -27,7 +27,7 @@ sequenceDiagram
     Component->>Component: フォーム状態を初期化
     Component->>Component: 注文明細を編集可能形式に変換
 
-    Note over Component: フォーム編集操作
+    Note over Component: "フォーム編集操作"
     User->>Component: 商品明細を編集
     Component->>Component: handleOrderDetailChange(index, field, value)
     Component->>Component: リアルタイムバリデーション
@@ -56,7 +56,7 @@ sequenceDiagram
         Component->>Component: handleConfirmDelete()
     end
 
-    Note over Component: 顧客選択
+    Note over Component: "顧客選択"
     User->>Component: 顧客検索フィールド入力
     Component->>Component: handleCustomerSearchChange()
     Component->>Component: setShowCustomerDropdown(true)
@@ -65,7 +65,7 @@ sequenceDiagram
     Dropdown->>Component: handleSelectCustomer(customer)
     Component->>Component: 選択顧客を状態に設定
 
-    Note over Component: 注文更新
+    Note over Component: "注文更新"
     User->>Component: 「注文を更新」ボタンクリック
     Component->>Validation: validateOrderData()
     Validation-->>Component: バリデーション結果

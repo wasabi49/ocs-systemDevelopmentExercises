@@ -58,10 +58,10 @@ sequenceDiagram
     participant ClientData as 変換済みデータ
 
     Page->>TypeDef: Customer型定義確認
-    Note over TypeDef: id: string<br/>customerName: string<br/>managerName: string<br/>storeName: string
+    Note over TypeDef: "id: string<br/>customerName: string<br/>managerName: string<br/>storeName: string"
     
     Page->>ClientData: データ配列変換
-    Note over ClientData: データベース結果を<br/>Customer型配列に変換
+    Note over ClientData: "データベース結果を<br/>Customer型配列に変換"
     
     ClientData-->>Page: 型安全な顧客データ
 ```
@@ -149,21 +149,22 @@ classDiagram
 
 ```mermaid
 flowchart TD
-    A[/Home/CustomerList アクセス] --> B[Cookie確認]
-    B --> C{storeId存在?}
+    A["/Home/CustomerList アクセス"] --> B["Cookie確認"]
+    B --> C{"storeId存在?"}
     
-    C -->|Yes| D[顧客データ取得]
-    C -->|No| E[/stores へリダイレクト]
+    C -->|Yes| D["顧客データ取得"]
+    C -->|No| E["/stores へリダイレクト"]
     
-    D --> F{データ取得成功?}
-    F -->|Yes| G[CustomerListClient表示]
-    F -->|No| H[エラーログ出力]
-    H --> I[空のリスト表示]
+    D --> F{"データ取得成功?"}
+    F -->|Yes| G["CustomerListClient表示"]
+    F -->|No| H["エラーログ出力"]
+    H --> I["空のリスト表示"]
     
     style A fill:#e1f5fe
     style G fill:#c8e6c9
     style E fill:#ffecb3
     style I fill:#ffcdd2
+
 ```
 
 ## 特徴

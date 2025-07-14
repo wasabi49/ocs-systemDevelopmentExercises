@@ -14,10 +14,10 @@ sequenceDiagram
 
     Parent->>Client: <CustomerListClient initialCustomers={customers} />
     Client->>State: useState フック初期化
-    Note over State: customers: Customer[]<br/>searchKeyword: string<br/>searchField: string<br/>currentPage: number<br/>isOpen: boolean
+    Note over State: "customers: Customer[]<br/>searchKeyword: string<br/>searchField: string<br/>currentPage: number<br/>isOpen: boolean"
     
     Client->>Hooks: useTransition フック初期化
-    Note over Hooks: isPending: boolean<br/>startTransition: function
+    Note over Hooks: "isPending: boolean<br/>startTransition: function"
     
     State-->>Client: 初期状態設定完了
     Hooks-->>Client: パフォーマンス最適化準備
@@ -36,7 +36,7 @@ sequenceDiagram
     Search->>Filter: searchKeyword, searchField 更新
     
     Filter->>Filter: filteredCustomers 計算
-    Note over Filter: 選択フィールドに基づく検索<br/>- 顧客ID<br/>- 顧客名<br/>- 担当者<br/>- すべて（全フィールド）
+    Note over Filter: "選択フィールドに基づく検索<br/>- 顧客ID<br/>- 顧客名<br/>- 担当者<br/>- すべて（全フィールド）"
     
     Filter->>Display: フィルタリング結果反映
     Display->>Display: currentPage リセット
@@ -56,7 +56,7 @@ sequenceDiagram
     Pagination->>Calculation: handlePageChange(page) 実行
     
     Calculation->>Calculation: ページ範囲計算
-    Note over Calculation: totalPages = Math.ceil(length / itemsPerPage)<br/>startIndex = (page - 1) * itemsPerPage<br/>endIndex = startIndex + itemsPerPage
+    Note over Calculation: "totalPages = Math.ceil(length / itemsPerPage)<br/>startIndex = (page - 1) * itemsPerPage<br/>endIndex = startIndex + itemsPerPage"
     
     Calculation->>Display: paginatedCustomers 更新
     Display->>Display: 空行追加（15行固定表示）
@@ -125,7 +125,7 @@ sequenceDiagram
     Loading->>UI: ローディング表示
     
     Transition->>Transition: 非同期処理実行
-    Note over Transition: fetchCustomers()<br/>データ処理<br/>状態更新
+    Note over Transition: "fetchCustomers()<br/>データ処理<br/>状態更新"
     
     Transition->>Loading: isPending = false
     Loading->>UI: ローディング終了
@@ -199,7 +199,7 @@ sequenceDiagram
         Logic->>Fields: customer.managerName.includes(lowerKeyword)
     else searchField === 'すべて'
         Logic->>Fields: 全フィールドOR検索
-        Note over Fields: id OR customerName OR managerName
+        Note over Fields: "id OR customerName OR managerName"
     end
     
     Fields->>Result: フィルタリング済み配列
@@ -217,14 +217,14 @@ sequenceDiagram
 
     Data->>Calc: filteredCustomers.length
     Calc->>Calc: totalPages計算
-    Note over Calc: Math.ceil(length / itemsPerPage)
+    Note over Calc: "Math.ceil(length / itemsPerPage)"
     
     Calc->>Display: startIndex, endIndex計算
-    Note over Display: startIndex = (page - 1) * itemsPerPage<br/>endIndex = startIndex + itemsPerPage
+    Note over Display: "startIndex = (page - 1) * itemsPerPage<br/>endIndex = startIndex + itemsPerPage"
     
     Display->>Display: slice(startIndex, endIndex)
     Display->>EmptyRows: 空行追加処理
-    Note over EmptyRows: while (length < itemsPerPage)<br/>  push(emptyCustomer)
+    Note over EmptyRows: "while (length < itemsPerPage)<br/>  push(emptyCustomer)"
     
     EmptyRows-->>Data: 15行固定の表示データ
 ```
@@ -272,7 +272,7 @@ sequenceDiagram
     
     Client->>Error: result.status !== 'success' チェック
     Error->>Console: console.error() 実行
-    Note over Console: 'データの取得に失敗しました:', result.error
+    Note over Console: "'データの取得に失敗しました:', result.error"
     
     Error->>Client: setCustomers([]) 空配列設定
     Client-->>UI: エラー状態表示

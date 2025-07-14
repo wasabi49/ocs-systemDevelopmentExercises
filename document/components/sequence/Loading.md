@@ -13,7 +13,7 @@ sequenceDiagram
 
     Parent->>Loading: <Loading variant="spinner" size="md" text="読み込み中..." />
     Loading->>Loading: Props デフォルト値設定
-    Note over Loading: variant='spinner', size='md', fullScreen=false
+    Note over Loading: "variant='spinner', size='md', fullScreen=false"
     Loading->>Loading: containerClasses 計算
     Loading->>Renderer: renderLoader() 呼び出し
     Renderer-->>Loading: ローダーコンポーネント
@@ -34,14 +34,14 @@ sequenceDiagram
     
     alt variant === 'spinner'
         Loading->>Spinner: スピナー生成
-        Note over Spinner: animate-spin, border-b-2, border-blue-600
+        Note over Spinner: "animate-spin, border-b-2, border-blue-600"
         Spinner-->>Loading: <div className="animate-spin..." />
     else variant === 'dots'
         Loading->>Dots: ドットアニメーション生成
-        Note over Dots: 3つのドット、順次bounce
+        Note over Dots: "3つのドット、順次bounce"
         loop 3つのドット
             Dots->>Dots: animationDelay 設定
-            Note over Dots: 0ms, 150ms, 300ms
+            Note over Dots: "0ms, 150ms, 300ms"
         end
         Dots-->>Loading: <div className="flex space-x-1">...</div>
     else variant === 'text'
@@ -49,7 +49,7 @@ sequenceDiagram
         Text-->>Loading: <div className="font-medium text-gray-600">...</div>
     else variant === 'button'
         Loading->>Button: ボタン用ローダー生成
-        Note over Button: 白いスピナー + テキスト
+        Note over Button: "白いスピナー + テキスト"
         Button-->>Loading: <div className="flex items-center gap-2">...</div>
     end
 ```
@@ -108,9 +108,9 @@ sequenceDiagram
 
     Parent->>Overlay: <LoadingOverlay variant="spinner" />
     Overlay->>Overlay: 背景オーバーレイ生成
-    Note over Overlay: fixed inset-0 z-40 bg-black bg-opacity-50
+    Note over Overlay: "fixed inset-0 z-40 bg-black bg-opacity-50"
     Overlay->>Overlay: モーダルコンテナ生成
-    Note over Overlay: fixed inset-0 z-50 flex items-center justify-center
+    Note over Overlay: "fixed inset-0 z-50 flex items-center justify-center"
     Overlay->>Loading: <Loading {...props} />
     Loading-->>Overlay: ローディングコンポーネント
     Overlay-->>Parent: 全画面オーバーレイ
@@ -182,11 +182,11 @@ sequenceDiagram
     participant Spinner as Spinner
     participant Dots as Dots Animation
 
-    Note over CSS: スピナーアニメーション
+    Note over CSS: "スピナーアニメーション"
     CSS->>Spinner: animate-spin クラス適用
     Spinner->>Spinner: 360度回転 (1秒周期)
     
-    Note over CSS: ドットアニメーション
+    Note over CSS: "ドットアニメーション"
     CSS->>Dots: animate-bounce クラス適用
     Dots->>Dots: Dot 1: 0ms 遅延
     Dots->>Dots: Dot 2: 150ms 遅延

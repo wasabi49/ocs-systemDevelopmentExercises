@@ -11,7 +11,7 @@ sequenceDiagram
     participant Browser as ブラウザ
 
     Component->>Component: useState初期化
-    Note over Component: searchField, searchKeyword, sortField, sortOrder, currentPage
+    Note over Component: "searchField, searchKeyword, sortField, sortOrder, currentPage"
 
     User->>Search: 検索条件変更
     Search->>Component: setSearchField/setSearchKeyword
@@ -22,7 +22,7 @@ sequenceDiagram
     Search->>Component: exportToCSV()
     Component->>CSV: CSV生成処理開始
 
-    Note over CSV: CSV出力処理
+    Note over CSV: "CSV出力処理"
     CSV->>CSV: データ空チェック
     alt データが存在
         CSV->>CSV: ヘッダー行作成
@@ -39,7 +39,7 @@ sequenceDiagram
     Component->>Component: ソートフィールド・順序更新
     Component->>Component: sortedDataを再計算
 
-    Note over Component: ソート機能
+    Note over Component: "ソート機能"
     Component->>Component: ソート処理
     alt 同じフィールドクリック
         Component->>Component: asc ⇔ desc切り替え
@@ -47,7 +47,7 @@ sequenceDiagram
         Component->>Component: 新フィールドでasc設定
     end
 
-    Note over Component: 検索機能
+    Note over Component: "検索機能"
     Component->>Component: filteredStatistics計算
     alt 検索フィールド「すべて」
         Component->>Component: 全フィールドで検索
@@ -55,7 +55,7 @@ sequenceDiagram
         Component->>Component: 指定フィールドのみ検索
     end
 
-    Note over Component: 表示データ準備
+    Note over Component: "表示データ準備"
     Component->>Component: ページネーション適用
     Component->>Component: 15行確保のため空行追加
     Component->>Component: 通貨フォーマット適用

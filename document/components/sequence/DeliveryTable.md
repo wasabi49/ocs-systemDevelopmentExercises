@@ -8,17 +8,17 @@ sequenceDiagram
     participant Logger
 
     Parent->>Component: propsを渡してレンダリング
-    Note over Parent,Component: deliveries, onSort, renderSortIcons, sortField, sortOrder
+    Note over Parent,Component: "deliveries, onSort, renderSortIcons, sortField, sortOrder"
 
     Component->>Logger: logger.debug('DeliveryTable rendering')
     Logger-->>Component: ログ出力完了
 
-    Note over Component: テーブルヘッダーレンダリング
+    Note over Component: "テーブルヘッダーレンダリング"
     Component->>Component: ソート可能ヘッダー作成
     Component->>Parent: onSort('id')呼び出し（納品IDクリック時）
     Component->>Parent: onSort('date')呼び出し（納品日クリック時）
 
-    Note over Component: テーブルボディレンダリング
+    Note over Component: "テーブルボディレンダリング"
     loop 各配送データ
         Component->>Component: 配送データの表示判定
         alt 配送IDが存在

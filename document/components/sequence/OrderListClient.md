@@ -11,7 +11,7 @@ sequenceDiagram
     participant SortUtils as sortUtils
 
     Component->>Component: useState初期化
-    Note over Component: searchField, searchKeyword, statusFilter, orders, sortConfig, currentPage
+    Note over Component: "searchField, searchKeyword, statusFilter, orders, sortConfig, currentPage"
 
     User->>Search: 検索条件変更
     Search->>Component: setSearchField/setSearchKeyword
@@ -33,7 +33,7 @@ sequenceDiagram
     Component->>Component: setStatusFilter(新しい値)
     Component->>Component: filteredOrdersを再計算
 
-    Note over Component: 検索機能
+    Note over Component: "検索機能"
     Component->>Component: filteredOrders計算
     alt 検索フィールド「すべて」
         Component->>Component: ID/日付/顧客名/備考で検索
@@ -42,18 +42,18 @@ sequenceDiagram
     end
     Component->>Component: ステータスフィルターも適用
 
-    Note over Component: ページネーション
+    Note over Component: "ページネーション"
     User->>Pagination: ページ変更
     Pagination->>Component: handlePageChange(page)
     Component->>Component: setCurrentPage(page)
     Component->>Component: 表示データの再計算
 
-    Note over Component: 表示データ準備
+    Note over Component: "表示データ準備"
     Component->>Component: paginatedOrders算出
     Component->>Component: 15行確保のため空行追加
     Component->>Component: displayedOrdersを生成
 
-    Note over Component: テーブル表示
+    Note over Component: "テーブル表示"
     Component->>Component: 注文IDリンク生成
     Component->>Component: 日付フォーマット (formatDate)
     Component->>Component: ステータスバッジ表示

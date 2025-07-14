@@ -232,7 +232,7 @@ sequenceDiagram
         Action->>DB: orderDetail.create(detailId)
     end
     
-    Note over Action: 例: O0000001-01, O0000001-02, ...
+    Note over Action: "例: O0000001-01, O0000001-02, ..."
 ```
 
 ## エラーハンドリング共通パターン

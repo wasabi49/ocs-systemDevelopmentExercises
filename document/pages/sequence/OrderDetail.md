@@ -59,7 +59,7 @@ sequenceDiagram
     Component->>Component: toggleRowExpansion(orderDetailId)
     Component->>Component: 納品明細の表示/非表示切り替え
 
-    Note over Component: 納品明細展開時の表示
+    Note over Component: "納品明細展開時の表示"
     Component->>Component: 注文ステータスによる納品状況判定
     alt 注文ステータス「完了」
         Component->>Component: 「完納」として表示

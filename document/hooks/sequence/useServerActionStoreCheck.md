@@ -91,7 +91,7 @@ sequenceDiagram
     Hook->>Router: router.push('/stores')
     Hook-->>Component: true
     
-    Note over Component: リダイレクト発生により<br/>以降の処理は実行されない
+    Note over Component: "リダイレクト発生により<br/>以降の処理は実行されない"
 ```
 
 ## 5. useActionState との統合
@@ -135,17 +135,17 @@ sequenceDiagram
 
     Component->>Hook: checkStoreRequirement(undefined)
     Hook->>Hook: result?.status チェック
-    Note over Hook: undefined?.status は undefined
+    Note over Hook: "undefined?.status は undefined"
     Hook-->>Component: false
     
     Component->>Hook: checkStoreRequirement(null)
     Hook->>Hook: result?.status チェック
-    Note over Hook: null?.status は undefined
+    Note over Hook: "null?.status は undefined"
     Hook-->>Component: false
     
     Component->>Hook: checkStoreRequirement({ error: 'network error' })
     Hook->>Hook: result?.status チェック
-    Note over Hook: status プロパティなし
+    Note over Hook: "status プロパティなし"
     Hook-->>Component: false
 ```
 

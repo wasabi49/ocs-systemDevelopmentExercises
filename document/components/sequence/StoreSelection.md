@@ -71,11 +71,11 @@ sequenceDiagram
     Component->>Logger: logger.info('店舗選択', { store })
     Component->>Component: setSelectedStoreId(store.id)
     Component->>Context: setSelectedStore(store)
-    Note over Context: Cookie に店舗情報保存
+    Note over Context: "Cookie に店舗情報保存"
     Component->>Logger: logger.info('Cookie保存完了、画面遷移開始')
     
     Component->>Component: setTimeout(() => {...}, 600)
-    Note over Component: 選択アニメーション表示のための遅延
+    Note over Component: "選択アニメーション表示のための遅延"
     Component->>Router: router.push('/Home')
     Router-->>User: /Home ページにリダイレクト
 ```
@@ -112,7 +112,7 @@ sequenceDiagram
     
     alt error が存在する
         Component->>Component: エラーUI構築
-        Note over Component: エラーアイコン、メッセージ、再読み込みボタン
+        Note over Component: "エラーアイコン、メッセージ、再読み込みボタン"
         Component-->>User: エラー画面表示
         
         User->>Component: 再読み込みボタンクリック
@@ -134,14 +134,14 @@ sequenceDiagram
     
     alt storeList.length === 0
         Component->>Component: 空状態UI構築
-        Note over Component: "店舗データがありません" メッセージ
+        Note over Component: ""店舗データがありません" メッセージ"
         Component-->>User: 空状態表示
     else storeList.length > 0
         Component->>Component: 店舗カードリスト構築
         
         loop 各店舗に対して
             Component->>Component: 店舗カード生成
-            Note over Component: アニメーション付きカード<br/>選択状態の視覚的フィードバック
+            Note over Component: "アニメーション付きカード<br/>選択状態の視覚的フィードバック"
         end
         
         Component-->>User: 店舗選択UI表示

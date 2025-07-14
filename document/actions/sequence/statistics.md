@@ -26,7 +26,7 @@ sequenceDiagram
             Action-->>Client: { status: 'store_invalid' }
         else store が存在する
             Action->>DB: statistics.findMany(include: customer)
-            Note over Action,DB: 条件: isDeleted: false, customer.storeId: storeId
+            Note over Action,DB: "条件: isDeleted: false, customer.storeId: storeId"
             DB-->>Action: statistics
             Action-->>Client: { status: 'success', data: statistics }
         end
@@ -57,29 +57,29 @@ sequenceDiagram
             DB-->>Action: orders
             
             Action->>Action: 累計売上計算
-            Note over Action: orderDetails の unitPrice × quantity を合計
+            Note over Action: "orderDetails の unitPrice × quantity を合計"
             
             Action->>Action: 平均リードタイム計算開始
             Action->>Action: totalLeadTime = 0, completedOrders = 0
             
             loop 各注文
                 Action->>DB: delivery.findFirst(最初の納品日)
-                Note over Action,DB: 条件: customerId, deliveryDate >= orderDate
+                Note over Action,DB: "条件: customerId, deliveryDate >= orderDate"
                 DB-->>Action: firstDelivery
                 
                 alt firstDelivery が存在する
                     Action->>Action: leadTimeDays計算
-                    Note over Action: (deliveryDate - orderDate) / (1000*60*60*24)
+                    Note over Action: "(deliveryDate - orderDate) / (1000*60*60*24)"
                     Action->>Action: totalLeadTime += leadTimeDays
                     Action->>Action: completedOrders++
                 end
             end
             
             Action->>Action: averageLeadTime計算
-            Note over Action: completedOrders > 0 ? totalLeadTime / completedOrders : 0
+            Note over Action: "completedOrders > 0 ? totalLeadTime / completedOrders : 0"
             
             Action->>DB: statistics.upsert(customerId)
-            Note over Action,DB: update: { averageLeadTime, totalSales, isDeleted: false }<br/>create: { customerId, averageLeadTime, totalSales, isDeleted: false }
+            Note over Action,DB: "update: { averageLeadTime, totalSales, isDeleted: false }<br/>create: { customerId, averageLeadTime, totalSales, isDeleted: false }"
         end
         
         Action-->>Client: { status: 'success', message: '統計情報を再計算しました' }
@@ -124,7 +124,7 @@ sequenceDiagram
     
     loop 各注文
         Action->>DB: delivery.findFirst(最初の納品)
-        Note over Action,DB: 条件:<br/>- customerId: customer.id<br/>- deliveryDate >= order.orderDate<br/>- isDeleted: false<br/>orderBy: deliveryDate asc
+        Note over Action,DB: "条件:<br/>- customerId: customer.id<br/>- deliveryDate >= order.orderDate<br/>- isDeleted: false<br/>orderBy: deliveryDate asc"
         DB-->>Action: firstDelivery
         
         alt firstDelivery が存在する
@@ -151,15 +151,15 @@ sequenceDiagram
     participant DB as Prisma Database
 
     Action->>DB: statistics.upsert()
-    Note over Action,DB: where: { customerId: customer.id }
+    Note over Action,DB: "where: { customerId: customer.id }"
     
     alt 既存の統計データがある
         Action->>DB: statistics.update()
-        Note over Action,DB: data: {<br/>  averageLeadTime: averageLeadTime,<br/>  totalSales: totalSales,<br/>  isDeleted: false<br/>}
+        Note over Action,DB: "data: {<br/>  averageLeadTime: averageLeadTime,<br/>  totalSales: totalSales,<br/>  isDeleted: false<br/>}"
         DB-->>Action: 更新された統計データ
     else 統計データが存在しない
         Action->>DB: statistics.create()
-        Note over Action,DB: data: {<br/>  customerId: customer.id,<br/>  averageLeadTime: averageLeadTime,<br/>  totalSales: totalSales,<br/>  isDeleted: false<br/>}
+        Note over Action,DB: "data: {<br/>  customerId: customer.id,<br/>  averageLeadTime: averageLeadTime,<br/>  totalSales: totalSales,<br/>  isDeleted: false<br/>}"
         DB-->>Action: 新規作成された統計データ
     end
 ```
@@ -172,16 +172,16 @@ sequenceDiagram
     participant DB as Prisma Database
 
     Action->>DB: statistics.findMany()
-    Note over Action,DB: where条件:<br/>- isDeleted: false<br/>- customer: {<br/>    storeId: storeId,<br/>    isDeleted: false<br/>  }
+    Note over Action,DB: "where条件:<br/>- isDeleted: false<br/>- customer: {<br/>    storeId: storeId,<br/>    isDeleted: false<br/>  }"
     
-    Note over Action,DB: include条件:<br/>- customer: {<br/>    select: { id: true, name: true }<br/>  }
+    Note over Action,DB: "include条件:<br/>- customer: {<br/>    select: { id: true, name: true }<br/>  }"
     
-    Note over Action,DB: orderBy条件:<br/>- customer: { id: 'asc' }
+    Note over Action,DB: "orderBy条件:<br/>- customer: { id: 'asc' }"
     
     DB-->>Action: フィルタリングされた統計データ
     
     Action->>Action: データ変換
-    Note over Action: {<br/>  customerId: stat.customer.id,<br/>  customerName: stat.customer.name,<br/>  averageLeadTime: stat.averageLeadTime || 0,<br/>  totalSales: stat.totalSales || 0,<br/>  updatedAt: stat.updatedAt.toISOString()<br/>}
+    Note over Action: "{<br/>  customerId: stat.customer.id,<br/>  customerName: stat.customer.name,<br/>  averageLeadTime: stat.averageLeadTime || 0,<br/>  totalSales: stat.totalSales || 0,<br/>  updatedAt: stat.updatedAt.toISOString()<br/>}"
     
     Action-->>Action: 変換されたデータ配列
 ```

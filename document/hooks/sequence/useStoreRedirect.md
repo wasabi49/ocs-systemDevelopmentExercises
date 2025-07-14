@@ -22,7 +22,7 @@ sequenceDiagram
     Pathname-->>Hook: pathname
     
     Hook->>Hook: isStoreSelectionPage 判定
-    Note over Hook: pathname === '/stores' || pathname === '/'
+    Note over Hook: "pathname === '/stores' || pathname === '/'"
     
     Hook-->>Component: { selectedStore, isStoreSelected }
 ```
@@ -81,7 +81,7 @@ sequenceDiagram
     participant Component as 呼び出し元コンポーネント
 
     Hook->>Hook: 戻り値オブジェクト構築
-    Note over Hook: {<br/>  selectedStore,<br/>  isStoreSelected: !!selectedStore<br/>}
+    Note over Hook: "{<br/>  selectedStore,<br/>  isStoreSelected: !!selectedStore<br/>}"
     
     Hook-->>Component: 戻り値オブジェクト
     
@@ -121,10 +121,10 @@ sequenceDiagram
     
     alt 初回レンダリング（店舗未選択）
         Hook->>Router: router.push('/stores')
-        Note over Page: コンポーネントは再マウント
+        Note over Page: "コンポーネントは再マウント"
     else 店舗選択済み
         Hook-->>Page: { selectedStore, isStoreSelected: true }
-        Note over Page: 通常の描画処理継続
+        Note over Page: "通常の描画処理継続"
     end
     
     alt 店舗選択解除

@@ -16,7 +16,7 @@ sequenceDiagram
     
     alt result.status === 'store_required'
         Utils->>NextRedirect: redirect('/stores')
-        Note over NextRedirect: デフォルトリダイレクト先
+        Note over NextRedirect: "デフォルトリダイレクト先"
         NextRedirect-->>Utils: リダイレクト実行
     else result.status === 'store_invalid'
         Utils->>NextRedirect: redirect('/stores')
@@ -39,7 +39,7 @@ sequenceDiagram
     
     alt 店舗関連エラー
         Utils->>NextRedirect: redirect('/custom-path')
-        Note over Utils,NextRedirect: カスタムパス使用
+        Note over Utils,NextRedirect: "カスタムパス使用"
         NextRedirect-->>Utils: リダイレクト実行
     else 正常
         Utils-->>ServerComp: result
@@ -78,10 +78,10 @@ sequenceDiagram
     
     alt 店舗要件エラー
         Utils->>Utils: redirect('/stores') 実行
-        Note over Page: ページは描画されない（リダイレクト）
+        Note over Page: "ページは描画されない（リダイレクト）"
     else 成功
         Utils-->>Page: result
-        Note over Page: 通常の描画継続
+        Note over Page: "通常の描画継続"
     end
 ```
 
@@ -124,11 +124,11 @@ sequenceDiagram
 
     Utils->>NextJS: redirect(path)
     NextJS->>Browser: HTTP 302 レスポンス
-    Note over NextJS,Browser: Location: /stores
+    Note over NextJS,Browser: "Location: /stores"
     Browser->>Browser: ページ遷移実行
     
-    Note over Utils: 関数の実行はここで終了
-    Note over Utils: 後続のコードは実行されない
+    Note over Utils: "関数の実行はここで終了"
+    Note over Utils: "後続のコードは実行されない"
 ```
 
 ## 使用例

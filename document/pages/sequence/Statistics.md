@@ -18,7 +18,7 @@ sequenceDiagram
     Actions->>Database: 統計データ取得クエリ
     
     Database->>Calculation: 顧客別データ集計
-    Note over Calculation: 平均リードタイム計算<br/>総売上計算<br/>更新日時取得
+    Note over Calculation: "平均リードタイム計算<br/>総売上計算<br/>更新日時取得"
     
     Calculation-->>Actions: 統計結果配列
     Actions-->>Page: { status: 'success', data: statistics }
@@ -55,7 +55,7 @@ sequenceDiagram
     participant TypeSafety as 型安全性
 
     Page->>Interface: StatisticsData インターフェース確認
-    Note over Interface: customerId: string<br/>customerName: string<br/>averageLeadTime: number<br/>totalSales: number<br/>updatedAt: string
+    Note over Interface: "customerId: string<br/>customerName: string<br/>averageLeadTime: number<br/>totalSales: number<br/>updatedAt: string"
     
     Interface->>DataValidation: データ構造検証
     DataValidation->>TypeSafety: TypeScript型チェック
@@ -75,11 +75,11 @@ sequenceDiagram
     
     alt success
         Result->>DataArray: statisticsResult.data || []
-        Note over DataArray: データが null の場合は空配列
+        Note over DataArray: "データが null の場合は空配列"
     else error
         Result->>DataArray: []（空配列）
         Result->>Console: console.error() 実行
-        Note over Console: '統計データの取得に失敗:', result.error
+        Note over Console: "'統計データの取得に失敗:', result.error"
     end
     
     DataArray->>Client: <StatisticsListClient statisticsData={statisticsData} />
@@ -99,7 +99,7 @@ sequenceDiagram
     
     alt データ取得エラー
         ErrorCheck->>Console: エラーログ出力
-        Note over Console: '統計データの取得に失敗:', result.error
+        Note over Console: "'統計データの取得に失敗:', result.error"
         ErrorCheck->>FallbackData: statisticsData = []
         FallbackData->>Client: 空のリストで表示
     else 正常処理
@@ -172,13 +172,13 @@ sequenceDiagram
     Database->>Customers: 顧客データ取得
     
     Statistics->>Statistics: リードタイム計算
-    Note over Statistics: 注文日 ～ 納品日の日数計算<br/>顧客別平均値算出
+    Note over Statistics: "注文日 ～ 納品日の日数計算<br/>顧客別平均値算出"
     
     Statistics->>Statistics: 売上計算
-    Note over Statistics: 納品済み注文の金額合計<br/>顧客別集計
+    Note over Statistics: "納品済み注文の金額合計<br/>顧客別集計"
     
     Statistics->>Statistics: 更新日時設定
-    Note over Statistics: 最新の更新日時を取得
+    Note over Statistics: "最新の更新日時を取得"
     
     Statistics-->>Database: 統計結果配列
 ```
@@ -221,10 +221,10 @@ sequenceDiagram
     Page->>Metrics: 統計指標定義
     
     Metrics->>LeadTime: 平均リードタイム
-    Note over LeadTime: (納品日 - 注文日) の平均<br/>顧客別に計算<br/>単位: 日数
+    Note over LeadTime: "(納品日 - 注文日) の平均<br/>顧客別に計算<br/>単位: 日数"
     
     Metrics->>Sales: 総売上金額
-    Note over Sales: 納品済み注文の合計金額<br/>顧客別に集計<br/>単位: 円
+    Note over Sales: "納品済み注文の合計金額<br/>顧客別に集計<br/>単位: 円"
     
     LeadTime-->>Page: averageLeadTime: number
     Sales-->>Page: totalSales: number
@@ -242,10 +242,10 @@ sequenceDiagram
     Page->>Validation: データ検証開始
     
     Validation->>NullCheck: statisticsResult.data || []
-    Note over NullCheck: データが null/undefined の場合<br/>空配列で初期化
+    Note over NullCheck: "データが null/undefined の場合<br/>空配列で初期化"
     
     Validation->>TypeCheck: TypeScript型チェック
-    Note over TypeCheck: StatisticsData インターフェース準拠<br/>各フィールドの型検証
+    Note over TypeCheck: "StatisticsData インターフェース準拠<br/>各フィールドの型検証"
     
     NullCheck-->>Page: 安全なデータ配列
     TypeCheck-->>Page: 型安全性保証

@@ -11,7 +11,7 @@ sequenceDiagram
     participant SortUtils as sortUtils
 
     Component->>Component: useState初期化
-    Note over Component: searchField, searchKeyword, deliveries, sortConfig, currentPage
+    Note over Component: "searchField, searchKeyword, deliveries, sortConfig, currentPage"
 
     User->>Search: 検索条件変更
     Search->>Component: setSearchField/setSearchKeyword
@@ -29,7 +29,7 @@ sequenceDiagram
     Component->>Component: setDeliveries(sortedDeliveries)
     Component->>Table: 再レンダリング
 
-    Note over Component: 検索機能
+    Note over Component: "検索機能"
     Component->>Component: filteredDeliveries計算
     alt 検索フィールド「すべて」
         Component->>Component: 全フィールドで検索
@@ -37,13 +37,13 @@ sequenceDiagram
         Component->>Component: 指定フィールドのみ検索
     end
 
-    Note over Component: ページネーション
+    Note over Component: "ページネーション"
     User->>Pagination: ページ変更
     Pagination->>Component: handlePageChange(page)
     Component->>Component: setCurrentPage(page)
     Component->>Component: 表示データの再計算
 
-    Note over Component: 表示データ準備
+    Note over Component: "表示データ準備"
     Component->>Component: paginatedDeliveries算出
     Component->>Component: 15行確保のため空行追加
     Component->>Table: displayedDeliveriesを渡す

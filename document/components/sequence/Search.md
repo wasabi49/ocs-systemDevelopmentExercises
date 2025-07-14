@@ -13,9 +13,9 @@ sequenceDiagram
 
     Parent->>Search: <Search keyword={keyword} onKeywordChange={handler} ... />
     Search->>Props: プロパティ受け取り
-    Note over Props: keyword, searchField, searchFieldOptions, etc.
+    Note over Props: "keyword, searchField, searchFieldOptions, etc."
     Search->>Search: デフォルト値設定
-    Note over Search: placeholder="検索キーワードを入力"
+    Note over Search: "placeholder="検索キーワードを入力""
     Search-->>Parent: 検索UIコンポーネント
 ```
 
@@ -89,14 +89,14 @@ sequenceDiagram
     
     alt actionButtonLabel 存在
         Container->>ActionBtn: 緑色ボタン配置
-        Note over ActionBtn: flex-shrink-0, h-[48px]
+        Note over ActionBtn: "flex-shrink-0, h-[48px]"
     end
     
     Container->>SelectField: セレクトボックス配置
-    Note over SelectField: w-24 sm:w-32, border-black
+    Note over SelectField: "w-24 sm:w-32, border-black"
     
     Container->>InputField: 検索入力欄配置
-    Note over InputField: flex-1, 検索アイコン付き
+    Note over InputField: "flex-1, 検索アイコン付き"
     
     Container-->>Search: 完成したレイアウト
 ```
@@ -178,7 +178,7 @@ sequenceDiagram
     participant Search as Search
     participant User as ユーザー
 
-    Note over Parent: 初期状態設定
+    Note over Parent: "初期状態設定"
     Parent->>Search: keyword="", searchField="all"
     
     User->>Search: フィールド選択変更
@@ -190,7 +190,7 @@ sequenceDiagram
     Parent->>Parent: keyword 更新
     
     Parent->>Parent: フィルタリング実行
-    Note over Parent: useFilteredOrders などのフック使用
+    Note over Parent: "useFilteredOrders などのフック使用"
     
     Parent->>Parent: 検索結果表示更新
 ```
@@ -208,8 +208,8 @@ sequenceDiagram
     Search->>Button: type="button" 設定
     Search->>Button: disabled 属性で状態管理
     
-    Note over Input: focus:border-orange-500
-    Note over Input: focus:outline-none
+    Note over Input: "focus:border-orange-500"
+    Note over Input: "focus:outline-none"
     
     Search->>Select: 適切な onChange ハンドラー
     Search->>Input: 適切な onChange ハンドラー
