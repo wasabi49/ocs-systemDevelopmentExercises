@@ -20,7 +20,6 @@ interface OrderUpdateRequest {
   orderDate: string;
   customerId: string;
   note: string | null;
-  status: string;
   orderDetails: Array<{
     productName: string;
     unitPrice: number;
@@ -318,7 +317,6 @@ const OrderEditPage: React.FC = () => {
   const [customerSearchTerm, setCustomerSearchTerm] = useState<string>('');
   const [showCustomerDropdown, setShowCustomerDropdown] = useState<boolean>(false);
   const [note, setNote] = useState<string>('');
-  const [status, setStatus] = useState<string>('未完了');
   const [orderDetails, setOrderDetails] = useState<OrderDetailEdit[]>([]);
 
   // モーダル状態
@@ -373,7 +371,6 @@ const OrderEditPage: React.FC = () => {
           setSelectedCustomerId(order.customerId);
           setCustomerSearchTerm(order.customer.name);
           setNote(order.note || '');
-          setStatus(order.status || '未完了');
           
           const editableDetails: OrderDetailEdit[] = order.orderDetails.map(detail => ({
             id: detail.id,
@@ -487,6 +484,19 @@ const OrderEditPage: React.FC = () => {
     });
   }, [deleteModal]);
 
+  // ステータス自動計算
+  const calculatedStatus = useMemo(() => {
+    if (orderDetails.length === 0) return '未完了';
+    
+    const allCompleted = orderDetails.every(detail => {
+      if (detail.id.startsWith('TEMP-')) return false;
+      const deliveryInfo = getDeliveryInfo(detail.id);
+      return deliveryInfo.deliveryStatus === '完了';
+    });
+    
+    return allCompleted ? '完了' : '未完了';
+  }, [orderDetails]);
+
   // バリデーション状態の計算
   const validationResult = useMemo(() => {
     return validateOrderData(orderDetails, orderDate, selectedCustomerId);
@@ -509,7 +519,6 @@ const OrderEditPage: React.FC = () => {
           orderDate,
           customerId: selectedCustomerId,
           note: note || null,
-          status,
           orderDetails: orderDetails.map(detail => ({
             productName: detail.productName,
             unitPrice: typeof detail.unitPrice === 'number' ? detail.unitPrice : parseJPYString(String(detail.unitPrice)),
@@ -538,7 +547,7 @@ const OrderEditPage: React.FC = () => {
         });
       }
     });
-  }, [validationResult, orderDate, selectedCustomerId, note, status, orderDetails, orderId]);
+  }, [validationResult, orderDate, selectedCustomerId, note, orderDetails, orderId]);
 
   // 顧客選択ハンドラー
   const handleSelectCustomer = useCallback((customer: Customer) => {
@@ -853,22 +862,27 @@ const OrderEditPage: React.FC = () => {
               </div>
             </div>
 
-            {/* ステータス */}
+            {/* ステータス（自動計算・読み取り専用） */}
             <div>
               <div className="bg-blue-500 text-white p-2 font-semibold text-sm sm:text-base border border-black">
-                ステータス
+                ステータス（自動計算）
               </div>
-              <div className="p-3 border-x border-b border-black">
-                <select 
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                  className="w-full px-2 py-2 rounded text-xs sm:text-sm border border-black"
-                >
-                  <option value="未完了">未完了</option>
-                  <option value="進行中">進行中</option>
-                  <option value="完了">完了</option>
-                  <option value="キャンセル">キャンセル</option>
-                </select>
+              <div className="p-3 border-x border-b border-black bg-gray-50">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                      calculatedStatus === '完了'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
+                    {calculatedStatus}
+                  </span>
+                  <span className="text-xs text-gray-500 ml-2">（手動変更不可）</span>
+                </div>
+                <p className="text-xs text-gray-600 mt-2">
+                  ※ステータスは全ての明細の納品が完了した時に自動的に「完了」になります。手動での変更はできません。
+                </p>
               </div>
             </div>
             

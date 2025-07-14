@@ -39,7 +39,7 @@ describe('HomePage', () => {
     vi.mocked(useRouter).mockReturnValue(mockRouter);
   });
 
-  it('renders loading component with correct props', () => {
+  it('正しいpropsでローディングコンポーネントを表示する', () => {
     vi.mocked(useStore).mockReturnValue({
       selectedStore: null,
     });
@@ -52,7 +52,7 @@ describe('HomePage', () => {
     expect(screen.getByTestId('loading-text')).toHaveTextContent('読み込み中...');
   });
 
-  it('redirects to /Home when selectedStore exists', () => {
+  it('selectedStoreが存在するとき/Homeにリダイレクトする', () => {
     vi.mocked(useStore).mockReturnValue({
       selectedStore: { id: 1, name: 'Test Store' },
     });
@@ -62,7 +62,7 @@ describe('HomePage', () => {
     expect(mockPush).toHaveBeenCalledWith('/Home');
   });
 
-  it('redirects to /stores when selectedStore is null', () => {
+  it('selectedStoreがnullのとき/storesにリダイレクトする', () => {
     vi.mocked(useStore).mockReturnValue({
       selectedStore: null,
     });
@@ -72,7 +72,7 @@ describe('HomePage', () => {
     expect(mockPush).toHaveBeenCalledWith('/stores');
   });
 
-  it('redirects to /stores when selectedStore is undefined', () => {
+  it('selectedStoreがundefinedのとき/storesにリダイレクトする', () => {
     vi.mocked(useStore).mockReturnValue({
       selectedStore: undefined,
     });
@@ -82,7 +82,7 @@ describe('HomePage', () => {
     expect(mockPush).toHaveBeenCalledWith('/stores');
   });
 
-  it('has the correct CSS classes for styling', () => {
+  it('スタイリングのための正しいCSSクラスを持つ', () => {
     vi.mocked(useStore).mockReturnValue({
       selectedStore: null,
     });

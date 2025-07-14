@@ -365,7 +365,6 @@ export async function updateOrder(
     orderDate: string;
     customerId: string;
     note: string | null;
-    status: string;
     orderDetails: Array<{
       productName: string;
       unitPrice: number;
@@ -420,7 +419,7 @@ export async function updateOrder(
 
     // トランザクションで注文と注文明細を更新
     const result = await prisma.$transaction(async (tx) => {
-      // 注文を更新
+      // 注文を更新（ステータスは明細の納品状況に基づいて自動決定されるため、現在の値を保持）
       const order = await tx.order.update({
         where: {
           id: orderId,
@@ -429,7 +428,7 @@ export async function updateOrder(
           orderDate: new Date(data.orderDate),
           customerId: data.customerId,
           note: data.note,
-          status: data.status,
+          // status: data.status, // ステータスは自動管理のため削除
         },
       });
 

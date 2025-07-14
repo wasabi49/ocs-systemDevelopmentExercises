@@ -447,11 +447,11 @@ const UndeliveredProductsModal = ({
                   </th>
                   <th 
                     className="w-[12%] min-w-[90px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm cursor-pointer hover:bg-blue-400"
-                    onClick={() => handleSort('selections' as any)}
+                    onClick={() => handleSort('selections' as keyof DeliveryDetail | 'selections')}
                   >
                     <div className="flex items-center justify-center">
                       納品数量
-                      <SortIcon field="selections" sortConfig={sortConfig as any} />
+                      <SortIcon field="selections" sortConfig={sortConfig as SortConfig<DeliveryDetail & { selections: number }> | null} />
                     </div>
                   </th>
                 </tr>

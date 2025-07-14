@@ -241,10 +241,84 @@ describe('Modal', () => {
     render(<Modal {...mockProps} />);
 
     const importButton = screen.getByText('データインポート');
+    
+    // 空のCSVデータの場合、ボタンは無効化されている
+    expect(importButton).toBeDisabled();
+    
+    // 無効化されたボタンをクリックしてもイベントは発生しない
     fireEvent.click(importButton);
 
+    // 結果画面に移行しないことを確認
+    expect(screen.queryByText('インポート結果')).not.toBeInTheDocument();
+    expect(screen.queryByText('エラーが発生しました')).not.toBeInTheDocument();
+    
+    // 元の画面が表示されていることを確認
+    expect(screen.getByText('CSVファイルで顧客データをインポート')).toBeInTheDocument();
+  });
+
+  it('handles CSV file with empty data rows', async () => {
+    // 空のCSVファイル（ヘッダーなし）のシナリオ
+    const mockData: string[][] = [];
+
+    vi.mocked(Papa.parse).mockImplementation((file, options) => {
+      options.complete({ data: mockData });
+    });
+
+    render(<Modal {...mockProps} />);
+
+    const fileInput = screen.getByLabelText('ファイルを選択');
+    const file = new File([''], 'empty.csv', { type: 'text/csv' });
+    
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    // CSVファイルは処理されるが、データが空なのでボタンは無効のまま
+    await waitFor(() => {
+      const importButton = screen.getByText('データインポート');
+      expect(importButton).toBeDisabled();
+    });
+
+    // 空のデータなので結果画面は表示されない
+    expect(screen.queryByText('インポート結果')).not.toBeInTheDocument();
+  });
+
+  it('handles CSV file with header only (no data rows)', async () => {
+    // ヘッダーのみでデータ行がないCSVファイル
+    const mockData = [
+      ['顧客ID', '店舗名', '顧客名', '担当者名', '住所', '電話番号', '配送条件', '備考'],
+    ];
+
+    vi.mocked(Papa.parse).mockImplementation((file, options) => {
+      options.complete({ data: mockData });
+    });
+
+    render(<Modal {...mockProps} />);
+
+    const fileInput = screen.getByLabelText('ファイルを選択');
+    const file = new File(['header only'], 'header_only.csv', { type: 'text/csv' });
+    
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      const importButton = screen.getByText('データインポート');
+      expect(importButton).not.toBeDisabled();
+    });
+
+    const importButton = screen.getByText('データインポート');
+    fireEvent.click(importButton);
+
+    // 結果画面に移行するまで待機
+    await waitFor(() => {
+      expect(screen.getByText('インポート結果')).toBeInTheDocument();
+    });
+
+    // エラーメッセージの確認
     await waitFor(() => {
       expect(screen.getByText('エラーが発生しました')).toBeInTheDocument();
+    });
+    
+    // エラー詳細メッセージも確認（データ行がない場合のエラー）
+    await waitFor(() => {
+      expect(screen.getByText('CSVファイルにデータ行がありません（ヘッダー行のみ）')).toBeInTheDocument();
     });
   });
 
@@ -380,7 +454,7 @@ describe('Modal', () => {
       expect(screen.getByText('インポート完了')).toBeInTheDocument();
     });
 
-    const closeButton = screen.getByText('閉じる');
+    const closeButton = screen.getByText('完了');
     fireEvent.click(closeButton);
 
     expect(mockProps.onCancel).toHaveBeenCalled();
@@ -389,7 +463,8 @@ describe('Modal', () => {
   it('handles backdrop click', () => {
     render(<Modal {...mockProps} />);
 
-    const backdrop = screen.getByRole('dialog').parentElement;
+    // バックドロップをクラス名で取得
+    const backdrop = document.querySelector('.fixed.inset-0.z-50');
     fireEvent.click(backdrop!);
 
     expect(mockProps.onCancel).toHaveBeenCalled();

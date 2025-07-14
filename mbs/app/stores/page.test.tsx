@@ -32,7 +32,7 @@ describe('StoreSelectionPage', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders StoreSelection component with data when getAllStores succeeds', async () => {
+  it('getAllStoresが成功したときデータでStoreSelectionコンポーネントを表示する', async () => {
     const mockStores = [
       { id: '1', name: 'Store 1' },
       { id: '2', name: 'Store 2' },
@@ -49,7 +49,7 @@ describe('StoreSelectionPage', () => {
     });
   });
 
-  it('renders StoreSelection component with empty stores and error when getAllStores fails', async () => {
+  it('getAllStoresが失敗したとき空のストアとエラーでStoreSelectionコンポーネントを表示する', async () => {
     vi.mocked(getAllStores).mockRejectedValue(new Error('Database error'));
 
     render(await StoreSelectionPage());
@@ -61,7 +61,7 @@ describe('StoreSelectionPage', () => {
     });
   });
 
-  it('calls getAllStores action', async () => {
+  it('getAllStoresアクションを呼び出す', async () => {
     vi.mocked(getAllStores).mockResolvedValue([]);
 
     render(await StoreSelectionPage());

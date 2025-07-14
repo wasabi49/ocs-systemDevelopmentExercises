@@ -72,6 +72,7 @@ async function validateAndFormatCustomerId(
  * @param usedIds 既に使用予定のIDセット（トランザクション内で重複を避けるため）
  * @returns 新しい顧客ID
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function generateCustomerId(
   storeId: string,
   usedIds: Set<string> = new Set(),
