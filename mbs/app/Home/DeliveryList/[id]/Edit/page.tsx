@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Tooltip } from 'react-tooltip';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 import {
   fetchDeliveryForEdit,
   fetchUndeliveredOrderDetails,
@@ -176,6 +177,7 @@ const UndeliveredProductsModal = ({
   const [selections, setSelections] = useState<Record<string, number>>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig<UndeliveredOrderDetail> | null>(null);
+  const [selectionsSortDirection, setSelectionsSortDirection] = useState<'asc' | 'desc'>('asc');
   const [isSaving, setIsSaving] = useState(false);
 
   // モーダルが開かれた時に初期化
@@ -243,26 +245,27 @@ const UndeliveredProductsModal = ({
   const handleSort = (field: keyof UndeliveredOrderDetail | 'selections') => {
     if (field === 'selections') {
       // selectionsフィールドの場合は独自ソートロジック
-      setSortConfig(prevConfig => {
-        const newDirection = prevConfig?.key === 'selections' && prevConfig.direction === 'asc' ? 'desc' : 'asc';
-        return { key: field, direction: newDirection };
-      });
+      setSortConfig(null); // 他のソートをクリア
+      setSelectionsSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
     } else {
+      // 通常のフィールドソートの場合、selectionsソートをクリア
+      setSelectionsSortDirection('asc');
       sortItems(filteredOrderDetails, field, sortConfig, setSortConfig);
     }
   };
 
   // ソート済みのデータを取得（selectionsの変更も反映される）
   const sortedOrderDetails = useMemo(() => {
-    if (!sortConfig) return filteredOrderDetails;
-    
-    return [...filteredOrderDetails].sort((a, b) => {
-      // selectionsフィールドの場合は独自ソートロジック
-      if (sortConfig.key === 'selections') {
+    // selectionsソートが有効な場合（sortConfigがnullの場合）
+    if (sortConfig === null) {
+      return [...filteredOrderDetails].sort((a, b) => {
         const aSelection = selections[a.orderDetailId] || a.currentAllocation;
         const bSelection = selections[b.orderDetailId] || b.currentAllocation;
-        return sortConfig.direction === 'asc' ? aSelection - bSelection : bSelection - aSelection;
-      }
+        return selectionsSortDirection === 'asc' ? aSelection - bSelection : bSelection - aSelection;
+      });
+    }
+    
+    return [...filteredOrderDetails].sort((a, b) => {
 
       const aValue = a[sortConfig.key as keyof UndeliveredOrderDetail];
       const bValue = b[sortConfig.key as keyof UndeliveredOrderDetail];
@@ -289,7 +292,7 @@ const UndeliveredProductsModal = ({
       if (aStr > bStr) return sortConfig.direction === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [filteredOrderDetails, sortConfig, selections]);
+  }, [filteredOrderDetails, sortConfig, selections, selectionsSortDirection]);
 
   // 選択数量の合計を計算
   const totalSelectedQuantity = Object.values(selections).reduce((sum, qty) => sum + qty, 0);
@@ -447,11 +450,21 @@ const UndeliveredProductsModal = ({
                   </th>
                   <th 
                     className="w-[12%] min-w-[90px] border border-gray-400 px-1 py-1 text-xs font-semibold sm:px-2 sm:py-2 sm:text-sm cursor-pointer hover:bg-blue-400"
-                    onClick={() => handleSort('selections' as keyof DeliveryDetail | 'selections')}
+                    onClick={() => handleSort('selections')}
                   >
                     <div className="flex items-center justify-center">
                       納品数量
-                      <SortIcon field="selections" sortConfig={sortConfig as SortConfig<DeliveryDetail & { selections: number }> | null} />
+                      {/* selections用の独自ソートアイコン */}
+                      <span className="ml-1 inline-flex flex-col">
+                        <ChevronUp
+                          size={12}
+                          className={selectionsSortDirection === 'asc' ? 'text-gray-800' : 'text-gray-400'}
+                        />
+                        <ChevronDown
+                          size={12}
+                          className={selectionsSortDirection === 'desc' ? 'text-gray-800' : 'text-gray-400'}
+                        />
+                      </span>
                     </div>
                   </th>
                 </tr>
