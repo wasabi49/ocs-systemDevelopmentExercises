@@ -265,16 +265,14 @@ const UndeliveredProductsModal = ({
 
   // ソート済みのデータを取得（selectionsの変更も反映される）
   const sortedOrderDetails = useMemo(() => {
-    // selectionsソートが有効な場合
-    if (sortConfig === null && selectionsSortDirection !== 'asc') {
+    // selectionsソートが有効な場合（sortConfigがnullの場合）
+    if (sortConfig === null) {
       return [...filteredOrderDetails].sort((a, b) => {
         const aSelection = selections[a.orderDetailId] || 0;
         const bSelection = selections[b.orderDetailId] || 0;
         return selectionsSortDirection === 'asc' ? aSelection - bSelection : bSelection - aSelection;
       });
     }
-    
-    if (!sortConfig) return filteredOrderDetails;
     
     return [...filteredOrderDetails].sort((a, b) => {
 
