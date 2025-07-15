@@ -61,7 +61,7 @@ sequenceDiagram
 sequenceDiagram
     participant Breadcrumbs as Breadcrumbs
     participant Segments as pathSegments
-    participant Link as Link
+    participant LinkComp as Link
     participant ChevronRight as ChevronRight
 
     Breadcrumbs->>Breadcrumbs: pathSegments.length チェック
@@ -74,9 +74,9 @@ sequenceDiagram
             Breadcrumbs->>Breadcrumbs: index < pathSegments.length - 1 チェック
             
             alt 最後のセグメントでない
-                Breadcrumbs->>Link: Link コンポーネント生成
-                Note over Link: "href: /${pathSegments.slice(0, index + 1).join('/')}"
-                Link->>Link: pathNames[segment] でラベル設定
+                Breadcrumbs->>LinkComp: LinkComp コンポーネント生成
+                Note over LinkComp: "href: /${pathSegments.slice(0, index + 1).join('/')}"
+                LinkComp->>LinkComp: pathNames[segment] でラベル設定
                 Breadcrumbs->>ChevronRight: 区切り矢印追加
             else 最後のセグメント
                 Breadcrumbs->>Breadcrumbs: span でテキスト表示
@@ -184,17 +184,17 @@ sequenceDiagram
 sequenceDiagram
     participant Breadcrumbs as Breadcrumbs
     participant SliceJoin as slice & join
-    participant Link as Link
+    participant LinkComp as Link
 
     Breadcrumbs->>SliceJoin: pathSegments.slice(0, index + 1)
     Note over SliceJoin: "現在の位置まで切り取り"
     SliceJoin->>SliceJoin: .join('/') でパス構築
-    SliceJoin-->>Link: href パス
+    SliceJoin-->>LinkComp: href パス
     
-    Note over Link: "例: index=1 の場合<br/>["Home", "CustomerList"] → "/Home/CustomerList""
+    Note over LinkComp: "例: index=1 の場合<br/>["Home", "CustomerList"] → "/Home/CustomerList""
     
-    Link->>Link: Link コンポーネント生成
-    Link-->>Breadcrumbs: クリック可能なリンク
+    LinkComp->>LinkComp: LinkComp コンポーネント生成
+    LinkComp-->>Breadcrumbs: クリック可能なリンク
 ```
 
 ## 特徴

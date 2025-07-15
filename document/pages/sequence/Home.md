@@ -50,7 +50,7 @@ sequenceDiagram
     participant Page as HomePage
     participant JSX as JSXレンダリング
     participant Grid as Grid Layout
-    participant Link as Next.js Link
+    participant NextNextLink as Next.js NextLink
 
     Page->>JSX: return文実行
     JSX->>JSX: ヘッダーセクション作成
@@ -60,9 +60,9 @@ sequenceDiagram
     Note over Grid: "grid-cols-1 sm:grid-cols-2<br/>レスポンシブ対応"
     
     loop 各ボタンアイテム
-        Grid->>Link: Link コンポーネント作成
-        Link->>Link: href={btn.path} 設定
-        Link->>Link: アイコンとラベル配置
+        Grid->>NextLink: NextLink コンポーネント作成
+        NextLink->>NextLink: href={btn.path} 設定
+        NextLink->>NextLink: アイコンとラベル配置
     end
     
     Grid-->>JSX: 完成したメニューグリッド
@@ -119,13 +119,13 @@ sequenceDiagram
 sequenceDiagram
     participant User as ユーザー
     participant Button as メニューボタン
-    participant Link as Next.js Link
+    participant NextNextLink as Next.js NextLink
     participant Router as Next.js Router
     participant TargetPage as 目的ページ
 
     User->>Button: ボタンクリック
-    Button->>Link: href属性確認
-    Link->>Router: ページ遷移実行
+    Button->>NextLink: href属性確認
+    NextLink->>Router: ページ遷移実行
     Router->>TargetPage: 対応するページへナビゲート
     
     Note over TargetPage: "/Home/CustomerList<br/>/Home/OrderList<br/>/Home/DeliveryList<br/>/Home/Statistics"
@@ -219,7 +219,7 @@ sequenceDiagram
 - 意味的で直感的なアイコン選択
 
 ### 4. ナビゲーション最適化
-- Next.js Link コンポーネント
+- Next.js NextLink コンポーネント
 - 高速なクライアントサイド遷移
 
 ### 5. 一貫したデザインシステム
