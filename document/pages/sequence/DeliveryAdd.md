@@ -143,40 +143,11 @@ sequenceDiagram
 
 ## コンポーネント階層構造
 
-```mermaid
-classDiagram
-    class DeliveryAddPage {
-        +useState hooks
-        +useEffect hooks
-        +useCallback hooks
-        +useMemo hooks
-        -fetchCustomersData()
-        -handleSelectCustomer()
-        -handleSaveDelivery()
-    }
-    
-    class CustomerDropdown {
-        +customers: CustomerData[]
-        +onSelect: function
-        +onClose: function
-        -handleClickOutside()
-    }
-    
-    class UndeliveredProductsModal {
-        +orderDetails: UndeliveredOrderDetail[]
-        +onSave: function
-        +useState selections
-        +useSimpleSearch
-        -handleQuantityChange()
-        -handleSort()
-    }
-    
-    class ErrorModal {
-        +isOpen: boolean
-        +title: string
-        +message: string
-        +onClose: function
-    }
+**DeliveryAdd ページコンポーネント構造**
+- DeliveryAddPage: useState、useEffect、useCallback、useMemo フック、fetchCustomersData()、handleSelectCustomer()、handleSaveDelivery() メソッドを持つ
+- CustomerDropdown: customers、onSelect、onClose プロパティ、handleClickOutside() メソッドを持つ
+- UndeliveredProductsModal: orderDetails、onSave、useState selections、useSimpleSearch、handleQuantityChange()、handleSort() を持つ
+- ErrorModal: isOpen、title、message、onClose プロパティを持つ
     
     class SuccessModal {
         +isOpen: boolean
@@ -208,32 +179,18 @@ sequenceDiagram
 
 ## データフロー詳細
 
-```mermaid
-flowchart TD
-    A[ページ読み込み] --> B[顧客データ取得]
-    B --> C[顧客検索・選択]
-    C --> D[未納品注文明細取得]
-    D --> E[商品選択モーダル]
-    E --> F[数量割り当て]
-    F --> G[バリデーション]
-    G --> H{検証結果}
-    
-    H -->|成功| I[納品作成API呼び出し]
-    H -->|失敗| J[エラー表示]
-    
-    I --> K{API結果}
-    K -->|成功| L[成功モーダル表示]
-    K -->|失敗| J
-    
-    L --> M[納品一覧ページへ遷移]
-    J --> N[エラー修正待ち]
-    
-    style A fill:#e1f5fe
-    style I fill:#fff3e0
-    style L fill:#c8e6c9
-    style J fill:#ffcdd2
-    style M fill:#c8e6c9
-```
+**納品追加処理フロー**
+1. ページ読み込み → 顧客データ取得
+2. 顧客検索・選択 → 未納品注文明細取得
+3. 商品選択モーダル → 数量割り当て → バリデーション
+4. 検証結果による分岐：
+   - 成功: 納品作成 API 呼び出し
+   - 失敗: エラー表示 → エラー修正待ち
+5. API 結果による分岐：
+   - 成功: 成功モーダル表示 → 納品一覧ページへ遷移
+   - 失敗: エラー表示
+
+このフローにより、ユーザーは直感的に納品データを作成できます。
 
 ## 検索・フィルタリング機能
 

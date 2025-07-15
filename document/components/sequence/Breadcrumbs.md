@@ -88,28 +88,15 @@ sequenceDiagram
 
 ## 5. レスポンシブ表示
 
-```mermaid
-flowchart TD
-    A[Breadcrumbs レンダリング] --> B[レスポンシブクラス適用]
-    
-    B --> C[テキストサイズ調整]
-    C --> D[text-sm md:text-base]
-    
-    B --> E[パディング調整]
-    E --> F[px-2 py-1]
-    
-    B --> G[アイコンサイズ]
-    G --> H[ChevronRight size={16}]
-    
-    B --> I[リンクスタイル]
-    I --> J[text-blue-500 hover:underline]
-    
-    style A fill:#e1f5fe
-    style D fill:#c8e6c9
-    style F fill:#c8e6c9
-    style H fill:#c8e6c9
-    style J fill:#c8e6c9
-```
+**Breadcrumbs レスポンシブ表示フロー**
+1. Breadcrumbs レンダリング → レスポンシブクラス適用
+2. スタイル調整：
+   - テキストサイズ調整: text-sm md:text-base
+   - パディング調整: px-2 py-1
+   - アイコンサイズ: ChevronRight size={16}
+   - リンクスタイル: text-blue-500 hover:underline
+
+これらの調整により、全てのデバイスで適切な表示がされます。
 
 ## 6. 動的ID処理
 
@@ -132,28 +119,19 @@ sequenceDiagram
 
 ## データフローとマッピング
 
-```mermaid
-classDiagram
-    class BreadcrumbsState {
-        +string path
-        +Object params
-        +string[] pathSegments
-        +Record pathNames
-    }
-    
-    class PathNames {
-        +string Home = 'ホーム'
-        +string CustomerList = '顧客一覧'
-        +string OrderList = '注文一覧'
-        +string DeliveryList = '納品一覧'
-        +string Add = '追加'
-        +string Edit = '編集'
-        +string Statistics = '統計情報'
-        +string id = id
-    }
-    
-    BreadcrumbsState --> PathNames : uses
-```
+**Breadcrumbs データ構造**
+- BreadcrumbsState: path、params、pathSegments、pathNames でパンくず状態を管理
+- PathNames: パスセグメントの日本語マッピング
+  - Home: 'ホーム'
+  - CustomerList: '顧客一覧'
+  - OrderList: '注文一覧'
+  - DeliveryList: '納品一覧'
+  - Add: '追加'
+  - Edit: '編集'
+  - Statistics: '統計情報'
+  - id: 動的 ID セグメント
+
+BreadcrumbsState は PathNames を使用して、ユーザーフレンドリーなパンくずリストを生成します。
 
 ## URL パターンと表示例
 

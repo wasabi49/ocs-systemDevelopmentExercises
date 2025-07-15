@@ -110,55 +110,25 @@ sequenceDiagram
 
 ## 6. ローディング状態管理
 
-```mermaid
-flowchart TD
-    A[ページ遷移開始] --> B[loading.tsx 表示]
-    B --> C[Loading Component レンダリング]
-    C --> D[Spinner Animation]
-    C --> E[Loading Text]
-    C --> F[Full Screen Overlay]
-    
-    D --> G[データ取得完了待機]
-    E --> G
-    F --> G
-    
-    G --> H[新しいページ準備完了]
-    H --> I[Loading 画面終了]
-    I --> J[目的ページ表示]
-    
-    style A fill:#e1f5fe
-    style B fill:#fff3e0
-    style C fill:#fff3e0
-    style G fill:#ffecb3
-    style J fill:#c8e6c9
-```
+**ローディング状態の流れ**
+1. ページ遷移開始 → loading.tsx 表示
+2. Loading Component レンダリング
+   - Spinner Animation: 回転アニメーション表示
+   - Loading Text: 「データを読み込み中です」表示
+   - Full Screen Overlay: 全画面オーバーレイ表示
+3. データ取得完了待機
+4. 新しいページ準備完了 → Loading 画面終了 → 目的ページ表示
+
+このプロセスにより、ユーザーに明確な読み込み状態を提供します。
 
 ## コンポーネント構造
 
-```mermaid
-classDiagram
-    class LoadingPage {
-        +function LoadingPage()
-        +return JSX
-    }
-    
-    class LoadingComponent {
-        +variant: "spinner"
-        +size: "lg" 
-        +text: string
-        +fullScreen: boolean
-    }
-    
-    class LoadingProps {
-        +string variant
-        +string size
-        +string text
-        +boolean fullScreen
-    }
-    
-    LoadingPage --> LoadingComponent : renders
-    LoadingComponent --> LoadingProps : receives
-```
+**LoadingPage コンポーネント構造**
+- LoadingPage: function LoadingPage() と JSX を返却
+- LoadingComponent: variant「spinner」、size「lg」、text、fullScreen プロパティを持つ
+- LoadingProps: variant、size、text、fullScreen の文字列およびブール型
+
+LoadingPage は LoadingComponent をレンダリングし、LoadingComponent は LoadingProps を受け取ります。
 
 ## 表示パターン
 

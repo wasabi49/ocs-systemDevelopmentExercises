@@ -130,32 +130,12 @@ sequenceDiagram
 
 ## データフロー構造
 
-```mermaid
-classDiagram
-    class StatisticsPage {
-        +async function()
-        -fetchStatistics()
-        -redirect()
-        +StatisticsData[] statisticsData
-    }
-    
-    class StatisticsData {
-        +string customerId
-        +string customerName
-        +number averageLeadTime
-        +number totalSales
-        +string updatedAt
-    }
-    
-    class FetchResult {
-        +string status
-        +StatisticsData[] data
-        +string error
-    }
-    
-    StatisticsPage --> StatisticsData : processes
-    StatisticsPage --> FetchResult : receives
-```
+**Statistics ページコンポーネント構造**
+- StatisticsPage: 非同期関数、fetchStatistics()、redirect()、StatisticsData[] statisticsData を持つ
+- StatisticsData: customerId、customerName、averageLeadTime、totalSales、updatedAt フィールドを持つ
+- FetchResult: status、data、error フィールドで API レスポンスを表現
+
+StatisticsPage は StatisticsData を処理し、FetchResult を受け取ります。
 
 ## 統計データ計算フロー
 
@@ -185,29 +165,16 @@ sequenceDiagram
 
 ## サーバーサイドレンダリング
 
-```mermaid
-flowchart TD
-    A[HTTP Request] --> B[StatisticsPage実行]
-    B --> C[fetchStatistics()]
-    C --> D[統計データ計算]
-    D --> E{データ取得成功?}
-    
-    E -->|成功| F[データ配列設定]
-    E -->|店舗要求| G[/stores リダイレクト]
-    E -->|エラー| H[エラーログ + 空配列]
-    
-    F --> I[StatisticsListClient作成]
-    H --> I
-    
-    I --> J[SSRで完成HTML]
-    J --> K[ブラウザに送信]
-    
-    style A fill:#e1f5fe
-    style F fill:#c8e6c9
-    style G fill:#ffecb3
-    style H fill:#ffcdd2
-    style J fill:#c8e6c9
-```
+**SSR 統計ページ処理フロー**
+1. HTTP Request → StatisticsPage 実行
+2. fetchStatistics() → 統計データ計算
+3. データ取得結果による分岐：
+   - 成功: データ配列設定 → StatisticsListClient 作成
+   - 店舗要求: /stores リダイレクト
+   - エラー: エラーログ出力 + 空配列 → StatisticsListClient 作成
+4. SSR で完成した HTML をブラウザに送信
+
+このプロセスにより、統計データが即座に表示されます。
 
 ## 統計メトリクス定義
 

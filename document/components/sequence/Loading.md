@@ -118,61 +118,24 @@ sequenceDiagram
 
 ## 6. フルスクリーンモード
 
-```mermaid
-flowchart TD
-    A[Loading コンポーネント] --> B{fullScreen プロパティ}
-    B -->|true| C[fixed inset-0 クラス適用]
-    B -->|false| D[通常のコンテナクラス適用]
-    
-    C --> E[全画面中央配置]
-    D --> F[相対配置]
-    
-    E --> G[背景: bg-gray-50]
-    F --> H[パディング適用]
-    
-    G --> I[最終レンダリング]
-    H --> I
-    
-    style A fill:#e1f5fe
-    style I fill:#c8e6c9
-```
+**Loading コンポーネントフルスクリーン処理**
+1. Loading コンポーネント → fullScreen プロパティチェック
+2. fullScreen 状態による分岐：
+   - true: fixed inset-0 クラス適用 → 全画面中央配置 → 背景 bg-gray-50
+   - false: 通常コンテナクラス適用 → 相対配置 → パディング適用
+3. 最終レンダリング
+
+この機能により、状況に応じた適切なローディング表示が可能です。
 
 ## データ型とProps
 
-```mermaid
-classDiagram
-    class LoadingProps {
-        +LoadingVariant variant?
-        +LoadingSize size?
-        +string text?
-        +string className?
-        +boolean fullScreen?
-    }
-    
-    class LoadingVariant {
-        spinner
-        dots
-        text
-        button
-    }
-    
-    class LoadingSize {
-        sm
-        md
-        lg
-    }
-    
-    class LoadingWithIconProps {
-        +boolean icon?
-        +LoadingSize size?
-        +string text?
-        +string className?
-    }
-    
-    LoadingProps --> LoadingVariant
-    LoadingProps --> LoadingSize
-    LoadingWithIconProps --> LoadingSize
-```
+**Loading コンポーネントデータ構造**
+- LoadingProps: variant、size、text、className、fullScreen のオプションプロパティ
+- LoadingVariant: spinner、dots、text、button のローディングバリアント
+- LoadingSize: sm、md、lg のサイズオプション
+- LoadingWithIconProps: icon、size、text、className のアイコン付きローディングプロパティ
+
+LoadingProps は LoadingVariant と LoadingSize を参照し、LoadingWithIconProps は LoadingSize を参照します。
 
 ## アニメーション詳細
 

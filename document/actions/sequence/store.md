@@ -62,21 +62,11 @@ sequenceDiagram
 
 ## データ型定義
 
-```mermaid
-classDiagram
-    class Store {
-        +string id
-        +string name
-    }
-    
-    class StoreActionState {
-        +Store[] stores
-        +string|null error
-        +boolean isLoading
-    }
-    
-    Store --> StoreActionState : contains
-```
+**Store Actions データ構造**
+- Store: id、name フィールドを持つ店舗データ
+- StoreActionState: stores、error、isLoading フィールドで useActionState 用の状態を管理
+
+StoreActionState は Store の配列を含み、React の状態管理と連携します。
 
 ## エラーハンドリングパターン
 
@@ -143,40 +133,25 @@ sequenceDiagram
 
 ## getAllStores の詳細処理
 
-```mermaid
-flowchart TD
-    A[getAllStores 開始] --> B[prisma.store.findMany 実行]
-    B --> C{データベース操作}
-    C -->|成功| D[stores データ取得]
-    C -->|失敗| E[エラーログ出力]
-    E --> F[Error をスロー]
-    D --> G[stores を返却]
-    
-    style A fill:#e1f5fe
-    style G fill:#c8e6c9
-    style F fill:#ffcdd2
-    style E fill:#ffcdd2
-```
+**getAllStores 処理フロー**
+1. getAllStores 開始 → prisma.store.findMany 実行
+2. データベース操作結果による分岐：
+   - 成功: stores データ取得 → stores を返却
+   - 失敗: エラーログ出力 → Error をスロー
+
+この処理により、安全に店舗データを取得できます。
 
 ## getStoreById の詳細処理
 
-```mermaid
-flowchart TD
-    A[getStoreById 開始] --> B[prisma.store.findUnique 実行]
-    B --> C{データベース操作}
-    C -->|成功| D[store データ取得]
-    C -->|失敗| E[エラーログ出力]
-    E --> F[Error をスロー]
-    D --> G{store が存在？}
-    G -->|存在| H[store を返却]
-    G -->|存在しない| I[null を返却]
-    
-    style A fill:#e1f5fe
-    style H fill:#c8e6c9
-    style I fill:#fff3e0
-    style F fill:#ffcdd2
-    style E fill:#ffcdd2
-```
+**getStoreById 処理フロー**
+1. getStoreById 開始 → prisma.store.findUnique 実行
+2. データベース操作結果による分岐：
+   - 成功: store データ取得 → store 存在チェック
+     - 存在する: store を返却
+     - 存在しない: null を返却
+   - 失敗: エラーログ出力 → Error をスロー
+
+この処理により、安全に特定店舗のデータを取得できます。
 
 ## 共通処理パターン
 

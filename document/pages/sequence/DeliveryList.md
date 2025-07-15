@@ -138,33 +138,12 @@ sequenceDiagram
 
 ## データフロー構造
 
-```mermaid
-classDiagram
-    class DeliveryListPage {
-        +async function()
-        -fetchDeliveries()
-        -checkStoreRequirement()
-        +Delivery[] initialDeliveries
-    }
-    
-    class Delivery {
-        <<imported from Client>>
-        +string id
-        +string customerId
-        +Date deliveryDate
-        +string status
-        +related fields
-    }
-    
-    class FetchResult {
-        +string status
-        +Delivery[] data
-        +string error
-    }
-    
-    DeliveryListPage --> Delivery : uses
-    DeliveryListPage --> FetchResult : receives
-```
+**DeliveryList ページコンポーネント構造**
+- DeliveryListPage: 非同期関数、fetchDeliveries()、checkStoreRequirement()、Delivery[] initialDeliveries を持つ
+- Delivery: クライアントからインポートされた型（id、customerId、deliveryDate、status など）
+- FetchResult: status、data、error フィールドで API レスポンスを表現
+
+DeliveryListPage は Delivery を使用し、FetchResult を受け取ります。
 
 ## API レスポンス処理
 
@@ -187,32 +166,17 @@ sequenceDiagram
 
 ## サーバーサイドレンダリング
 
-```mermaid
-flowchart TD
-    A[HTTP Request] --> B[DeliveryListPage実行]
-    B --> C[fetchDeliveries()]
-    C --> D[データベースクエリ]
-    D --> E{データ取得成功?}
-    
-    E -->|成功| F[initialDeliveries設定]
-    E -->|失敗| G[エラーログ + 空配列]
-    
-    F --> H[checkStoreRequirement()]
-    G --> H
-    
-    H --> I{店舗チェック}
-    I -->|OK| J[DeliveryListClient作成]
-    I -->|NG| K[リダイレクト実行]
-    
-    J --> L[SSRで完成HTML]
-    L --> M[ブラウザに送信]
-    
-    style A fill:#e1f5fe
-    style F fill:#c8e6c9
-    style G fill:#ffcdd2
-    style J fill:#c8e6c9
-    style K fill:#ffecb3
-```
+**SSR 納品一覧ページ処理フロー**
+1. HTTP Request → DeliveryListPage 実行
+2. fetchDeliveries() → データベースクエリ
+3. データ取得結果による分岐：
+   - 成功: initialDeliveries 設定
+   - 失敗: エラーログ出力 + 空配列設定
+4. checkStoreRequirement() 実行 → 店舗チェック
+   - OK: DeliveryListClient 作成 → SSR で完成 HTML → ブラウザに送信
+   - NG: リダイレクト実行
+
+このプロセスにより、納品データが即座に表示されます。
 
 ## エラーログ出力パターン
 

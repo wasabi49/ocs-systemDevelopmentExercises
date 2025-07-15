@@ -93,51 +93,28 @@ sequenceDiagram
 
 ## 4. ソート方向の決定ロジック
 
-```mermaid
-flowchart TD
-    A[sortItems 呼び出し] --> B{現在のソート設定確認}
-    B -->|sortConfig が null| C[direction = 'asc']
-    B -->|異なるフィールド| C
-    B -->|同じフィールド & asc| D[direction = 'desc']
-    B -->|同じフィールド & desc| C
-    
-    C --> E[昇順ソート実行]
-    D --> F[降順ソート実行]
-    
-    E --> G[ソート設定更新]
-    F --> G
-    G --> H[ソート済み配列返却]
-    
-    style A fill:#e1f5fe
-    style H fill:#c8e6c9
-    style B fill:#fff3e0
-```
+**sortItems ソート方向決定フロー**
+1. sortItems 呼び出し → 現在のソート設定確認
+2. ソート設定状態による方向決定：
+   - sortConfig が null: direction = 'asc'
+   - 異なるフィールド: direction = 'asc'
+   - 同じフィールド & asc: direction = 'desc'
+   - 同じフィールド & desc: direction = 'asc'
+3. ソート実行：
+   - 昇順 (direction = 'asc'): 昇順ソート実行
+   - 降順 (direction = 'desc'): 降順ソート実行
+4. ソート設定更新 → ソート済み配列返却
+
+このロジックにより、直感的なソート操作が可能です。
 
 ## 5. 型安全なソート処理
 
-```mermaid
-classDiagram
-    class SortConfig~T~ {
-        +keyof T key
-        +string direction
-    }
-    
-    class SortIconProps~T~ {
-        +keyof T field
-        +SortConfig~T~|null sortConfig
-    }
-    
-    class SortItemsFunction~T~ {
-        +T[] items
-        +keyof T field
-        +SortConfig~T~|null sortConfig
-        +function setSortConfig
-        +T[] return
-    }
-    
-    SortConfig <-- SortIconProps
-    SortConfig <-- SortItemsFunction
-```
+**ソートユーティリティデータ構造**
+- SortConfig<T>: key（keyof T）、direction フィールドでソート設定を管理
+- SortIconProps<T>: field（keyof T）、sortConfig プロパティでソートアイコンを制御
+- SortItemsFunction<T>: items、field、sortConfig、setSortConfig パラメータでソート機能を提供し、T[] を返却
+
+SortIconProps と SortItemsFunction は SortConfig を参照し、型安全なソート機能を実現します。
 
 ## 6. コンポーネント統合使用例
 

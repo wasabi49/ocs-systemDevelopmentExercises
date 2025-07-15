@@ -139,42 +139,12 @@ sequenceDiagram
 
 ## データフロー構造
 
-```mermaid
-classDiagram
-    class OrderListPage {
-        +async function()
-        -fetchOrders()
-        -checkStoreRequirement()
-        +OrderWithCustomer[] orders
-    }
-    
-    class OrderWithCustomer {
-        +string id
-        +string customerId
-        +Date orderDate
-        +string note
-        +string status
-        +Date updatedAt
-        +boolean isDeleted
-        +Date|null deletedAt
-        +string customerName
-        +string customerContactPerson
-    }
-    
-    class Order {
-        +string id
-        +string customerId
-        +Date orderDate
-        +string note
-        +string status
-        +Date updatedAt
-        +boolean isDeleted
-        +Date|null deletedAt
-    }
-    
-    OrderListPage --> OrderWithCustomer : creates
-    OrderWithCustomer --|> Order : extends
-```
+**OrderList ページコンポーネント構造**
+- OrderListPage: 非同期関数、fetchOrders()、checkStoreRequirement()、OrderWithCustomer[] orders を持つ
+- OrderWithCustomer: Order 型を拡張し、customerName と customerContactPerson フィールドを追加
+- Order: 基本の注文データ構造（id、customerId、orderDate、note、status、updatedAt、isDeleted、deletedAt）
+
+OrderListPage は OrderWithCustomer を作成し、OrderWithCustomer は Order を継承します。
 
 ## API レスポンス処理
 
@@ -224,29 +194,15 @@ sequenceDiagram
 
 ## サーバーサイドレンダリング最適化
 
-```mermaid
-flowchart TD
-    A[HTTP Request] --> B[OrderListPage実行]
-    B --> C[fetchOrders()]
-    C --> D[データベースクエリ]
-    D --> E{データ取得成功?}
-    
-    E -->|成功| F[データ変換処理]
-    E -->|失敗| G[エラーログ出力]
-    
-    F --> H[OrderListClient作成]
-    G --> I[空配列でClient作成]
-    
-    H --> J[SSRで完成HTML]
-    I --> J
-    
-    J --> K[ブラウザに送信]
-    
-    style A fill:#e1f5fe
-    style F fill:#c8e6c9
-    style G fill:#ffcdd2
-    style J fill:#c8e6c9
-```
+**SSR 処理フロー**
+1. HTTP Request → OrderListPage 実行
+2. fetchOrders() → データベースクエリ
+3. データ取得結果による分岐：
+   - 成功: データ変換処理 → OrderListClient 作成
+   - 失敗: エラーログ出力 → 空配列で Client 作成
+4. SSR で完成した HTML をブラウザに送信
+
+このプロセスにより、ユーザーは初期ロード時に即座にデータを見ることができます。
 
 ## 特徴
 

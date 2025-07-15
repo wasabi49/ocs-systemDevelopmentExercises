@@ -94,30 +94,19 @@ sequenceDiagram
 
 ## 5. ボタン無効化制御
 
-```mermaid
-flowchart TD
-    A[ページネーションレンダリング] --> B[ボタン無効化判定]
-    
-    B --> C{currentPage === 1？}
-    C -->|Yes| D[最初・前ページボタン無効化]
-    C -->|No| E[最初・前ページボタン有効]
-    
-    B --> F{currentPage === totalPages？}
-    F -->|Yes| G[次・最後ページボタン無効化]
-    F -->|No| H[次・最後ページボタン有効]
-    
-    D --> I[disabled クラス適用]
-    E --> J[有効状態のスタイル]
-    G --> I
-    H --> J
-    
-    I --> K[cursor-not-allowed, opacity-50]
-    J --> L[hover:bg-gray-100]
-    
-    style A fill:#e1f5fe
-    style K fill:#ffcdd2
-    style L fill:#c8e6c9
-```
+**Pagination ボタン無効化制御フロー**
+1. ページネーションレンダリング → ボタン無効化判定
+2. 現在ページチェック：
+   - currentPage === 1: 最初・前ページボタン無効化 → disabled クラス適用
+   - その他: 最初・前ページボタン有効 → 有効状態スタイル
+3. 最終ページチェック：
+   - currentPage === totalPages: 次・最後ページボタン無効化 → disabled クラス適用
+   - その他: 次・最後ページボタン有効 → 有効状態スタイル
+4. スタイル適用：
+   - disabled: cursor-not-allowed, opacity-50
+   - 有効: hover:bg-gray-100
+
+この制御により、適切なユーザーインターフェースが提供されます。
 
 ## 6. アイテム情報表示
 
@@ -167,52 +156,25 @@ sequenceDiagram
 
 ## データ型とProps
 
-```mermaid
-classDiagram
-    class PaginationProps {
-        +number currentPage
-        +number totalPages
-        +function onPageChange
-        +ItemsInfo itemsInfo?
-        +number maxVisiblePages?
-    }
-    
-    class ItemsInfo {
-        +number startIndex
-        +number endIndex
-        +number totalItems
-    }
-    
-    PaginationProps --> ItemsInfo : contains
-```
+**Pagination コンポーネントデータ構造**
+- PaginationProps: currentPage、totalPages、onPageChange の必須プロパティと itemsInfo、maxVisiblePages のオプションプロパティ
+- ItemsInfo: startIndex、endIndex、totalItems フィールドでアイテム情報を表現
+
+PaginationProps は ItemsInfo を含み、詳細なページ情報を提供します。
 
 ## ページ番号生成ロジックの詳細
 
-```mermaid
-flowchart TD
-    A[getPageNumbers 開始] --> B{totalPages <= maxVisiblePages？}
-    B -->|Yes| C[全ページ表示]
-    B -->|No| D{currentPage <= 3？}
-    
-    D -->|Yes| E[先頭付近表示]
-    D -->|No| F{currentPage >= totalPages - 2？}
-    
-    F -->|Yes| G[末尾付近表示]
-    F -->|No| H[中央付近表示]
-    
-    C --> I[1 to totalPages]
-    E --> J[1 to maxVisiblePages]
-    G --> K[totalPages-maxVisiblePages+1 to totalPages]
-    H --> L[currentPage-2 to currentPage+2]
-    
-    I --> M[pages配列返却]
-    J --> M
-    K --> M
-    L --> M
-    
-    style A fill:#e1f5fe
-    style M fill:#c8e6c9
-```
+**getPageNumbers ロジックフロー**
+1. getPageNumbers 開始 → totalPages と maxVisiblePages 比較
+2. ページ表示ロジック：
+   - totalPages <= maxVisiblePages: 全ページ表示 (1 to totalPages)
+   - その他: currentPage 位置で分岐
+     - currentPage <= 3: 先頭付近表示 (1 to maxVisiblePages)
+     - currentPage >= totalPages - 2: 末尾付近表示 (totalPages-maxVisiblePages+1 to totalPages)
+     - その他: 中央付近表示 (currentPage-2 to currentPage+2)
+3. pages 配列返却
+
+このロジックにより、常に適切な数のページボタンが表示されます。
 
 ## アクセシビリティ対応
 

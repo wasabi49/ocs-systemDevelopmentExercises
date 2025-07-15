@@ -103,54 +103,21 @@ sequenceDiagram
 
 ## 6. レスポンシブ対応
 
-```mermaid
-flowchart TD
-    A[Search コンポーネント] --> B[レスポンシブクラス適用]
-    
-    B --> C[アクションボタン]
-    C --> D[px-3 sm:px-4]
-    C --> E[text-xs sm:text-sm]
-    
-    B --> F[フィールド選択]
-    F --> G[w-24 sm:w-32]
-    F --> H[text-xs sm:text-sm]
-    
-    B --> I[検索入力]
-    I --> J[text-xs sm:text-sm]
-    I --> K[アイコン: h-4 w-4 sm:h-5 sm:w-5]
-    
-    style A fill:#e1f5fe
-    style D fill:#c8e6c9
-    style E fill:#c8e6c9
-    style G fill:#c8e6c9
-    style H fill:#c8e6c9
-    style J fill:#c8e6c9
-    style K fill:#c8e6c9
-```
+**Search コンポーネントレスポンシブ設計**
+1. Search コンポーネント → レスポンシブクラス適用
+2. アクションボタン: px-3 sm:px-4、text-xs sm:text-sm
+3. フィールド選択: w-24 sm:w-32、text-xs sm:text-sm
+4. 検索入力: text-xs sm:text-sm、アイコン h-4 w-4 sm:h-5 sm:w-5
+
+これらのクラスにより、モバイルからデスクトップまで適切に表示されます。
 
 ## データ型とProps
 
-```mermaid
-classDiagram
-    class SearchProps {
-        +string keyword
-        +function onKeywordChange
-        +string searchField
-        +function onSearchFieldChange
-        +SearchFieldOption[] searchFieldOptions
-        +string placeholder?
-        +string actionButtonLabel?
-        +function onActionButtonClick?
-        +boolean actionButtonDisabled?
-    }
-    
-    class SearchFieldOption {
-        +string value
-        +string label
-    }
-    
-    SearchProps --> SearchFieldOption : contains
-```
+**Search コンポーネントデータ構造**
+- SearchProps: keyword、onKeywordChange、searchField、onSearchFieldChange、searchFieldOptions とオプションプロパティ（placeholder、actionButtonLabel、onActionButtonClick、actionButtonDisabled）
+- SearchFieldOption: value、label フィールドを持つ検索フィールドオプション
+
+SearchProps は SearchFieldOption の配列を含み、柔軟な検索機能を実現します。
 
 ## 検索フィールドオプションの処理
 

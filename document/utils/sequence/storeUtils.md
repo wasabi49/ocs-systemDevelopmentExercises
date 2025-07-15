@@ -80,21 +80,17 @@ sequenceDiagram
 
 ## 4. Cookie構造とデータ復元
 
-```mermaid
-flowchart TD
-    A[Cookie から値取得] --> B{selectedStoreId 存在？}
-    B -->|No| C[null を返却]
-    B -->|Yes| D[selectedStoreName 取得]
-    D --> E{storeName 存在？}
-    E -->|Yes| F[Store オブジェクト作成]
-    E -->|No| G[Store オブジェクト作成 (name: '')]
-    F --> H[結果返却]
-    G --> H
-    
-    style A fill:#e1f5fe
-    style C fill:#ffcdd2
-    style H fill:#c8e6c9
-```
+**Cookie からの Store データ復元フロー**
+1. Cookie から値取得 → selectedStoreId 存在チェック
+2. selectedStoreId 状態による分岐：
+   - 存在しない: null を返却
+   - 存在する: selectedStoreName 取得
+3. storeName 状態による Store オブジェクト作成：
+   - storeName 存在: Store オブジェクト作成
+   - storeName なし: Store オブジェクト作成 (name: '')
+4. 結果返却
+
+このフローにより、Cookie から安全に Store データを復元できます。
 
 ## 5. 使用パターン比較
 
@@ -118,20 +114,11 @@ sequenceDiagram
 
 ## データ型定義
 
-```mermaid
-classDiagram
-    class Store {
-        +string id
-        +string name
-    }
-    
-    class CookieStructure {
-        +string selectedStoreId
-        +string selectedStoreName
-    }
-    
-    Store <-- CookieStructure : restores to
-```
+**Store ユーティリティデータ構造**
+- Store: id、name フィールドを持つ店舗データ
+- CookieStructure: selectedStoreId、selectedStoreName フィールドで Cookie に保存されるデータ構造
+
+CookieStructure は Store に復元され、一貫した店舗管理を実現します。
 
 ## 関数の特徴
 

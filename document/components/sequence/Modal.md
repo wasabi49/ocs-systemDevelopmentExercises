@@ -134,73 +134,27 @@ sequenceDiagram
 
 ## コンポーネント構造
 
-```mermaid
-classDiagram
-    class CSVImportModal {
-        +open: boolean
-        +onCancel: function
-        +onSuccess: function
-        +useState hooks
-        +useStore hook
-        -validateCSV()
-        -handleFileChange()
-        -handleImport()
-    }
-    
-    class ImportResultDisplay {
-        +result: ImportResult
-        +onClose: function
-        -renderSuccessContent()
-        -renderErrorContent()
-    }
-    
-    class CSVValidationResult {
-        +boolean isValid
-        +string error
-        +string[] warnings
-        +object details
-    }
-    
-    class ImportResult {
-        +string status
-        +object data
-        +string error
-        +object errorData
-    }
-    
-    CSVImportModal --> ImportResultDisplay : renders
-    CSVImportModal --> CSVValidationResult : creates
-    CSVImportModal --> ImportResult : receives
-```
+**CSVインポートモーダルコンポーネント構造**
+- CSVImportModal: open、onCancel、onSuccess プロパティ、useState、useStore フック、validateCSV()、handleFileChange()、handleImport() メソッドを持つ
+- ImportResultDisplay: result、onClose プロパティ、renderSuccessContent()、renderErrorContent() メソッドを持つ
+- CSVValidationResult: isValid、error、warnings、details フィールドを持つ検証結果
+- ImportResult: status、data、error、errorData フィールドを持つインポート結果
+
+CSVImportModal は ImportResultDisplay をレンダリングし、CSVValidationResult を作成し、ImportResult を受け取ります。
 
 ## CSV検証フロー
 
-```mermaid
-flowchart TD
-    A[ファイル選択] --> B[Papa Parse実行]
-    B --> C[ヘッダー検証]
-    C --> D{必須ヘッダー存在?}
-    
-    D -->|Yes| E[データ行検証]
-    D -->|No| F[ヘッダーエラー]
-    
-    E --> G[必須フィールドチェック]
-    G --> H[データ形式チェック]
-    H --> I{全データ有効?}
-    
-    I -->|Yes| J[検証成功]
-    I -->|No| K[検証失敗 + 詳細]
-    
-    F --> L[エラー表示]
-    K --> L
-    J --> M[インポート実行可能]
-    
-    style A fill:#e1f5fe
-    style J fill:#c8e6c9
-    style F fill:#ffcdd2
-    style K fill:#ffcdd2
-    style M fill:#fff3e0
-```
+**CSV ファイル検証処理フロー**
+1. ファイル選択 → Papa Parse 実行 → ヘッダー検証
+2. 必須ヘッダー存在チェック：
+   - 存在する: データ行検証へ進む
+   - 存在しない: ヘッダーエラー → エラー表示
+3. データ検証: 必須フィールドチェック → データ形式チェック
+4. 全データ有効性チェック：
+   - 有効: 検証成功 → インポート実行可能
+   - 無効: 検証失敗 + 詳細 → エラー表示
+
+この検証プロセスにより、正確な CSV データのみがインポートされます。
 
 ## インポート処理フロー
 

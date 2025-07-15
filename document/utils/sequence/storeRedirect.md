@@ -48,19 +48,13 @@ sequenceDiagram
 
 ## 3. エラーメッセージ定数の使用
 
-```mermaid
-flowchart TD
-    A[STORE_ERROR_MESSAGES] --> B[STORE_REQUIRED]
-    A --> C[STORE_INVALID]
-    B --> D["'店舗を選択してください'"]
-    C --> E["'選択された店舗が無効です'"]
-    
-    F[アプリケーション] --> A
-    F --> G[統一的なエラーメッセージ]
-    
-    style A fill:#e1f5fe
-    style G fill:#c8e6c9
-```
+**エラーメッセージ管理構造**
+1. STORE_ERROR_MESSAGES 定数からエラーメッセージを取得：
+   - STORE_REQUIRED: '店舗を選択してください'
+   - STORE_INVALID: '選択された店舗が無効です'
+2. アプリケーション全体で統一的なエラーメッセージを使用
+
+この構造により、一貫したユーザー体験を提供します。
 
 ## 4. 関数の使用パターン
 
@@ -87,32 +81,13 @@ sequenceDiagram
 
 ## 5. 型安全性の確保
 
-```mermaid
-classDiagram
-    class GenericResult~T~ {
-        +string status
-        +T extends object
-    }
-    
-    class StoreRequiredResult {
-        +string status = 'store_required'
-        +string error
-    }
-    
-    class StoreInvalidResult {
-        +string status = 'store_invalid'
-        +string error
-    }
-    
-    class SuccessResult {
-        +string status = 'success'
-        +any data
-    }
-    
-    GenericResult <|-- StoreRequiredResult
-    GenericResult <|-- StoreInvalidResult
-    GenericResult <|-- SuccessResult
-```
+**リダイレクトユーティリティ結果型構造**
+- GenericResult<T>: status とジェネリックな T 型を持つ基本結果型
+- StoreRequiredResult: status = 'store_required'、error フィールドを持つ店舗選択要求結果
+- StoreInvalidResult: status = 'store_invalid'、error フィールドを持つ店舗無効結果
+- SuccessResult: status = 'success'、data フィールドを持つ成功結果
+
+StoreRequiredResult、StoreInvalidResult、SuccessResult はすべて GenericResult を継承し、型安全な結果処理を実現します。
 
 ## 6. リダイレクト処理の詳細
 

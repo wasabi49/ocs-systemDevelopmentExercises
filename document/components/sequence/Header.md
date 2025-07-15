@@ -159,52 +159,27 @@ sequenceDiagram
 
 ## 7. 店舗表示の動的制御
 
-```mermaid
-flowchart TD
-    A[Header レンダリング] --> B{selectedStore 存在？}
-    B -->|No| C[店舗表示なし]
-    B -->|Yes| D{isStoreSelectionPage？}
-    D -->|Yes| C
-    D -->|No| E[店舗表示あり]
-    
-    E --> F{画面サイズ？}
-    F -->|デスクトップ| G[フル店舗名表示]
-    F -->|モバイル| H[省略店舗名表示]
-    
-    H --> I[最大20文字で truncate]
-    G --> J[アイコン + 店舗名]
-    I --> J
-    
-    style A fill:#e1f5fe
-    style C fill:#ffcdd2
-    style J fill:#c8e6c9
-```
+**Header 店舗表示制御フロー**
+1. Header レンダリング → selectedStore 存在チェック
+2. selectedStore 存在状態による分岐：
+   - 存在しない: 店舗表示なし
+   - 存在する: isStoreSelectionPage チェック
+     - 店舗選択ページ: 店舗表示なし
+     - その他: 店舗表示あり
+3. 店舗表示時の画面サイズ対応：
+   - デスクトップ: フル店舗名表示 → アイコン + 店舗名
+   - モバイル: 省略店舗名表示 → 最大20文字で truncate → アイコン + 店舗名
+
+この制御により、適切なタイミングで店舗情報が表示されます。
 
 ## データ型とProps
 
-```mermaid
-classDiagram
-    class HeaderState {
-        +boolean isOpen
-        +string pathname
-        +Store|null selectedStore
-        +boolean isStoreSelectionPage
-    }
-    
-    class MenuItem {
-        +string href
-        +string label
-        +LucideIcon icon
-    }
-    
-    class Store {
-        +string id
-        +string name
-    }
-    
-    HeaderState --> Store : displays
-    HeaderState --> MenuItem : manages
-```
+**Header コンポーネントデータ構造**
+- HeaderState: isOpen、pathname、selectedStore、isStoreSelectionPage の状態を管理
+- MenuItem: href、label、icon フィールドを持つメニューアイテム
+- Store: id、name フィールドを持つ店舗データ
+
+HeaderState は Store を表示し、MenuItem を管理します。
 
 ## useEffect によるクリーンアップ
 

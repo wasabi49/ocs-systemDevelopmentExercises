@@ -150,52 +150,25 @@ sequenceDiagram
 
 ## 7. アニメーションとUI効果
 
-```mermaid
-flowchart TD
-    A[店舗カード表示] --> B[fadeInUp アニメーション]
-    B --> C[インデックス * 100ms の遅延]
-    C --> D[カードの順次表示]
-    
-    E[ユーザーホバー] --> F[transform: translateY(-1px)]
-    F --> G[shadow-xl 効果]
-    
-    H[店舗選択] --> I[選択インジケーター表示]
-    I --> J[チェックアイコン表示]
-    I --> K[ring-2 ring-blue-500]
-    
-    L[選択完了] --> M[600ms 遅延]
-    M --> N[router.push('/Home')]
-    
-    style A fill:#e1f5fe
-    style N fill:#c8e6c9
-    style I fill:#fff3e0
-```
+**店舗選択 UI アニメーションフロー**
+1. 店舗カード表示 → fadeInUp アニメーション → インデックス * 100ms 遅延 → カード順次表示
+2. ユーザーホバー → transform: translateY(-1px) → shadow-xl 効果
+3. 店舗選択 → 選択インジケーター表示
+   - チェックアイコン表示
+   - ring-2 ring-blue-500 ボーダー効果
+4. 選択完了 → 600ms 遅延 → router.push('/Home')
+
+これらのアニメーションにより、ユーザーに心地よい操作体験を提供します。
 
 ## Props とデータフロー
 
-```mermaid
-classDiagram
-    class StoreSelectionProps {
-        +Store[] initialStores?
-        +string initialError?
-    }
-    
-    class Store {
-        +string id
-        +string name
-    }
-    
-    class ComponentState {
-        +Store[] storeList
-        +string selectedStoreId
-        +string error
-    }
-    
-    class ContextState {
-        +Store|null selectedStore
-        +Store[] stores
-        +boolean isLoading
-    }
+**StoreSelection コンポーネントデータ構造**
+- StoreSelectionProps: initialStores（Store[]）、initialError（string）のオプションプロパティ
+- Store: id、name フィールドを持つ店舗データ
+- ComponentState: storeList、selectedStoreId、error のローカル状態
+- ContextState: selectedStore、stores、isLoading のグローバル状態
+
+これらのデータ構造により、店舗選択機能が実現されます。
     
     StoreSelectionProps --> Store : contains
     ComponentState --> Store : manages

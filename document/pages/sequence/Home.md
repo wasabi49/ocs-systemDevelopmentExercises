@@ -135,52 +135,23 @@ sequenceDiagram
 
 ## データ構造
 
-```mermaid
-classDiagram
-    class HomePage {
-        +"use client"
-        +buttons[]
-        +render()
-    }
-    
-    class ButtonConfig {
-        +string label
-        +string path
-        +Component icon
-        +string color
-    }
-    
-    class MenuButton {
-        +IconComponent
-        +string href
-        +string className
-        +hover effects
-    }
-    
-    HomePage --> ButtonConfig : contains
-    ButtonConfig --> MenuButton : renders as
-```
+**ホームページコンポーネント構造**
+- HomePage: メインのホームページコンポーネント（"use client"、buttons配列、render機能）
+- ButtonConfig: ボタン設定（label、path、icon、color）
+- MenuButton: 実際のメニューボタン（IconComponent、href、className、hover効果）
+
+HomePage は ButtonConfig を含み、ButtonConfig は MenuButton としてレンダリングされます。
 
 ## メニュー構造マップ
 
-```mermaid
-flowchart TD
-    A[ホームページ /Home] --> B[顧客管理]
-    A --> C[注文管理]
-    A --> D[納品管理]
-    A --> E[統計情報]
-    
-    B --> B1[/Home/CustomerList]
-    C --> C1[/Home/OrderList]
-    D --> D1[/Home/DeliveryList]
-    E --> E1[/Home/Statistics]
-    
-    style A fill:#e1f5fe
-    style B fill:#fff3e0
-    style C fill:#fff3e0
-    style D fill:#fff3e0
-    style E fill:#fff3e0
-```
+**ホームページナビゲーション構造**
+- ホームページ (/Home) から4つの主要機能へ分岐：
+  - 顧客管理 → /Home/CustomerList
+  - 注文管理 → /Home/OrderList
+  - 納品管理 → /Home/DeliveryList
+  - 統計情報 → /Home/Statistics
+
+各機能ボタンをクリックすると、対応する管理画面へ直接遷移します。
 
 ## スタイリング階層
 

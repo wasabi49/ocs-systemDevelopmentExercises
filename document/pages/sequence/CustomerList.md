@@ -119,53 +119,25 @@ sequenceDiagram
 
 ## データフロー構造
 
-```mermaid
-classDiagram
-    class CustomerListPage {
-        +async function()
-        -fetchCustomers()
-        -redirect()
-        +Customer[] customers
-    }
-    
-    class Customer {
-        +string id
-        +string customerName
-        +string managerName
-        +string storeName
-    }
-    
-    class FetchResult {
-        +string status
-        +Customer[] data
-        +string error
-    }
-    
-    CustomerListPage --> Customer : uses
-    CustomerListPage --> FetchResult : receives
-```
+**CustomerList ページコンポーネント構造**
+- CustomerListPage: 非同期関数、fetchCustomers()、redirect()、Customer[] customers を持つ
+- Customer: id、customerName、managerName、storeName フィールドを持つ
+- FetchResult: status、data、error フィールドで API レスポンスを表現
+
+CustomerListPage は Customer を使用し、FetchResult を受け取ります。
 
 ## ページ遷移パターン
 
-```mermaid
-flowchart TD
-    A["/Home/CustomerList アクセス"] --> B["Cookie確認"]
-    B --> C{"storeId存在?"}
-    
-    C -->|Yes| D["顧客データ取得"]
-    C -->|No| E["/stores へリダイレクト"]
-    
-    D --> F{"データ取得成功?"}
-    F -->|Yes| G["CustomerListClient表示"]
-    F -->|No| H["エラーログ出力"]
-    H --> I["空のリスト表示"]
-    
-    style A fill:#e1f5fe
-    style G fill:#c8e6c9
-    style E fill:#ffecb3
-    style I fill:#ffcdd2
+**顧客一覧ページアクセスフロー**
+1. "/Home/CustomerList" アクセス → Cookie 確認
+2. storeId 存在チェック：
+   - 存在する: 顧客データ取得へ進む
+   - 存在しない: "/stores" へリダイレクト
+3. データ取得結果による分岐：
+   - 成功: CustomerListClient 表示
+   - 失敗: エラーログ出力 → 空のリスト表示
 
-```
+このフローにより、適切なアクセス制御とエラーハンドリングが実現されます。
 
 ## 特徴
 

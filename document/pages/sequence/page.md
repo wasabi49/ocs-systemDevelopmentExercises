@@ -49,25 +49,14 @@ sequenceDiagram
 
 ## 3. リダイレクト処理フロー
 
-```mermaid
-flowchart TD
-    A[/ ルートアクセス] --> B[HomePage コンポーネント]
-    B --> C[useStore() で店舗状態取得]
-    C --> D{selectedStore 存在確認}
-    
-    D -->|存在する| E[router.push('/Home')]
-    D -->|存在しない| F[router.push('/stores')]
-    
-    E --> G[ホームページ表示]
-    F --> H[店舗選択ページ表示]
-    
-    style A fill:#e1f5fe
-    style D fill:#fff3e0
-    style E fill:#c8e6c9
-    style F fill:#ffecb3
-    style G fill:#c8e6c9
-    style H fill:#ffecb3
-```
+**リダイレクト処理の流れ**
+1. ルートアクセス (/) → HomePage コンポーネント
+2. useStore() で店舗状態取得
+3. selectedStore 存在確認
+   - 存在する場合: router.push('/Home') → ホームページ表示
+   - 存在しない場合: router.push('/stores') → 店舗選択ページ表示
+
+この処理により、ユーザーは店舗選択状態に応じて適切なページに自動的にリダイレクトされます。
 
 ## 4. useEffect依存関係管理
 
@@ -137,36 +126,13 @@ sequenceDiagram
 
 ## Context統合パターン
 
-```mermaid
-classDiagram
-    class HomePage {
-        +"use client"
-        +useRouter()
-        +useStore()
-        +useEffect()
-    }
-    
-    class StoreContext {
-        +selectedStore
-        +setSelectedStore()
-    }
-    
-    class NextRouter {
-        +push()
-        +replace()
-        +back()
-    }
-    
-    class LoadingComponent {
-        +variant: "spinner"
-        +size: "md"
-        +text: string
-    }
-    
-    HomePage --> StoreContext : consumes
-    HomePage --> NextRouter : uses
-    HomePage --> LoadingComponent : renders
-```
+**コンポーネント関係構造**
+- HomePage: "use client"、useRouter()、useStore()、useEffect() を使用
+- StoreContext: selectedStore と setSelectedStore() を提供
+- NextRouter: push()、replace()、back() メソッドを提供
+- LoadingComponent: variant「spinner」、size「md」、text プロパティを持つ
+
+HomePage は StoreContext を使用し、NextRouter を利用して LoadingComponent をレンダリングします。
 
 ## 状態管理フロー
 
