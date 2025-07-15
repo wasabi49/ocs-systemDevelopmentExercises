@@ -40,6 +40,11 @@ const OrderListClient: React.FC<OrderListClientProps> = ({ initialOrders }) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage: number = 15; // 15行に設定
 
+  // 検索フィールド、キーワード、ステータスフィルターが変更されたときに1ページ目に戻る
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchKeyword, searchField, statusFilter]);
+
   // 注文追加ページへ遷移する関数
   const handleAddOrder = (): void => {
     router.push('/Home/OrderList/Add');

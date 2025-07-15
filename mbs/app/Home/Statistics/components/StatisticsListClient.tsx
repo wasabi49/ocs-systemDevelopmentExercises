@@ -24,6 +24,11 @@ export default function StatisticsListClient({ statisticsData }: StatisticsListC
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
 
+  // 検索フィールドまたはキーワードが変更されたときに1ページ目に戻る
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchKeyword, searchField]);
+
   // 検索機能
   const filteredStatistics = statisticsData.filter((item) => {
     if (searchField === 'すべて') {

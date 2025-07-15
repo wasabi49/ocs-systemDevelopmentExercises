@@ -32,6 +32,11 @@ export default function CustomerListClient({ initialCustomers }: CustomerListCli
   const [isPending, startTransition] = useTransition();
   const itemsPerPage = 15; // 1ページあたり15件
 
+  // 検索フィールドまたはキーワードが変更されたときに1ページ目に戻る
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchKeyword, searchField]);
+
   // Server Actionを呼び出す関数
   const loadCustomers = () => {
     startTransition(async () => {

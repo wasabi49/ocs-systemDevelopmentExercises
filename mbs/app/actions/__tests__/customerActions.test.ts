@@ -474,6 +474,7 @@ describe('customerActions', () => {
 
       vi.mocked(prisma.store.findUnique).mockResolvedValue(mockStore);
       vi.mocked(prisma.customer.findMany).mockResolvedValue(mockExistingCustomers);
+      // 新規の顧客のためのID検証（00001は既に存在するため別の検証、00003は新規）
       vi.mocked(prisma.customer.findUnique).mockResolvedValue(null);
 
       // トランザクション内の処理をモック
@@ -494,9 +495,9 @@ describe('customerActions', () => {
       expect(result).toEqual({
         status: 'success',
         data: {
-          addedCount: 1,
-          updatedCount: 1,
-          deletedCount: 1,
+          addedCount: 1, // 00003のみ新規追加
+          updatedCount: 1, // 00001は既存のC-00001を更新
+          deletedCount: 1, // C-00002は削除対象
           totalProcessed: 2,
         },
       });
@@ -527,6 +528,7 @@ describe('customerActions', () => {
     it('顧客データの各フィールドが異なる場合、更新対象として認識される', async () => {
       // Test each field difference separately to cover all branches
       const testCases = [
+        { field: 'name', csvValue: '新顧客名', dbValue: '旧顧客名' },
         { field: 'contactPerson', csvValue: '新担当者', dbValue: '旧担当者' },
         { field: 'address', csvValue: '新住所', dbValue: '旧住所' },
         { field: 'phone', csvValue: '090-9999-9999', dbValue: '090-1111-1111' },
@@ -539,7 +541,8 @@ describe('customerActions', () => {
         
         const csvData = [
           ['顧客ID', '店舗名', '顧客名', '担当者名', '住所', '電話番号', '配送条件', '備考'],
-          ['00001', '店舗1', '顧客1', 
+          ['00001', '店舗1', 
+           testCase.field === 'name' ? testCase.csvValue : '顧客1',
            testCase.field === 'contactPerson' ? testCase.csvValue : '担当者1',
            testCase.field === 'address' ? testCase.csvValue : '住所1',
            testCase.field === 'phone' ? testCase.csvValue : '090-1234-5678',
@@ -551,7 +554,7 @@ describe('customerActions', () => {
         const mockStore = { id: 'store-1', name: '店舗1' };
         const mockExistingCustomer = {
           id: 'C-00001',
-          name: '顧客1',
+          name: testCase.field === 'name' ? testCase.dbValue : '顧客1',
           contactPerson: testCase.field === 'contactPerson' ? testCase.dbValue : '担当者1',
           address: testCase.field === 'address' ? testCase.dbValue : '住所1',
           phone: testCase.field === 'phone' ? testCase.dbValue : '090-1234-5678',
@@ -581,6 +584,7 @@ describe('customerActions', () => {
         expect(updateMock).toHaveBeenCalledWith({
           where: { id: 'C-00001' },
           data: {
+            name: testCase.field === 'name' ? testCase.csvValue : '顧客1',
             contactPerson: testCase.field === 'contactPerson' ? testCase.csvValue : '担当者1',
             address: testCase.field === 'address' ? testCase.csvValue : '住所1',
             phone: testCase.field === 'phone' ? testCase.csvValue : '090-1234-5678',

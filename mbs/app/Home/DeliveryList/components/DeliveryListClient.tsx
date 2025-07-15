@@ -31,6 +31,11 @@ const DeliveryListClient: React.FC<DeliveryListClientProps> = ({ initialDeliveri
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15; // 1ページあたり15件
 
+  // 検索フィールドまたはキーワードが変更されたときに1ページ目に戻る
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchKeyword, searchField]);
+
   const handleSort = (field: keyof Delivery) => {
     const sortedDeliveries = sortItems<Delivery>(deliveries, field, sortConfig, setSortConfig);
     setDeliveries(sortedDeliveries);

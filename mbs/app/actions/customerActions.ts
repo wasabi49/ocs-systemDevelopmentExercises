@@ -355,12 +355,14 @@ export async function importCustomersFromCSV(csvData: string[][], storeId?: stri
       };
     }
 
-    // CSVデータを顧客名をキーとしてマップ化
+    // CSVデータを顧客IDをキーとしてマップ化
     const csvCustomersMap = new Map();
     for (const row of validRows) {
       const customerName = row[2]?.toString().trim();
       const customerId = row[0]?.toString().trim();
-      csvCustomersMap.set(customerName, {
+      // 顧客IDが指定されている場合はそれをキーに、なければ名前をキーにする
+      const key = customerId || customerName;
+      csvCustomersMap.set(key, {
         id: customerId || null, // CSVの顧客IDを保存
         name: customerName,
         contactPerson: row[3]?.toString().trim() || null,
@@ -388,33 +390,53 @@ export async function importCustomersFromCSV(csvData: string[][], storeId?: stri
       },
     });
 
-    // 既存顧客を顧客名でマップ化
+    // 既存顧客を顧客IDでマップ化
     const existingCustomersMap = new Map();
     for (const customer of existingCustomers) {
-      existingCustomersMap.set(customer.name, customer);
+      existingCustomersMap.set(customer.id, customer);
     }
 
-    // 処理データの分類
-    const csvCustomerNames = new Set(csvCustomersMap.keys());
-    const existingCustomerNames = new Set(existingCustomersMap.keys());
+    // 処理データの分類（顧客IDベース）
+    const csvCustomerKeys = new Set(csvCustomersMap.keys());
+    const existingCustomerIds = new Set(existingCustomersMap.keys());
 
-    // 新規追加：CSVにあってDBにない
-    const toAdd = Array.from(csvCustomerNames).filter((name) => !existingCustomerNames.has(name));
+    // 新規追加：CSVにあってDBにない（顧客IDがある場合は顧客IDで、ない場合は新規作成）
+    const toAdd = Array.from(csvCustomerKeys).filter((key) => {
+      const csvCustomer = csvCustomersMap.get(key);
+      // 顧客IDがある場合は、そのIDがDBに存在しないかチェック
+      if (csvCustomer.id) {
+        const formattedId = `C-${csvCustomer.id.padStart(5, '0')}`;
+        return !existingCustomerIds.has(formattedId);
+      }
+      // 顧客IDがない場合は新規追加
+      return true;
+    });
 
-    // 削除：DBにあってCSVにない
-    const toDelete = Array.from(existingCustomerNames).filter(
-      (name) => !csvCustomerNames.has(name),
+    // 削除：DBにあってCSVにない（顧客IDベースで判断）
+    const csvFormattedIds = new Set();
+    for (const [, customer] of csvCustomersMap) {
+      if (customer.id) {
+        const formattedId = `C-${customer.id.padStart(5, '0')}`;
+        csvFormattedIds.add(formattedId);
+      }
+    }
+    const toDelete = Array.from(existingCustomerIds).filter(
+      (id) => !csvFormattedIds.has(id),
     );
 
-    // 更新：両方にあって内容が異なる
-    const toUpdate = Array.from(csvCustomerNames).filter((name) => {
-      if (!existingCustomerNames.has(name)) return false;
+    // 更新：両方にあって内容が異なる（顧客IDベースで判断）
+    const toUpdate = Array.from(csvCustomerKeys).filter((key) => {
+      const csvCustomer = csvCustomersMap.get(key);
+      if (!csvCustomer.id) return false;
+      
+      const formattedId = `C-${csvCustomer.id.padStart(5, '0')}`;
+      if (!existingCustomerIds.has(formattedId)) return false;
 
-      const csvCustomer = csvCustomersMap.get(name);
-      const existingCustomer = existingCustomersMap.get(name);
+      const existingCustomer = existingCustomersMap.get(formattedId);
 
       // データの差分をチェック
       return (
+        csvCustomer.name !== existingCustomer.name ||
         csvCustomer.contactPerson !== existingCustomer.contactPerson ||
         csvCustomer.address !== existingCustomer.address ||
         csvCustomer.phone !== existingCustomer.phone ||
@@ -429,17 +451,17 @@ export async function importCustomersFromCSV(csvData: string[][], storeId?: stri
 
     // 事前に必要なIDを検証・生成（重複を避けるため）
     const usedIds = new Set<string>();
-    const newCustomerIds: { [customerName: string]: string } = {};
+    const newCustomerIds: { [customerKey: string]: string } = {};
     const idValidationErrors: string[] = [];
 
-    for (const customerName of toAdd) {
-      const csvCustomer = csvCustomersMap.get(customerName);
+    for (const customerKey of toAdd) {
+      const csvCustomer = csvCustomersMap.get(customerKey);
       const idResult = await validateAndFormatCustomerId(csvCustomer.id, usedIds);
       
       if (!idResult.isValid) {
-        idValidationErrors.push(`顧客「${customerName}」: ${idResult.error}`);
+        idValidationErrors.push(`顧客「${csvCustomer.name}」: ${idResult.error}`);
       } else {
-        newCustomerIds[customerName] = idResult.id;
+        newCustomerIds[customerKey] = idResult.id;
       }
     }
     
@@ -454,9 +476,9 @@ export async function importCustomersFromCSV(csvData: string[][], storeId?: stri
     // トランザクションで実行
     await prisma.$transaction(async (tx) => {
       // 新規追加
-      for (const customerName of toAdd) {
-        const csvCustomer = csvCustomersMap.get(customerName);
-        const newId = newCustomerIds[customerName];
+      for (const customerKey of toAdd) {
+        const csvCustomer = csvCustomersMap.get(customerKey);
+        const newId = newCustomerIds[customerKey];
 
         await tx.customer.create({
           data: {
@@ -474,13 +496,15 @@ export async function importCustomersFromCSV(csvData: string[][], storeId?: stri
       }
 
       // 更新
-      for (const customerName of toUpdate) {
-        const csvCustomer = csvCustomersMap.get(customerName);
-        const existingCustomer = existingCustomersMap.get(customerName);
+      for (const customerKey of toUpdate) {
+        const csvCustomer = csvCustomersMap.get(customerKey);
+        const formattedId = `C-${csvCustomer.id.padStart(5, '0')}`;
+        const existingCustomer = existingCustomersMap.get(formattedId);
 
         await tx.customer.update({
           where: { id: existingCustomer.id },
           data: {
+            name: csvCustomer.name,
             contactPerson: csvCustomer.contactPerson,
             address: csvCustomer.address,
             phone: csvCustomer.phone,
@@ -493,10 +517,9 @@ export async function importCustomersFromCSV(csvData: string[][], storeId?: stri
 
       // 論理削除
       if (toDelete.length > 0) {
-        const deleteIds = toDelete.map((name) => existingCustomersMap.get(name).id);
         const result = await tx.customer.updateMany({
           where: {
-            id: { in: deleteIds },
+            id: { in: toDelete },
             storeId: storeId,
           },
           data: {
