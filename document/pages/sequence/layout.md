@@ -142,59 +142,51 @@ sequenceDiagram
 
 ## レイアウト構造
 
-```mermaid
-classDiagram
-    class RootLayout {
-        +async function
-        +children: ReactNode
-        -getStoreFromCookie()
-        +Geist fonts
-    }
-    
-    class FontConfig {
-        +Geist geistSans
-        +Geist_Mono geistMono
-        +string variable
-        +string[] subsets
-    }
-    
-    class LayoutHierarchy {
-        +html[lang="ja"]
-        +body[className]
-        +StoreProvider
-        +StoreGuard
-        +Header
-        +Breadcrumbs
-        +children
-    }
-    
-    RootLayout --> FontConfig : uses
-    RootLayout --> LayoutHierarchy : renders
-```
+RootLayoutコンポーネントは以下の構造で構成されています：
+
+### RootLayoutクラス
+- **async function**: 非同期関数として定義され、サーバーサイドで店舗情報を取得
+- **children**: ReactNodeとして子コンポーネントを受け取り
+- **getStoreFromCookie()**: 内部メソッドでCookieから店舗情報を取得
+- **Geist fonts**: Google Fontsからのフォント設定を管理
+
+### FontConfig設定
+- **Geist geistSans**: メインテキスト用のGeistフォント
+- **Geist_Mono geistMono**: モノスペース用のGeist_Monoフォント
+- **variable**: CSS変数名を定義
+- **subsets**: 'latin'サブセットを指定
+
+### LayoutHierarchy構造
+- **html[lang="ja"]**: 日本語指定のHTML要素
+- **body[className]**: フォントクラスが適用されたbody要素
+- **StoreProvider**: 店舗状態管理プロバイダー
+- **StoreGuard**: 店舗選択状態を監視するガード
+- **Header**: アプリケーションヘッダー
+- **Breadcrumbs**: パンくずナビゲーション
+- **children**: 各ページのコンテンツ
+
+RootLayoutはFontConfigを使用してフォント設定を行い、LayoutHierarchyの構造でコンポーネントをレンダリングします。
 
 ## コンポーネント配置図
 
-```mermaid
-flowchart TD
-    A[html lang="ja"] --> B[body + font classes]
-    B --> C[StoreProvider]
-    C --> D[StoreGuard]
-    D --> E[Header]
-    D --> F[Breadcrumbs]
-    D --> G[children - 各ページ]
-    
-    H[initialStore] --> C
-    I[geistSans] --> B
-    J[geistMono] --> B
-    K[globals.css] --> B
-    
-    style A fill:#e1f5fe
-    style C fill:#fff3e0
-    style D fill:#fff3e0
-    style E fill:#c8e6c9
-    style F fill:#c8e6c9
-    style G fill:#ffecb3
-```
+コンポーネントの階層構造は以下の通りです：
+
+### メイン階層
+1. **html[lang="ja"]** - 日本語指定のルート要素
+2. **body + font classes** - フォントクラスが適用されたbody要素
+3. **StoreProvider** - 店舗状態管理の最上位プロバイダー
+4. **StoreGuard** - アクセス制御を行うガードコンポーネント
+5. **Header** - アプリケーションのヘッダー部分
+6. **Breadcrumbs** - ナビゲーション用パンくずリスト
+7. **children** - 各ページの動的コンテンツ
+
+### 外部依存関係
+- **initialStore** → StoreProviderに店舗の初期データを提供
+- **geistSans** → bodyにメインフォントのCSS変数を設定
+- **geistMono** → bodyにモノスペースフォントのCSS変数を設定
+- **globals.css** → bodyにグローバルスタイルを適用
+
+この構造により、フォント設定、状態管理、アクセス制御が統合された安定したレイアウトシステムが構築されています。
 
 ## データフロー
 

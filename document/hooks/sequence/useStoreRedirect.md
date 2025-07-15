@@ -50,28 +50,14 @@ sequenceDiagram
 
 ## 3. 依存関係の変更監視
 
-```mermaid
-flowchart TD
-    A[useEffect 実行] --> B{selectedStore 変更？}
-    B -->|Yes| C[リダイレクト判定]
-    B -->|No| D{isStoreSelectionPage 変更？}
-    D -->|Yes| C
-    D -->|No| E{router 変更？}
-    E -->|Yes| C
-    E -->|No| F[処理スキップ]
-    
-    C --> G{!selectedStore && !isStoreSelectionPage？}
-    G -->|Yes| H[ログ出力]
-    G -->|No| I[処理終了]
-    
-    H --> J[router.push('/stores')]
-    J --> K[リダイレクト実行]
-    
-    style A fill:#e1f5fe
-    style K fill:#c8e6c9
-    style F fill:#fff3e0
-    style I fill:#fff3e0
-```
+useEffectによる依存関係の監視：
+
+1. **selectedStore変更時**: リダイレクト判定実行
+2. **isStoreSelectionPage変更時**: リダイレクト判定実行
+3. **router変更時**: リダイレクト判定実行
+4. **変更なし**: 処理スキップ
+
+条件（!selectedStore && !isStoreSelectionPage）を満たす場合、`/stores`ページにリダイレクトします。
 
 ## 4. 戻り値オブジェクトの構築
 
@@ -91,21 +77,13 @@ sequenceDiagram
 
 ## 5. ページ判定ロジック
 
-```mermaid
-flowchart TD
-    A[pathname 取得] --> B{pathname === '/stores'？}
-    B -->|Yes| C[isStoreSelectionPage = true]
-    B -->|No| D{pathname === '/'？}
-    D -->|Yes| C
-    D -->|No| E[isStoreSelectionPage = false]
-    
-    C --> F[リダイレクト対象外]
-    E --> G[リダイレクト対象]
-    
-    style A fill:#e1f5fe
-    style F fill:#c8e6c9
-    style G fill:#ffcdd2
-```
+pathnameによるページ判定：
+
+1. **pathname === '/stores'**: isStoreSelectionPage = true（リダイレクト対象外）
+2. **pathname === '/'**: isStoreSelectionPage = true（リダイレクト対象外）
+3. **その他**: isStoreSelectionPage = false（リダイレクト対象）
+
+店舗選択ページとルートページ以外では、店舗未選択時にリダイレクトを実行します。
 
 ## 6. コンポーネント統合例
 

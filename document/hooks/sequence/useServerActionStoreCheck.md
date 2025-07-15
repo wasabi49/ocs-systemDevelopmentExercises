@@ -50,27 +50,14 @@ sequenceDiagram
 
 ## 3. 複数条件での判定ロジック
 
-```mermaid
-flowchart TD
-    A[Server Action結果受信] --> B[checkStoreRequirement 呼び出し]
-    B --> C{result?.status === 'store_required'？}
-    C -->|Yes| D[ログ出力 & リダイレクト]
-    C -->|No| E{result?.status === 'store_invalid'？}
-    E -->|Yes| D
-    E -->|No| F{result?.needsStoreSelection === true？}
-    F -->|Yes| D
-    F -->|No| G[何もしない]
-    
-    D --> H[router.push('/stores')]
-    H --> I[true を返却]
-    G --> J[false を返却]
-    
-    style A fill:#e1f5fe
-    style D fill:#ffcdd2
-    style G fill:#c8e6c9
-    style I fill:#ffcdd2
-    style J fill:#c8e6c9
-```
+Server Action結果の複数条件チェック：
+
+1. **store_required**: 店舗が必要な場合 → リダイレクト
+2. **store_invalid**: 店舗が無効な場合 → リダイレクト  
+3. **needsStoreSelection**: 店舗選択が必要な場合 → リダイレクト
+4. **その他**: 何もしない
+
+いずれかの条件に該当する場合、`/stores`ページにリダイレクトしてtrueを返却します。
 
 ## 4. 実際の使用パターン
 
@@ -151,32 +138,21 @@ sequenceDiagram
 
 ## データ型定義
 
-```mermaid
-classDiagram
-    class ServerActionResult {
-        +string? status
-        +boolean? needsStoreSelection
-    }
-    
-    class StoreRequiredResult {
-        +string status = 'store_required'
-        +string error
-    }
-    
-    class StoreInvalidResult {
-        +string status = 'store_invalid'
-        +string error
-    }
-    
-    class CustomResult {
-        +boolean needsStoreSelection = true
-        +string message
-    }
-    
-    ServerActionResult <|-- StoreRequiredResult
-    ServerActionResult <|-- StoreInvalidResult
-    ServerActionResult <|-- CustomResult
-```
+### ServerActionResult
+- `status?: string` - ステータス（'store_required', 'store_invalid'など）
+- `needsStoreSelection?: boolean` - 店舗選択が必要かどうか
+
+### StoreRequiredResult
+- `status: 'store_required'` - 店舗が必要
+- `error: string` - エラーメッセージ
+
+### StoreInvalidResult  
+- `status: 'store_invalid'` - 店舗が無効
+- `error: string` - エラーメッセージ
+
+### CustomResult
+- `needsStoreSelection: true` - 店舗選択が必要
+- `message: string` - メッセージ
 
 ## 使用例
 

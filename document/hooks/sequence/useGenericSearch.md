@@ -142,48 +142,28 @@ sequenceDiagram
 
 ## 6. 大文字小文字の処理比較
 
-```mermaid
-flowchart TD
-    A[検索実行] --> B{caseSensitive?}
-    B -->|true| C[元の文字列で比較]
-    B -->|false| D[toLowerCase() で正規化]
-    
-    C --> E[keyword = searchTerm]
-    D --> F[keyword = searchTerm.toLowerCase()]
-    
-    E --> G[String(value).includes(keyword)]
-    F --> H[String(value).toLowerCase().includes(keyword)]
-    
-    G --> I[大文字小文字を区別した検索]
-    H --> J[大文字小文字を区別しない検索]
-    
-    style A fill:#e1f5fe
-    style I fill:#c8e6c9
-    style J fill:#c8e6c9
-```
+大文字小文字の処理は以下のように動作します：
+
+- `caseSensitive: true` の場合：元の文字列で比較
+- `caseSensitive: false` の場合：toLowerCase()で正規化して比較
 
 ## データ型とジェネリクス
 
-```mermaid
-classDiagram
-    class useGenericSearch~T~ {
-        +T[] items
-        +string searchTerm
-        +keyof T[] | 'all' searchFields
-        +boolean caseSensitive
-        +T[] return
-    }
-    
-    class useSimpleSearch~T~ {
-        +T[] items
-        +string searchTerm
-        +keyof T searchField
-        +boolean caseSensitive
-        +T[] return
-    }
-    
-    useSimpleSearch --> useGenericSearch : delegates to
-```
+### useGenericSearch<T>
+- `items: T[]` - 検索対象の配列
+- `searchTerm: string` - 検索キーワード  
+- `searchFields: keyof T[] | 'all'` - 検索対象フィールド
+- `caseSensitive: boolean` - 大文字小文字区別
+- 戻り値: `T[]` - フィルタリング結果
+
+### useSimpleSearch<T>
+- `items: T[]` - 検索対象の配列
+- `searchTerm: string` - 検索キーワード
+- `searchField: keyof T` - 検索対象フィールド（単一）
+- `caseSensitive: boolean` - 大文字小文字区別
+- 戻り値: `T[]` - フィルタリング結果
+
+useSimpleSearchは内部的にuseGenericSearchを使用しています。
 
 ## 使用例
 

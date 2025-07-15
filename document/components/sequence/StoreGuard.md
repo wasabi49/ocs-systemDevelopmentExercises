@@ -70,26 +70,31 @@ sequenceDiagram
 
 ## 4. 条件分岐の詳細フロー
 
-```mermaid
-flowchart TD
-    A[StoreGuard レンダリング] --> B{pathname チェック}
-    B -->|/stores or /| C[isStoreSelectionPage = true]
-    B -->|その他| D[isStoreSelectionPage = false]
-    
-    C --> E[children をそのまま表示]
-    
-    D --> F{selectedStore 存在？}
-    F -->|Yes| G[children を表示]
-    F -->|No| H[リダイレクト中UI表示]
-    
-    H --> I[useStoreRedirect が動作]
-    I --> J[/stores へリダイレクト]
-    
-    style A fill:#e1f5fe
-    style E fill:#c8e6c9
-    style G fill:#c8e6c9
-    style J fill:#ffcdd2
-```
+StoreGuardコンポーネントの条件分岐ロジック：
+
+### 初期チェック
+1. **StoreGuardレンダリング** - コンポーネントがマウントされ、ガード処理が開始
+2. **pathnameチェック** - 現在のURLパスを確認してページ種別を判定
+
+### パス別処理
+#### 店舗選択ページの場合
+3. **`/stores` or `/`** - 店舗選択ページまたはルートページへのアクセス
+4. **isStoreSelectionPage = true** - 店舗選択関連ページとしてフラグを設定
+5. **childrenをそのまま表示** - ガードをバイパスして通常レンダリング
+
+#### その他のページの場合
+3. **その他のパス** - 一般的なアプリケーションページへのアクセス
+4. **isStoreSelectionPage = false** - 店舗選択が必要なページとして設定
+5. **selectedStore存在チェック** - 現在の店舗選択状態を確認
+   - **存在する** → childrenを表示して通常ページをレンダリング
+   - **存在しない** → リダイレクト中UIを表示
+
+### リダイレクト処理
+6. **リダイレクト中UI表示** - ローディングスピナーとメッセージを表示
+7. **useStoreRedirectが動作** - カスタムフックがリダイレクト処理を実行
+8. **`/stores`へリダイレクト** - 店舗選択ページへ自動的にナビゲーション
+
+このフローにより、店舗選択が必要なページでのアクセス制御と、適切なリダイレクトが実現されています。
 
 ## 5. リダイレクト中UI
 
@@ -140,25 +145,25 @@ sequenceDiagram
 
 ## データ型とProps
 
-```mermaid
-classDiagram
-    class StoreGuardProps {
-        +ReactNode children
-    }
-    
-    class StoreGuardState {
-        +Store|null selectedStore
-        +string pathname
-        +boolean isStoreSelectionPage
-    }
-    
-    class Store {
-        +string id
-        +string name
-    }
-    
-    StoreGuardState --> Store : uses
-```
+StoreGuardコンポーネントで使用されるデータ構造：
+
+### StoreGuardPropsインターフェース
+コンポーネントが受け取るプロパティ：
+- **children: ReactNode** - ガード内でレンダリングされる子コンポーネント
+
+### StoreGuardState状態管理
+コンポーネント内部で管理される状態：
+- **selectedStore: Store|null** - 現在選択されている店舗情報またはnull
+- **pathname: string** - 現在のURLパス文字列
+- **isStoreSelectionPage: boolean** - 店舗選択ページかどうかのフラグ
+
+### Storeエンティティ
+店舗情報を表すオブジェクト構造：
+- **id: string** - 店舗の一意識別子
+- **name: string** - 店舗の表示名
+
+### 関係性
+StoreGuardStateはStoreエンティティを使用してselectedStoreプロパティの型安全性を確保し、店舗選択状態の適切な管理を実現しています。
 
 ## 統合パターン
 

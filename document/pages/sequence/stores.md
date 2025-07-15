@@ -55,18 +55,12 @@ sequenceDiagram
 
 ## 3. メタデータ設定
 
-```mermaid
-flowchart TD
-    A[ページアクセス] --> B[メタデータ export]
-    B --> C[title: '店舗選択 | 書店管理システム']
-    B --> D[description: 'ご利用する店舗を選択してください']
-    C --> E[HTMLヘッドに反映]
-    D --> E
-    E --> F[SEO最適化]
-    
-    style A fill:#e1f5fe
-    style F fill:#c8e6c9
-```
+メタデータの設定内容：
+
+- **title**: '店舗選択 | 書店管理システム'
+- **description**: 'ご利用する店舗を選択してください'
+
+これらのメタデータはHTMLヘッドに反映され、SEO最適化に寄与します。
 
 ## 4. Server Component の特性
 
@@ -91,27 +85,14 @@ sequenceDiagram
 
 ## 5. データフロー
 
-```mermaid
-flowchart TD
-    A[/stores アクセス] --> B{Server Component 実行}
-    B --> C[getAllStores() 呼び出し]
-    C --> D[データベースクエリ]
-    D --> E{クエリ結果}
-    E -->|成功| F[stores データ取得]
-    E -->|失敗| G[エラーキャッチ]
-    F --> H[StoreSelection に props 渡し]
-    G --> I[エラーログ出力]
-    I --> J[空配列とエラーメッセージ渡し]
-    H --> K[正常レンダリング]
-    J --> L[エラー状態レンダリング]
-    K --> M[HTML レスポンス]
-    L --> M
-    
-    style A fill:#e1f5fe
-    style M fill:#c8e6c9
-    style G fill:#ffcdd2
-    style I fill:#ffcdd2
-```
+Server Componentのデータフロー：
+
+1. **/storesアクセス** → Server Component実行
+2. **getAllStores()呼び出し** → データベースクエリ
+3. **クエリ結果判定**：
+   - 成功 → storesデータ取得 → StoreSelectionにprops渡し → 正常レンダリング
+   - 失敗 → エラーキャッチ → エラーログ出力 → 空配列とエラーメッセージ渡し → エラー状態レンダリング
+4. **HTMLレスポンス**生成
 
 ## 6. コンポーネント統合
 
@@ -134,25 +115,17 @@ sequenceDiagram
 
 ## データ型とProps
 
-```mermaid
-classDiagram
-    class Store {
-        +string id
-        +string name
-    }
-    
-    class StoreSelectionPageProps {
-        +Store[] initialStores
-        +string? initialError
-    }
-    
-    class Metadata {
-        +string title
-        +string description
-    }
-    
-    StoreSelectionPageProps --> Store : contains
-```
+### Store型
+- `id: string` - 店舗ID
+- `name: string` - 店舗名
+
+### StoreSelectionPageProps型
+- `initialStores: Store[]` - 初期店舗リスト
+- `initialError?: string` - 初期エラーメッセージ
+
+### Metadata型
+- `title: string` - ページタイトル
+- `description: string` - ページ説明
 
 ## 特徴
 

@@ -74,7 +74,7 @@ sequenceDiagram
             Breadcrumbs->>Breadcrumbs: index < pathSegments.length - 1 チェック
             
             alt 最後のセグメントでない
-                Breadcrumbs->>LinkComp: LinkComp コンポーネント生成
+                Breadcrumbs->>LinkComp: Link コンポーネント生成
                 Note over LinkComp: "href: /${pathSegments.slice(0, index + 1).join('/')}"
                 LinkComp->>LinkComp: pathNames[segment] でラベル設定
                 Breadcrumbs->>ChevronRight: 区切り矢印追加

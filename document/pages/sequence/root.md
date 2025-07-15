@@ -49,28 +49,24 @@ sequenceDiagram
 
 ## 3. 依存関係による再評価
 
-```mermaid
-flowchart TD
-    A[コンポーネントマウント] --> B[useEffect 実行]
-    B --> C{selectedStore 変更？}
-    C -->|Yes| D[リダイレクト判定]
-    C -->|No| E{router 変更？}
-    E -->|Yes| D
-    E -->|No| F[処理スキップ]
-    
-    D --> G{selectedStore 存在？}
-    G -->|Yes| H[router.push('/Home')]
-    G -->|No| I[router.push('/stores')]
-    
-    H --> J[/Home にリダイレクト]
-    I --> K[/stores にリダイレクト]
-    F --> L[現在の表示維持]
-    
-    style A fill:#e1f5fe
-    style J fill:#c8e6c9
-    style K fill:#c8e6c9
-    style L fill:#fff3e0
-```
+useEffectの依存関係に基づく再評価プロセス：
+
+### 評価フロー
+1. **コンポーネントマウント** - 初期レンダリング時にuseEffectが実行される
+2. **useEffect実行** - 依存配列 [selectedStore, router] の変更を監視
+3. **selectedStore変更チェック** - 店舗選択状態の変更を確認
+   - **変更あり** → リダイレクト判定処理へ進む
+   - **変更なし** → router変更チェックへ進む
+4. **router変更チェック** - Next.jsルーターの変更を確認
+   - **変更あり** → リダイレクト判定処理へ進む
+   - **変更なし** → 処理をスキップし現在の表示を維持
+
+### リダイレクト判定
+5. **selectedStore存在チェック** - 店舗が選択されているかを確認
+   - **存在する** → `/Home`にリダイレクトしてメイン機能へ
+   - **存在しない** → `/stores`にリダイレクトして店舗選択ページへ
+
+この仕組みにより、店舗選択状態やルーターの変更に応じて適切なページへ自動リダイレクトが行われ、ユーザーは常に正しいページに導かれます。
 
 ## 4. StoreContext との連携
 
@@ -137,25 +133,25 @@ sequenceDiagram
 
 ## リダイレクト判定ロジック
 
-```mermaid
-flowchart TD
-    A[useEffect 実行] --> B{selectedStore をチェック}
-    B -->|selectedStore が存在| C[ユーザーは店舗選択済み]
-    B -->|selectedStore が null| D[ユーザーは店舗未選択]
-    
-    C --> E[メイン機能にアクセス可能]
-    D --> F[店舗選択が必要]
-    
-    E --> G[router.push('/Home')]
-    F --> H[router.push('/stores')]
-    
-    G --> I[ホームページ表示]
-    H --> J[店舗選択ページ表示]
-    
-    style A fill:#e1f5fe
-    style I fill:#c8e6c9
-    style J fill:#c8e6c9
-```
+ルートページでのリダイレクト判定の詳細な流れ：
+
+### 判定プロセス
+1. **useEffect実行** - コンポーネントマウント時または依存関係変更時に実行
+2. **selectedStoreチェック** - 現在の店舗選択状態を確認
+
+### 店舗選択済みの場合
+3. **ユーザーは店舗選択済み** - selectedStoreにオブジェクトが存在
+4. **メイン機能にアクセス可能** - アプリケーションの主要機能を利用できる状態
+5. **`router.push('/Home')`** - ホームページへのナビゲーション実行
+6. **ホームページ表示** - メイン機能が利用可能なダッシュボード画面を表示
+
+### 店舗未選択の場合
+3. **ユーザーは店舗未選択** - selectedStoreがnullまたは未定義
+4. **店舗選択が必要** - まず店舗を選択する必要がある状態
+5. **`router.push('/stores')`** - 店舗選択ページへのナビゲーション実行
+6. **店舗選択ページ表示** - 利用可能な店舗一覧から選択できる画面を表示
+
+このロジックにより、ユーザーの状態に応じて最適なページへ自動的に誘導され、アプリケーションの使用準備が整います。
 
 ## 使用パターン
 

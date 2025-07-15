@@ -88,27 +88,14 @@ sequenceDiagram
 
 ## 4. 依存関係による再計算制御
 
-```mermaid
-flowchart TD
-    A[フック呼び出し] --> B[useMemo 実行]
-    B --> C{orders 変更？}
-    C -->|Yes| D[再計算実行]
-    C -->|No| E{keyword 変更？}
-    E -->|Yes| D
-    E -->|No| F{field 変更？}
-    F -->|Yes| D
-    F -->|No| G[キャッシュ結果返却]
-    
-    D --> H[フィルタリング処理]
-    H --> I[結果をメモ化]
-    I --> J[フィルタリング済み配列返却]
-    G --> J
-    
-    style A fill:#e1f5fe
-    style J fill:#c8e6c9
-    style G fill:#fff3e0
-    style D fill:#ffcdd2
-```
+useMemoを使用した依存関係ベースの再計算制御：
+
+1. **orders変更時**: 再計算実行
+2. **keyword変更時**: 再計算実行  
+3. **field変更時**: 再計算実行
+4. **変更なし**: キャッシュ結果返却
+
+パフォーマンス最適化のため、依存関係が変更された場合のみフィルタリング処理を実行します。
 
 ## 5. パフォーマンス最適化
 
@@ -143,28 +130,15 @@ sequenceDiagram
 
 ## データ型定義
 
-```mermaid
-classDiagram
-    class Order {
-        +string id
-        +string customerName
-        +string managerName
-    }
-    
-    class FilterParams {
-        +Order[] orders
-        +string keyword
-        +string field
-    }
-    
-    class FilterFunction {
-        +Order[] input
-        +Order[] output
-    }
-    
-    FilterParams --> Order : contains
-    FilterFunction --> Order : processes
-```
+### Order型
+- `id: string` - 注文ID
+- `customerName: string` - 顧客名
+- `managerName: string` - 担当者名
+
+### FilterParams型
+- `orders: Order[]` - フィルタ対象の注文配列
+- `keyword: string` - 検索キーワード
+- `field: string` - 検索対象フィールド
 
 ## 使用例
 

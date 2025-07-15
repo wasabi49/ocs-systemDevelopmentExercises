@@ -88,50 +88,64 @@ sequenceDiagram
 
 ## 5. Context値の構造
 
-```mermaid
-classDiagram
-    class StoreContextType {
-        +Store|null selectedStore
-        +function setSelectedStore
-        +Store[] stores
-        +function setStores
-        +boolean isLoading
-        +function setIsLoading
-    }
-    
-    class Store {
-        +string id
-        +string name
-    }
-    
-    class StoreProviderProps {
-        +ReactNode children
-        +Store|null initialStore?
-    }
-    
-    StoreContextType --> Store : contains
-    StoreProviderProps --> Store : accepts
-```
+StoreContextで使用されるデータ構造とインターフェース：
+
+### StoreContextTypeインターフェース
+Context経由で提供される値と機能：
+- **selectedStore: Store|null** - 現在選択されている店舗情報またはnull
+- **setSelectedStore: function** - 店舗選択状態を更新する関数
+- **stores: Store[]** - 利用可能な店舗の一覧配列
+- **setStores: function** - 店舗一覧を更新する関数
+- **isLoading: boolean** - ローディング状態を表すフラグ
+- **setIsLoading: function** - ローディング状態を制御する関数
+
+### Storeエンティティ
+店舗情報を表す基本データ構造：
+- **id: string** - 店舗の一意識別子（データベースキー）
+- **name: string** - 店舗の表示名（ユーザーインターフェース用）
+
+### StoreProviderPropsインターフェース
+StoreProviderコンポーネントが受け取るプロパティ：
+- **children: ReactNode** - Provider内でレンダリングされる子コンポーネント
+- **initialStore?: Store|null** - オプションの初期店舗設定（サーバーサイドレンダリング用）
+
+### 関係性
+- StoreContextTypeはStoreエンティティを含んでおり、selectedStoreとstores配列で店舗情報を管理
+- StoreProviderPropsはStoreエンティティを受け入れて初期状態を設定
+
+この構造により、店舗選択状態の型安全性と一貫性が保たれ、アプリケーション全体で信頼性の高い状態管理が実現されています。
 
 ## 6. 状態更新フロー
 
-```mermaid
-flowchart TD
-    A[コンポーネントから店舗選択] --> B[setSelectedStore 呼び出し]
-    B --> C{店舗が選択された？}
-    C -->|Yes| D[React State 更新]
-    C -->|No| E[React State をnullに]
-    D --> F[店舗IDをCookieに保存]
-    D --> G[店舗名をCookieに保存]
-    E --> H[Cookieを削除]
-    F --> I[コンポーネント再レンダリング]
-    G --> I
-    H --> I
-    
-    style A fill:#e1f5fe
-    style I fill:#c8e6c9
-    style C fill:#fff3e0
-```
+StoreContextの状態更新メカニズムの詳細な流れ：
+
+### 更新トリガー
+1. **コンポーネントから店舗選択** - ユーザーが店舗選択インターフェースで操作を実行
+2. **setSelectedStore呼び出し** - Contextから提供される状態更新関数を実行
+
+### 店舗選択状態の判定
+3. **店舗が選択されたかのチェック** - 渡された店舗オブジェクトがnullではないかを確認
+
+#### 店舗選択時の処理
+4. **React State更新** - selectedStore状態を新しい店舗オブジェクトで更新
+5. **店舗IDをCookieに保存** - 永続化のためにsetCookie('selectedStoreId', store.id)を実行
+6. **店舗名をCookieに保存** - 表示用にsetCookie('selectedStoreName', store.name)を実行
+
+#### 店舗選択解除時の処理
+4. **React Stateをnullに** - selectedStore状態をnullにリセット
+5. **Cookieを削除** - deleteCookie()で選択状態をクリア
+   - selectedStoreId Cookieを削除
+   - selectedStoreName Cookieを削除
+
+### 再レンダリング
+7. **コンポーネント再レンダリング** - 状態変更によりContextを消費する全コンポーネントが再レンダリング
+
+### 特徴
+- **アトミックな操作**: React StateとCookieの更新が同期して実行される
+- **一貫性の保証**: 店舗選択と解除どちらの場合も適切な処理が実行される
+- **自動永続化**: Cookieへの保存が自動的に行われ、ブラウザー再起動時に状態が復元される
+
+このフローにより、ユーザーの店舗選択状態が確実に管理され、アプリケーション全体で一貫した体験が提供されます。
 
 ## 7. エラーハンドリング
 

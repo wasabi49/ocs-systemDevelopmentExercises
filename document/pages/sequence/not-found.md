@@ -76,26 +76,14 @@ sequenceDiagram
 
 ## 4. エラーハンドリングフロー
 
-```mermaid
-flowchart TD
-    A[URLアクセス] --> B[Next.js Router]
-    B --> C{ページ存在確認}
-    
-    C -->|存在する| D[通常ページ表示]
-    C -->|存在しない| E[404判定]
-    
-    E --> F[not-found.tsx 実行]
-    F --> G[クライアントサイド処理]
-    G --> H[エラーページ表示]
-    
-    H --> I[ユーザーへのフィードバック]
-    
-    style A fill:#e1f5fe
-    style E fill:#ffcdd2
-    style F fill:#fff3e0
-    style H fill:#ffecb3
-    style I fill:#c8e6c9
-```
+404エラーハンドリングの流れ：
+
+1. **URLアクセス** → Next.js Router
+2. **ページ存在確認**
+   - 存在する → 通常ページ表示
+   - 存在しない → 404判定
+3. **not-found.tsx実行** → クライアントサイド処理
+4. **エラーページ表示** → ユーザーへのフィードバック
 
 ## 5. レスポンシブ表示処理
 
@@ -140,32 +128,23 @@ sequenceDiagram
 
 ## コンポーネント構造
 
-```mermaid
-classDiagram
-    class NotFound {
-        +"use client"
-        +function NotFound()
-        +return JSX
-    }
-    
-    class ErrorLayout {
-        +div container
-        +h1 mainMessage
-        +h2 statusCode
-    }
-    
-    class Styling {
-        +flex layout
-        +h-screen height
-        +flex-col direction
-        +items-center
-        +justify-center
-        +bg-gray-100
-    }
-    
-    NotFound --> ErrorLayout : renders
-    ErrorLayout --> Styling : applies
-```
+### NotFound
+- `"use client"` - クライアントコンポーネント
+- `function NotFound()` - メイン関数
+- JSXを返却
+
+### ErrorLayout
+- `div container` - コンテナ要素
+- `h1 mainMessage` - メインメッセージ
+- `h2 statusCode` - ステータスコード
+
+### Styling（Tailwind CSS）
+- `flex layout` - フレックスレイアウト
+- `h-screen height` - 画面フル高さ
+- `flex-col direction` - 縦方向配置
+- `items-center` - 中央揃え
+- `justify-center` - 縦中央揃え
+- `bg-gray-100` - 背景色
 
 ## CSS クラス構造
 

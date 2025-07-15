@@ -186,31 +186,30 @@ sequenceDiagram
 
 ## 共通スタイル構造
 
-```mermaid
-classDiagram
-    class PDFStyles {
-        +Object page
-        +Object header
-        +Object title
-        +Object dateSection
-        +Object customerSection
-        +Object table
-        +Object tableHeader
-        +Object tableRow
-        +Object tableCell
-        +Object totalSection
-    }
-    
-    class PageStyle {
-        +string fontFamily = 'NotoSansJP'
-        +number fontSize = 9
-        +number padding = 20
-        +string backgroundColor = '#ffffff'
-        +number lineHeight = 1.2
-    }
-    
-    PDFStyles --> PageStyle : contains
-```
+PDF生成で使用される共通スタイル構造は以下の通りです：
+
+### PDFStylesクラス
+@react-pdf/rendererで使用されるスタイルオブジェクトの構成：
+- **page**: ページ全体のレイアウト設定
+- **header**: ヘッダーセクションのスタイル（タイトル、日付など）
+- **title**: 文書タイトルの表示スタイル
+- **dateSection**: 日付表示エリアのスタイル
+- **customerSection**: 顧客情報表示エリアのスタイル
+- **table**: テーブル全体のレイアウト設定
+- **tableHeader**: テーブルヘッダー行のスタイル
+- **tableRow**: テーブルデータ行のスタイル
+- **tableCell**: テーブルセルの個別スタイル
+- **totalSection**: 合計金額表示エリアのスタイル
+
+### PageStyleクラス
+基本ページスタイルの設定内容：
+- **fontFamily**: 'NotoSansJP'（日本語対応フォント）
+- **fontSize**: 9（適切な読みやすさを保つサイズ）
+- **padding**: 20（ページ周囲の余白）
+- **backgroundColor**: '#ffffff'（白背景）
+- **lineHeight**: 1.2（行間設定）
+
+PDFStylesはPageStyleの設定を基盤として各セクション固有のスタイルを定義し、一貫性のあるプロフェッショナルな文書レイアウトを実現しています。
 
 ## エラーハンドリング
 
