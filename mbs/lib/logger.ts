@@ -11,7 +11,7 @@ class Logger {
   }
 
   private async writeLogToFile(level: LogLevel, message: string, data?: LogData) {
-    if (!this.isServer) return;
+    if (!this.isServer || typeof window !== 'undefined' || typeof process === 'undefined') return;
 
     try {
       const fs = await import('fs');
@@ -68,12 +68,12 @@ class Logger {
 
   private async writeLog(level: LogLevel, message: string, data?: LogData) {
     // サーバーサイドではファイルに書き込み
-    if (this.isServer) {
+    if (this.isServer && typeof window === 'undefined' && typeof process !== 'undefined') {
       await this.writeLogToFile(level, message, data);
     }
 
     // 開発環境ではコンソールにも出力
-    if (process.env.NODE_ENV === 'development') {
+    if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
       this.logToConsole(level, message, data);
     }
   }
