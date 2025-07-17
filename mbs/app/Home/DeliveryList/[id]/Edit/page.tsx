@@ -8,6 +8,7 @@ import {
   fetchDeliveryForEdit,
   fetchUndeliveredOrderDetails,
   updateDeliveryAllocations,
+  updateDeliveryInfo,
 } from '@/app/actions/deliveryActions';
 import { useSimpleSearch } from '@/app/hooks/useGenericSearch';
 import { SortConfig, SortIcon, sortItems } from '@/app/utils/sortUtils';
@@ -168,11 +169,19 @@ const UndeliveredProductsModal = ({
   onClose,
   orderDetails,
   onSave,
+  deliveryDate,
+  note,
+  originalDeliveryDate,
+  originalNote,
 }: {
   isOpen: boolean;
   onClose: () => void;
   orderDetails: UndeliveredOrderDetail[];
-  onSave: (allocations: AllocationUpdate[]) => Promise<void>;
+  onSave: (allocations: AllocationUpdate[], deliveryDate: string, note: string | null) => Promise<void>;
+  deliveryDate: string;
+  note: string | null;
+  originalDeliveryDate: string;
+  originalNote: string | null;
 }) => {
   const [selections, setSelections] = useState<Record<string, number>>({});
   const [searchTerm, setSearchTerm] = useState('');
@@ -226,7 +235,11 @@ const UndeliveredProductsModal = ({
       // 変更がある場合のみAPIを呼び出す
       if (allocations.length > 0) {
         logger.info('変更された項目のみ送信', { allocations });
-        await onSave(allocations);
+      }
+      
+      // 商品の変更または日付/備考の変更がある場合は保存
+      if (allocations.length > 0 || hasDateChange || hasNoteChange) {
+        await onSave(allocations, deliveryDate, note);
       } else {
         logger.info('変更がないため、APIコールをスキップ');
       }
@@ -302,10 +315,14 @@ const UndeliveredProductsModal = ({
   }, 0);
 
   // 変更があるかどうかを判定
-  const hasChanges = Object.entries(selections).some(([orderDetailId, quantity]) => {
+  const hasProductChanges = Object.entries(selections).some(([orderDetailId, quantity]) => {
     const detail = orderDetails.find((d) => d.orderDetailId === orderDetailId);
     return detail && detail.currentAllocation !== quantity;
   });
+  
+  const hasDateChange = deliveryDate !== originalDeliveryDate;
+  const hasNoteChange = note !== originalNote;
+  const hasChanges = hasProductChanges || hasDateChange || hasNoteChange;
 
   if (!isOpen) return null;
 
@@ -375,7 +392,9 @@ const UndeliveredProductsModal = ({
             <div className="text-xs font-medium text-blue-800 sm:text-sm">
               選択状況: {totalSelectedQuantity}個 / 合計金額: ¥
               {totalSelectedAmount.toLocaleString()}
-              {hasChanges && <span className="ml-2 text-orange-600">（変更あり）</span>}
+              {hasProductChanges && <span className="ml-2 text-orange-600">（商品変更あり）</span>}
+              {hasDateChange && <span className="ml-2 text-orange-600">（日付変更あり）</span>}
+              {hasNoteChange && <span className="ml-2 text-orange-600">（備考変更あり）</span>}
             </div>
             {searchTerm && (
               <div className="mt-1 text-xs text-blue-600">
@@ -560,7 +579,7 @@ const UndeliveredProductsModal = ({
           </button>
           <button
             onClick={handleSave}
-            disabled={isSaving || !hasChanges || totalSelectedQuantity === 0}
+            disabled={isSaving || (!hasChanges && totalSelectedQuantity === 0)}
             className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white shadow-lg transition-colors hover:bg-blue-700 disabled:bg-gray-400 sm:px-4 sm:text-sm"
           >
             {isSaving ? (
@@ -585,6 +604,7 @@ export default function DeliveryEditPage() {
   const deliveryId = params.id as string;
 
   const [delivery, setDelivery] = useState<DeliveryData | null>(null);
+  const [originalDelivery, setOriginalDelivery] = useState<DeliveryData | null>(null);
   const [orderDetails, setOrderDetails] = useState<UndeliveredOrderDetail[]>([]);
   const [showProductModal, setShowProductModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -603,7 +623,9 @@ export default function DeliveryEditPage() {
         setIsLoading(true);
         const result = await fetchDeliveryForEdit(deliveryId);
         if (result.success && result.delivery) {
-          setDelivery(result.delivery as unknown as DeliveryData);
+          const deliveryData = result.delivery as unknown as DeliveryData;
+          setDelivery(deliveryData);
+          setOriginalDelivery(deliveryData);
         } else {
           setErrorModal({
             isOpen: true,
@@ -663,25 +685,52 @@ export default function DeliveryEditPage() {
     }
   };
 
+  // 備考変更のハンドラー
+  const handleNoteChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (delivery) {
+      setDelivery({ ...delivery, note: event.target.value });
+    }
+  };
+
   // 納品割り当ての更新
   const handleUpdateAllocations = useCallback(
-    async (allocations: AllocationUpdate[]) => {
+    async (allocations: AllocationUpdate[], deliveryDate: string, note: string | null) => {
       try {
         setIsSaving(true);
-        const result = await updateDeliveryAllocations(deliveryId, allocations);
-        if (result.success) {
-          setShowSuccessModal(true);
-          // 納品データを再取得
-          const updatedResult = await fetchDeliveryForEdit(deliveryId);
-          if (updatedResult.success && updatedResult.delivery) {
-            setDelivery(updatedResult.delivery as unknown as DeliveryData);
+        
+        // 日付や備考の変更がある場合は、まずそれらを更新
+        if (delivery && (deliveryDate !== originalDelivery?.deliveryDate || note !== originalDelivery?.note)) {
+          const deliveryInfoResult = await updateDeliveryInfo(deliveryId, deliveryDate, note);
+          if (!deliveryInfoResult.success) {
+            setErrorModal({
+              isOpen: true,
+              title: 'エラー',
+              message: deliveryInfoResult.error || '納品情報の更新に失敗しました',
+            });
+            return;
           }
-        } else {
-          setErrorModal({
-            isOpen: true,
-            title: 'エラー',
-            message: result.error || '納品の更新に失敗しました',
-          });
+        }
+        
+        // 商品の割り当てがある場合は更新
+        if (allocations.length > 0) {
+          const result = await updateDeliveryAllocations(deliveryId, allocations);
+          if (!result.success) {
+            setErrorModal({
+              isOpen: true,
+              title: 'エラー',
+              message: result.error || '納品の更新に失敗しました',
+            });
+            return;
+          }
+        }
+        
+        setShowSuccessModal(true);
+        // 納品データを再取得
+        const updatedResult = await fetchDeliveryForEdit(deliveryId);
+        if (updatedResult.success && updatedResult.delivery) {
+          const updatedDelivery = updatedResult.delivery as unknown as DeliveryData;
+          setDelivery(updatedDelivery);
+          setOriginalDelivery(updatedDelivery);
         }
       } catch {
         setErrorModal({
@@ -693,7 +742,7 @@ export default function DeliveryEditPage() {
         setIsSaving(false);
       }
     },
-    [deliveryId],
+    [deliveryId, delivery, originalDelivery],
   );
 
   // 成功モーダルを閉じる際の処理
@@ -852,7 +901,13 @@ export default function DeliveryEditPage() {
               備考
             </div>
             <div className="border-x border-b border-gray-300 p-3">
-              <div className="text-sm text-gray-600">{delivery.note || '備考はありません'}</div>
+              <textarea
+                className="w-full rounded border px-2 py-2 text-xs sm:text-sm"
+                rows={3}
+                value={delivery.note || ''}
+                onChange={handleNoteChange}
+                placeholder="備考を入力..."
+              />
             </div>
           </div>
 
@@ -875,6 +930,10 @@ export default function DeliveryEditPage() {
         onClose={() => setShowProductModal(false)}
         orderDetails={orderDetails}
         onSave={handleUpdateAllocations}
+        deliveryDate={delivery?.deliveryDate || ''}
+        note={delivery?.note || null}
+        originalDeliveryDate={originalDelivery?.deliveryDate || ''}
+        originalNote={originalDelivery?.note || null}
       />
 
       {/* 成功ポップアップ */}

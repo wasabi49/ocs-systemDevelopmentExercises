@@ -234,6 +234,68 @@ export async function fetchUndeliveredOrderDetails(customerId: string, deliveryI
 }
 
 /**
+ * 納品情報の更新（日付・備考）
+ * @param deliveryId 納品ID
+ * @param deliveryDate 納品日
+ * @param note 備考
+ * @returns 更新結果
+ */
+export async function updateDeliveryInfo(
+  deliveryId: string,
+  deliveryDate: string,
+  note: string | null,
+) {
+  try {
+    const storeId = await getStoreIdFromCookie();
+
+    if (!storeId) {
+      return {
+        success: false,
+        error: '店舗を選択してください',
+      };
+    }
+
+    // 納品が存在し、適切な店舗に属するかチェック
+    const delivery = await prisma.delivery.findUnique({
+      where: {
+        id: deliveryId,
+        isDeleted: false,
+      },
+      include: {
+        customer: true,
+      },
+    });
+
+    if (!delivery || delivery.customer.storeId !== storeId) {
+      return {
+        success: false,
+        error: '納品が見つからないか、アクセス権限がありません',
+      };
+    }
+
+    // 納品情報を更新
+    await prisma.delivery.update({
+      where: { id: deliveryId },
+      data: {
+        deliveryDate: new Date(deliveryDate),
+        note: note,
+        updatedAt: new Date(),
+      },
+    });
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error('納品情報の更新に失敗しました:', error);
+    return {
+      success: false,
+      error: '納品情報の更新に失敗しました',
+    };
+  }
+}
+
+/**
  * 納品割り当ての更新
  * @param deliveryId 納品ID
  * @param allocations 割り当て情報の配列

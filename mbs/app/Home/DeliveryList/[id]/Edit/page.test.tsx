@@ -20,6 +20,7 @@ vi.mock('@/app/actions/deliveryActions', () => ({
   fetchDeliveryForEdit: vi.fn(),
   fetchUndeliveredOrderDetails: vi.fn(),
   updateDeliveryAllocations: vi.fn(),
+  updateDeliveryInfo: vi.fn(),
 }));
 vi.mock('@/app/hooks/useGenericSearch', () => ({
   useSimpleSearch: vi.fn((items: unknown[]) => {
@@ -44,7 +45,7 @@ vi.mock('@/lib/logger', () => ({
 // Mock window.alert
 global.alert = vi.fn();
 
-describe('DeliveryEditPage', () => {
+describe('納品編集ページ', () => {
   const mockDelivery = {
     id: 'D001',
     customerId: 'C001',
