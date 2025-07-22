@@ -2,6 +2,9 @@ import { fetchDeliveries } from '@/app/actions/deliveryActions';
 import DeliveryListClient, { Delivery } from './components/DeliveryListClient';
 import { checkStoreRequirement } from '@/app/utils/storeRedirect';
 
+// cookieを使用するため動的レンダリングを指定
+export const dynamic = 'force-dynamic';
+
 export default async function DeliveryListPage() {
   // サーバーサイドで初期データを取得
   const result = await fetchDeliveries();

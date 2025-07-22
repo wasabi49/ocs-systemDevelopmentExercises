@@ -1,7 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { setCookie, deleteCookie } from 'cookies-next';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { setCookie, deleteCookie, getCookie } from 'cookies-next';
 
 export interface Store {
   id: string;
@@ -29,14 +29,27 @@ export const useStore = (): StoreContextType => {
 
 interface StoreProviderProps {
   children: ReactNode;
-  initialStore?: Store | null;
 }
 
-export const StoreProvider: React.FC<StoreProviderProps> = ({ children, initialStore = null }) => {
-  // 初期値として、サーバーサイドから渡された店舗を設定
-  const [selectedStore, setSelectedStoreState] = useState<Store | null>(initialStore);
+export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
+  const [selectedStore, setSelectedStoreState] = useState<Store | null>(null);
   const [stores, setStores] = useState<Store[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // 初期化中はtrue
+
+  // クライアントサイドでcookieから店舗情報を読み取る
+  useEffect(() => {
+    const storeId = getCookie('selectedStoreId');
+    const storeName = getCookie('selectedStoreName');
+
+    if (storeId && storeName) {
+      setSelectedStoreState({
+        id: storeId as string,
+        name: storeName as string,
+      });
+    }
+    
+    setIsLoading(false); // 初期化完了
+  }, []);
 
   // シンプルなCookieとの同期関数
   const setSelectedStore = (store: Store | null) => {

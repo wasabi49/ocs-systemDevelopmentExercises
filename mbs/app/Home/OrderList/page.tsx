@@ -4,6 +4,9 @@ import { fetchOrders } from '@/app/actions/orderActions';
 import type { Order } from '@/app/generated/prisma';
 import { checkStoreRequirement } from '@/app/utils/storeRedirect';
 
+// cookieを使用するため動的レンダリングを指定
+export const dynamic = 'force-dynamic';
+
 // 表示用の注文データ型（seed.tsのOrder + フラット化された顧客情報）
 interface OrderWithCustomer extends Order {
   customerName: string;

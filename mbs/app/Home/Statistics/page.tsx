@@ -3,6 +3,9 @@ import { redirect } from 'next/navigation';
 import { fetchStatistics } from '@/app/actions/statisticsActions';
 import StatisticsListClient from './components/StatisticsListClient';
 
+// cookieを使用するため動的レンダリングを指定
+export const dynamic = 'force-dynamic';
+
 interface StatisticsData {
   customerId: string;
   customerName: string;

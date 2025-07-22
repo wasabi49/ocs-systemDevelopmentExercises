@@ -3,6 +3,9 @@ import { redirect } from 'next/navigation';
 import { fetchCustomers } from '@/app/actions/customerActions';
 import CustomerListClient from './components/CustomerListClient';
 
+// cookieを使用するため動的レンダリングを指定
+export const dynamic = 'force-dynamic';
+
 // 顧客データの型定義
 type Customer = {
   id: string;

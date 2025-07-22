@@ -22,15 +22,11 @@ vi.mock('./components/StoreGuard', () => ({
 }));
 
 vi.mock('./contexts/StoreContext', () => ({
-  StoreProvider: ({ children, initialStore }: { children: React.ReactNode; initialStore: unknown }) => (
-    <div data-testid="store-provider" data-initial-store={JSON.stringify(initialStore)}>
+  StoreProvider: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="store-provider">
       {children}
     </div>
   ),
-}));
-
-vi.mock('./utils/storeUtils', () => ({
-  getStoreFromCookie: vi.fn().mockResolvedValue({ id: 'test-store', name: 'Test Store' }),
 }));
 
 // Mock next/font/google
@@ -44,8 +40,8 @@ vi.mock('next/font/google', () => ({
 }));
 
 describe('RootLayout', () => {
-  it('レイアウト構造が正しく表示される', async () => {
-    const TestComponent = await RootLayout({
+  it('レイアウト構造が正しく表示される', () => {
+    const TestComponent = RootLayout({
       children: <div data-testid="test-children">Test Content</div>,
     });
 
@@ -59,21 +55,20 @@ describe('RootLayout', () => {
     expect(screen.getByTestId('test-children')).toBeInTheDocument();
   });
 
-  it('初期ストアをStoreProviderに渡す', async () => {
-    const TestComponent = await RootLayout({
+  it('StoreProviderがコンポーネントをラップする', () => {
+    const TestComponent = RootLayout({
       children: <div>Test</div>,
     });
 
     render(TestComponent);
 
     const storeProvider = screen.getByTestId('store-provider');
-    const initialStoreData = storeProvider.getAttribute('data-initial-store');
-    expect(initialStoreData).toBe('{"id":"test-store","name":"Test Store"}');
+    expect(storeProvider).toBeInTheDocument();
   });
 
-  it('レイアウト構造内で子要素を表示する', async () => {
+  it('レイアウト構造内で子要素を表示する', () => {
     const testContent = 'Custom test content';
-    const TestComponent = await RootLayout({
+    const TestComponent = RootLayout({
       children: <div>{testContent}</div>,
     });
 
@@ -82,8 +77,8 @@ describe('RootLayout', () => {
     expect(screen.getByText(testContent)).toBeInTheDocument();
   });
 
-  it('必要なレイアウト要素を含む', async () => {
-    const TestComponent = await RootLayout({
+  it('必要なレイアウト要素を含む', () => {
+    const TestComponent = RootLayout({
       children: <div data-testid="test-child">Test</div>,
     });
 
@@ -95,18 +90,9 @@ describe('RootLayout', () => {
     expect(screen.getByTestId('test-child')).toBeInTheDocument();
   });
 
-  it('初期化中にgetStoreFromCookieを呼び出す', async () => {
-    const { getStoreFromCookie } = await import('./utils/storeUtils');
-    
-    await RootLayout({
-      children: <div>Test</div>,
-    });
 
-    expect(getStoreFromCookie).toHaveBeenCalled();
-  });
-
-  it('適切なコンポーネント階層を維持する', async () => {
-    const TestComponent = await RootLayout({
+  it('適切なコンポーネント階層を維持する', () => {
+    const TestComponent = RootLayout({
       children: <div data-testid="child-content">Child</div>,
     });
 
