@@ -70,7 +70,7 @@ sequenceDiagram
     participant User as ユーザー
     participant NextRouter as Next.js Router
     participant LoadingPage as loading.tsx
-    parameter TargetPage as 目的ページ
+    participant TargetPage as 目的ページ
 
     User->>NextRouter: ページ遷移開始
     NextRouter->>LoadingPage: 自動ローディング表示

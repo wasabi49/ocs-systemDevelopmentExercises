@@ -202,7 +202,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant Page as StatisticsPage
-    parameter Validation as データ検証
+    participant Validation as データ検証
     participant NullCheck as null チェック
     participant TypeCheck as 型チェック
 

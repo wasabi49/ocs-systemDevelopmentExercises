@@ -10,7 +10,7 @@ sequenceDiagram
     participant Browser as ブラウザ
     participant Page as HomePage
     participant Router as useRouter
-    parameter Store as useStore
+    participant Store as useStore
     participant React as useEffect
 
     Browser->>Page: / (ルート) アクセス

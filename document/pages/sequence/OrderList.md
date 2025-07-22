@@ -31,7 +31,7 @@ sequenceDiagram
 sequenceDiagram
     participant Page as OrderListPage
     participant StoreCheck as checkStoreRequirement
-    parameter Navigation as redirect
+    participant Navigation as redirect
     participant Result as API結果
 
     Page->>StoreCheck: checkStoreRequirement(result) 実行

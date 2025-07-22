@@ -71,7 +71,7 @@ sequenceDiagram
     participant Client as CustomerListClient
     participant Transition as useTransition
     participant ServerAction as fetchCustomers
-    parameter StoreCheck as useServerActionStoreCheck
+    participant StoreCheck as useServerActionStoreCheck
 
     User->>Client: データ再読み込み要求
     Client->>Transition: startTransition() 実行

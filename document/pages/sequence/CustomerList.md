@@ -75,7 +75,7 @@ sequenceDiagram
     participant Props as initialCustomers
 
     Page->>Props: initialCustomers準備
-    Props->>Client: <CustomerListClient initialCustomers={customers} />
+    Props->>Client: CustomerListClient呼び出し (initialCustomers={customers})
     Client->>Client: クライアントサイド初期化
     Client-->>Page: レンダリング完了
 ```
