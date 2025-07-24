@@ -310,7 +310,7 @@ describe('StatisticsListClient Direct Function Tests', () => {
         );
         return true;
       } catch (error) {
-        console.error('CSV出力エラー:', error);
+        // console.error('CSV出力エラー:', error);
         global.alert('CSV出力中にエラーが発生しました。もう一度お試しください。');
         return false;
       }
@@ -410,7 +410,7 @@ describe('StatisticsListClient Direct Function Tests', () => {
         const blob = new global.Blob(['test'], { type: 'text/csv' });
         return true;
       } catch (error) {
-        console.error('CSV出力エラー:', error);
+        // console.error('CSV出力エラー:', error);
         global.alert('CSV出力中にエラーが発生しました。もう一度お試しください。');
         return false;
       }

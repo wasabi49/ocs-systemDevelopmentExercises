@@ -1,13 +1,13 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import '@testing-library/jest-dom';
 import OrderListPage from './page';
-import { fetchOrders } from '@/app/actions/orderActions';
+import { fetchOrdersWithDeliveryStatus } from '@/app/actions/orderActions';
 import { checkStoreRequirement } from '@/app/utils/storeRedirect';
 
 // Mock dependencies
 vi.mock('@/app/actions/orderActions', () => ({
-  fetchOrders: vi.fn(),
+  fetchOrdersWithDeliveryStatus: vi.fn(),
 }));
 
 vi.mock('@/app/utils/storeRedirect', () => ({
@@ -28,13 +28,20 @@ describe('OrderListPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, 'error').mockImplementation(() => {});
+    
+    // デフォルトのモック設定
+    vi.mocked(fetchOrdersWithDeliveryStatus).mockResolvedValue({
+      status: 'success',
+      data: [],
+    });
+    vi.mocked(checkStoreRequirement).mockImplementation(() => {});
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('renders OrderListClient with transformed data when fetchOrders succeeds', async () => {
+  it('renders OrderListClient with transformed data when fetchOrdersWithDeliveryStatus succeeds', async () => {
     const mockOrderData = [
       {
         id: '1',
@@ -67,7 +74,7 @@ describe('OrderListPage', () => {
       },
     ];
 
-    vi.mocked(fetchOrders).mockResolvedValue({
+    vi.mocked(fetchOrdersWithDeliveryStatus).mockResolvedValue({
       status: 'success',
       data: mockOrderData,
     });
@@ -96,7 +103,7 @@ describe('OrderListPage', () => {
       },
     ];
 
-    vi.mocked(fetchOrders).mockResolvedValue({
+    vi.mocked(fetchOrdersWithDeliveryStatus).mockResolvedValue({
       status: 'success',
       data: mockOrderData,
     });
@@ -125,7 +132,7 @@ describe('OrderListPage', () => {
       },
     ];
 
-    vi.mocked(fetchOrders).mockResolvedValue({
+    vi.mocked(fetchOrdersWithDeliveryStatus).mockResolvedValue({
       status: 'success',
       data: mockOrderData,
     });
@@ -136,8 +143,8 @@ describe('OrderListPage', () => {
     expect(renderedData[0].deletedAt).toBe(new Date('2023-01-02T00:00:00Z').toISOString());
   });
 
-  it('renders OrderListClient with empty array when fetchOrders fails', async () => {
-    vi.mocked(fetchOrders).mockResolvedValue({
+  it('renders OrderListClient with empty array when fetchOrdersWithDeliveryStatus fails', async () => {
+    vi.mocked(fetchOrdersWithDeliveryStatus).mockResolvedValue({
       status: 'error',
       error: 'Database connection failed',
     });
@@ -154,28 +161,28 @@ describe('OrderListPage', () => {
       data: [],
     };
 
-    vi.mocked(fetchOrders).mockResolvedValue(mockResult);
+    vi.mocked(fetchOrdersWithDeliveryStatus).mockResolvedValue(mockResult);
 
     render(await OrderListPage());
 
     expect(checkStoreRequirement).toHaveBeenCalledWith(mockResult);
   });
 
-  it('calls fetchOrders', async () => {
-    vi.mocked(fetchOrders).mockResolvedValue({
+  it('calls fetchOrdersWithDeliveryStatus', async () => {
+    vi.mocked(fetchOrdersWithDeliveryStatus).mockResolvedValue({
       status: 'success',
       data: [],
     });
 
     render(await OrderListPage());
 
-    expect(fetchOrders).toHaveBeenCalledTimes(1);
+    expect(fetchOrdersWithDeliveryStatus).toHaveBeenCalledTimes(1);
   });
 
-  it('logs error when fetchOrders fails', async () => {
+  it('logs error when fetchOrdersWithDeliveryStatus fails', async () => {
     const consoleSpy = vi.spyOn(console, 'error');
     
-    vi.mocked(fetchOrders).mockResolvedValue({
+    vi.mocked(fetchOrdersWithDeliveryStatus).mockResolvedValue({
       status: 'error',
       error: 'Database connection failed',
     });

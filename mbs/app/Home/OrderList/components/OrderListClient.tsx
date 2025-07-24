@@ -12,6 +12,7 @@ import { SortConfig, SortIcon, sortItems } from '@/app/utils/sortUtils';
 interface OrderWithCustomer extends Order {
   customerName: string;
   customerContactPerson: string;
+  calculatedStatus?: string; // 実際の納品状況に基づく計算されたステータス
 }
 
 // 検索フィールドの型定義
@@ -92,7 +93,9 @@ const OrderListClient: React.FC<OrderListClientProps> = ({ initialOrders }) => {
       matchField = false;
     }
 
-    const matchStatus = statusFilter === '' || order.status === statusFilter;
+    // 計算されたステータスがある場合はそれを使用、なければ従来のstatusを使用
+    const orderStatus = order.calculatedStatus || order.status;
+    const matchStatus = statusFilter === '' || orderStatus === statusFilter;
     return matchField && matchStatus;
   });
 
@@ -224,17 +227,26 @@ const OrderListClient: React.FC<OrderListClientProps> = ({ initialOrders }) => {
                   {order.note}
                 </td>
                 <td className="truncate border px-2 py-1 text-center sm:px-3 sm:py-2">
-                  {order.status === '未完了' ? (
-                    <span className="rounded-full bg-red-50 px-2 py-1 text-xs font-semibold text-red-600">
-                      {order.status}
-                    </span>
-                  ) : order.status === '完了' ? (
-                    <span className="rounded-full bg-green-50 px-2 py-1 text-xs font-semibold text-green-600">
-                      {order.status}
-                    </span>
-                  ) : (
-                    ''
-                  )}
+                  {(() => {
+                    // 計算されたステータスがある場合はそれを使用、なければ従来のstatusを使用
+                    const displayStatus = order.calculatedStatus || order.status;
+                    
+                    if (displayStatus === '未完了') {
+                      return (
+                        <span className="rounded-full bg-red-50 px-2 py-1 text-xs font-semibold text-red-600">
+                          {displayStatus}
+                        </span>
+                      );
+                    } else if (displayStatus === '完了') {
+                      return (
+                        <span className="rounded-full bg-green-50 px-2 py-1 text-xs font-semibold text-green-600">
+                          {displayStatus}
+                        </span>
+                      );
+                    } else {
+                      return '';
+                    }
+                  })()}
                 </td>
               </tr>
             ))}

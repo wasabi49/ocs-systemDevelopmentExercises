@@ -24,6 +24,7 @@ vi.mock('@/lib/prisma', () => ({
     },
     orderDetail: {
       findMany: vi.fn(),
+      findUnique: vi.fn(),
     },
     deliveryDetail: {
       findMany: vi.fn(),
@@ -32,6 +33,7 @@ vi.mock('@/lib/prisma', () => ({
       update: vi.fn(),
     },
     deliveryAllocation: {
+      findMany: vi.fn(),
       findFirst: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
@@ -320,7 +322,38 @@ describe('deliveryActions', () => {
         id: 'D0000001',
         customer: { storeId: 'store-1' },
       });
-      vi.mocked(prisma.$transaction).mockResolvedValue(undefined);
+      
+      // 既存の割り当てを空として返す
+      vi.mocked(prisma.deliveryAllocation.findMany).mockResolvedValue([]);
+      
+      // トランザクション内のモック
+      vi.mocked(prisma.$transaction).mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
+        const tx = {
+          deliveryAllocation: {
+            findFirst: vi.fn().mockResolvedValue(null),
+            create: vi.fn(),
+          },
+          deliveryDetail: {
+            findFirst: vi.fn().mockResolvedValue(null),
+            create: vi.fn(),
+            findMany: vi.fn().mockResolvedValue([{
+              unitPrice: 1000,
+              quantity: 5,
+            }]),
+          },
+          delivery: {
+            update: vi.fn(),
+          },
+        };
+        await fn(tx);
+        return undefined;
+      });
+      
+      // syncOrderStatus用のモック
+      vi.mocked(prisma.orderDetail.findUnique).mockResolvedValue({
+        id: 'O0000001-01',
+        orderId: 'O0000001',
+      });
 
       const result = await updateDeliveryAllocations('D0000001', mockAllocations);
 
@@ -473,7 +506,28 @@ describe('deliveryActions', () => {
         storeId: 'store-1',
       });
       vi.mocked(prisma.delivery.findFirst).mockResolvedValue(null);
-      vi.mocked(prisma.$transaction).mockResolvedValue({ id: 'D0000001' });
+      vi.mocked(prisma.delivery.findUnique).mockResolvedValue(null);
+      
+      vi.mocked(prisma.$transaction).mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
+        const tx = {
+          delivery: {
+            create: vi.fn().mockResolvedValue({ id: 'D0000001' }),
+          },
+          deliveryDetail: {
+            create: vi.fn(),
+          },
+          deliveryAllocation: {
+            create: vi.fn(),
+          },
+        };
+        return await fn(tx);
+      });
+      
+      // syncOrderStatus用のモック
+      vi.mocked(prisma.orderDetail.findUnique).mockResolvedValue({
+        id: 'O0000001-01',
+        orderId: 'O0000001',
+      });
 
       const result = await createDelivery(mockDeliveryData, mockAllocations);
 
@@ -817,12 +871,20 @@ describe('deliveryActions', () => {
         id: 'D0000001',
         customer: { storeId: 'store-1' },
       });
+      
+      // 既存の割り当てを空として返す
+      vi.mocked(prisma.deliveryAllocation.findMany).mockResolvedValue([]);
 
       const updateMock = vi.fn();
       const createDetailMock = vi.fn();
       const createAllocationMock = vi.fn();
       const findFirstMock = vi.fn().mockResolvedValue(null);
-      const findManyMock = vi.fn().mockResolvedValue([]);
+      const findManyMock = vi.fn().mockResolvedValue([
+        {
+          unitPrice: 1000,
+          quantity: 3,
+        }
+      ]);
 
       vi.mocked(prisma.$transaction).mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
         const tx = {
@@ -843,6 +905,12 @@ describe('deliveryActions', () => {
         };
         await fn(tx);
         return undefined;
+      });
+      
+      // syncOrderStatus用のモック
+      vi.mocked(prisma.orderDetail.findUnique).mockResolvedValue({
+        id: 'O0000001-01',
+        orderId: 'O0000001',
       });
 
       const result = await updateDeliveryAllocations('D0000001', allocations);
@@ -873,6 +941,13 @@ describe('deliveryActions', () => {
         id: 'D0000001',
         customer: { storeId: 'store-1' },
       });
+      
+      // 既存の割り当て情報
+      vi.mocked(prisma.deliveryAllocation.findMany).mockResolvedValue([{
+        orderDetailId: 'O0000001-01',
+        deliveryDetailId: 'D0000001-01',
+        orderDetail: { orderId: 'O0000001' },
+      }]);
 
       const updateAllocationMock = vi.fn();
       const updateDetailMock = vi.fn();
@@ -898,6 +973,12 @@ describe('deliveryActions', () => {
         };
         await fn(tx);
         return undefined;
+      });
+      
+      // syncOrderStatus用のモック
+      vi.mocked(prisma.orderDetail.findUnique).mockResolvedValue({
+        id: 'O0000001-01',
+        orderId: 'O0000001',
       });
 
       const result = await updateDeliveryAllocations('D0000001', allocations);
@@ -937,6 +1018,13 @@ describe('deliveryActions', () => {
         id: 'D0000001',
         customer: { storeId: 'store-1' },
       });
+      
+      // 既存の割り当て情報
+      vi.mocked(prisma.deliveryAllocation.findMany).mockResolvedValue([{
+        orderDetailId: 'O0000001-01',
+        deliveryDetailId: 'D0000001-01',
+        orderDetail: { orderId: 'O0000001' },
+      }]);
 
       const updateAllocationMock = vi.fn();
       const updateDetailMock = vi.fn();
@@ -965,6 +1053,12 @@ describe('deliveryActions', () => {
         };
         await fn(tx);
         return undefined;
+      });
+      
+      // syncOrderStatus用のモック
+      vi.mocked(prisma.orderDetail.findUnique).mockResolvedValue({
+        id: 'O0000001-01',
+        orderId: 'O0000001',
       });
 
       const result = await updateDeliveryAllocations('D0000001', allocations);
@@ -1004,6 +1098,9 @@ describe('deliveryActions', () => {
         id: 'D0000001',
         customer: { storeId: 'store-1' },
       });
+      
+      // 既存の割り当てを空として返す
+      vi.mocked(prisma.deliveryAllocation.findMany).mockResolvedValue([]);
 
       const createDetailMock = vi.fn();
       const createAllocationMock = vi.fn();
@@ -1018,7 +1115,10 @@ describe('deliveryActions', () => {
           deliveryDetail: {
             findFirst: vi.fn().mockResolvedValue({ id: 'D0000001-02' }), // 既存の明細あり
             create: createDetailMock,
-            findMany: vi.fn().mockResolvedValue([]),
+            findMany: vi.fn().mockResolvedValue([{
+              unitPrice: 1000,
+              quantity: 5,
+            }]),
           },
           delivery: {
             update: updateDeliveryMock,
@@ -1026,6 +1126,12 @@ describe('deliveryActions', () => {
         };
         await fn(tx);
         return undefined;
+      });
+      
+      // syncOrderStatus用のモック
+      vi.mocked(prisma.orderDetail.findUnique).mockResolvedValue({
+        id: 'O0000001-01',
+        orderId: 'O0000001',
       });
 
       const result = await updateDeliveryAllocations('D0000001', allocations);

@@ -2,7 +2,7 @@ import { render, screen, waitFor, act, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import '@testing-library/jest-dom';
 import OrderDetailPage from './page';
-import { fetchOrderById, deleteOrder } from '@/app/actions/orderActions';
+import { fetchOrderWithDeliveryAllocations, deleteOrder } from '@/app/actions/orderActions';
 
 // Mock dependencies
 const mockPush = vi.fn();
@@ -59,7 +59,7 @@ describe('OrderDetailPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(fetchOrderById).mockResolvedValue({
+    vi.mocked(fetchOrderWithDeliveryAllocations).mockResolvedValue({
       success: true,
       order: mockOrder,
     });
@@ -75,9 +75,9 @@ describe('OrderDetailPage', () => {
     });
   });
 
-  it('初期状態でローディングが表示される', () => {
+  it('初期状態でローディングが表示される', async () => {
     // Mock a slower response to catch loading state
-    vi.mocked(fetchOrderById).mockImplementation(() => 
+    vi.mocked(fetchOrderWithDeliveryAllocations).mockImplementation(() => 
       new Promise(resolve => 
         setTimeout(() => resolve({
           success: true,
@@ -86,13 +86,15 @@ describe('OrderDetailPage', () => {
       )
     );
 
-    render(<OrderDetailPage />);
+    await act(async () => {
+      render(<OrderDetailPage />);
+    });
 
     expect(screen.getByText('読み込み中...')).toBeInTheDocument();
   });
 
   it('取得エラーを正しく処理する', async () => {
-    vi.mocked(fetchOrderById).mockResolvedValue({
+    vi.mocked(fetchOrderWithDeliveryAllocations).mockResolvedValue({
       success: false,
       error: 'Test error',
     });
@@ -193,7 +195,7 @@ describe('OrderDetailPage', () => {
   });
 
   it('注文データが見つからない場合を処理する', async () => {
-    vi.mocked(fetchOrderById).mockResolvedValue({
+    vi.mocked(fetchOrderWithDeliveryAllocations).mockResolvedValue({
       success: false,
       error: 'Not found',
     });
@@ -213,7 +215,7 @@ describe('OrderDetailPage', () => {
       orderDetails: [],
     };
 
-    vi.mocked(fetchOrderById).mockResolvedValue({
+    vi.mocked(fetchOrderWithDeliveryAllocations).mockResolvedValue({
       success: true,
       order: orderWithoutDetails,
     });
@@ -317,7 +319,7 @@ describe('OrderDetailPage', () => {
       orderDate: '2023-01-01',
     };
 
-    vi.mocked(fetchOrderById).mockResolvedValue({
+    vi.mocked(fetchOrderWithDeliveryAllocations).mockResolvedValue({
       success: true,
       order: orderWithStringDate,
     });
@@ -344,7 +346,7 @@ describe('OrderDetailPage', () => {
       }],
     };
 
-    vi.mocked(fetchOrderById).mockResolvedValue({
+    vi.mocked(fetchOrderWithDeliveryAllocations).mockResolvedValue({
       success: true,
       order: orderWithZeroQuantity,
     });
@@ -379,7 +381,7 @@ describe('OrderDetailPage', () => {
       ],
     };
 
-    vi.mocked(fetchOrderById).mockResolvedValue({
+    vi.mocked(fetchOrderWithDeliveryAllocations).mockResolvedValue({
       success: true,
       order: orderWithMultipleDetails,
     });
@@ -395,7 +397,7 @@ describe('OrderDetailPage', () => {
   });
 
   it('取得中のネットワークエラーを処理する', async () => {
-    vi.mocked(fetchOrderById).mockRejectedValue(new Error('Network error'));
+    vi.mocked(fetchOrderWithDeliveryAllocations).mockRejectedValue(new Error('Network error'));
 
     await act(async () => {
       render(<OrderDetailPage />);
@@ -522,7 +524,7 @@ describe('OrderDetailPage', () => {
   });
 
   it('注文データなしでPDFエクスポートを処理する', async () => {
-    vi.mocked(fetchOrderById).mockResolvedValue({
+    vi.mocked(fetchOrderWithDeliveryAllocations).mockResolvedValue({
       success: true,
       order: null,
     });
@@ -570,7 +572,7 @@ describe('OrderDetailPage', () => {
       status: '完了',
     };
 
-    vi.mocked(fetchOrderById).mockResolvedValue({
+    vi.mocked(fetchOrderWithDeliveryAllocations).mockResolvedValue({
       success: true,
       order: completedOrder,
     });
@@ -580,7 +582,7 @@ describe('OrderDetailPage', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getAllByText('完了')).toHaveLength(3);
+      expect(screen.getAllByText('完了')).toHaveLength(2);
     });
 
     const expandButton = screen.getByText('▼');
@@ -605,7 +607,7 @@ describe('OrderDetailPage', () => {
       }],
     };
 
-    vi.mocked(fetchOrderById).mockResolvedValue({
+    vi.mocked(fetchOrderWithDeliveryAllocations).mockResolvedValue({
       success: true,
       order: orderWithZeroPrice,
     });
@@ -620,7 +622,7 @@ describe('OrderDetailPage', () => {
   });
 
   it('OKボタンがクリックされた時にエラーモーダルを閉じる', async () => {
-    vi.mocked(fetchOrderById).mockResolvedValue({
+    vi.mocked(fetchOrderWithDeliveryAllocations).mockResolvedValue({
       success: false,
       error: 'Test error',
     });
@@ -646,7 +648,7 @@ describe('OrderDetailPage', () => {
       }],
     };
 
-    vi.mocked(fetchOrderById).mockResolvedValue({
+    vi.mocked(fetchOrderWithDeliveryAllocations).mockResolvedValue({
       success: true,
       order: orderWithZeroTotal,
     });
@@ -666,7 +668,7 @@ describe('OrderDetailPage', () => {
       note: null,
     };
 
-    vi.mocked(fetchOrderById).mockResolvedValue({
+    vi.mocked(fetchOrderWithDeliveryAllocations).mockResolvedValue({
       success: true,
       order: orderWithoutNote,
     });

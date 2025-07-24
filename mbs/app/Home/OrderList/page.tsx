@@ -1,6 +1,6 @@
 import React from 'react';
 import OrderListClient from './components/OrderListClient';
-import { fetchOrders } from '@/app/actions/orderActions';
+import { fetchOrdersWithDeliveryStatus } from '@/app/actions/orderActions';
 import type { Order } from '@/app/generated/prisma';
 import { checkStoreRequirement } from '@/app/utils/storeRedirect';
 
@@ -11,12 +11,13 @@ export const dynamic = 'force-dynamic';
 interface OrderWithCustomer extends Order {
   customerName: string;
   customerContactPerson: string;
+  calculatedStatus?: string; // 実際の納品状況に基づく計算されたステータス
 }
 
 // Server Component
 const OrderListPage: React.FC = async () => {
-  // サーバーサイドでデータ取得
-  const result = await fetchOrders();
+  // サーバーサイドでデータ取得（納品状況付き）
+  const result = await fetchOrdersWithDeliveryStatus();
   
   // 店舗未選択の場合はリダイレクト
   checkStoreRequirement(result);
@@ -36,6 +37,7 @@ const OrderListPage: React.FC = async () => {
       deletedAt: orderData.deletedAt ? new Date(orderData.deletedAt) : null,
       customerName: orderData.customer.name,
       customerContactPerson: orderData.customer.contactPerson || '',
+      calculatedStatus: orderData.calculatedStatus, // 計算されたステータスを追加
     }));
   } else {
     console.error('初期データの取得に失敗:', result.error);

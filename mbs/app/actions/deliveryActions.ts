@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma';
 import { getStoreIdFromCookie } from '@/app/utils/storeUtils';
 import { Delivery, Customer } from '@/app/generated/prisma';
+import { syncOrderStatus } from './orderActions';
 
 type DeliveryWithCustomer = Delivery & { customer: Customer };
 
@@ -338,6 +339,19 @@ export async function updateDeliveryAllocations(
       };
     }
 
+    // 既存の割り当てを取得（削除前に影響を受ける注文IDを特定するため）
+    const existingAllocations = await prisma.deliveryAllocation.findMany({
+      where: {
+        deliveryDetail: {
+          deliveryId: deliveryId,
+        },
+        isDeleted: false,
+      },
+      include: {
+        orderDetail: true,
+      },
+    });
+
     await prisma.$transaction(async (tx) => {
       // 送信された割り当てを処理
       for (const allocation of allocations) {
@@ -475,6 +489,35 @@ export async function updateDeliveryAllocations(
         },
       });
     });
+
+    // 影響を受けた注文のステータスを同期
+    const affectedOrderIds = new Set<string>();
+    
+    // 削除された割り当てから影響を受けた注文IDを収集
+    existingAllocations.forEach(allocation => {
+      affectedOrderIds.add(allocation.orderDetail.orderId);
+    });
+    
+    // 新しい割り当てから影響を受けた注文IDを収集
+    for (const allocation of allocations) {
+      const orderDetail = await prisma.orderDetail.findUnique({
+        where: { id: allocation.orderDetailId },
+        select: { orderId: true },
+      });
+      if (orderDetail) {
+        affectedOrderIds.add(orderDetail.orderId);
+      }
+    }
+
+    // 各注文のステータスを同期
+    for (const orderId of affectedOrderIds) {
+      try {
+        await syncOrderStatus(orderId);
+      } catch (syncError) {
+        console.error(`注文 ${orderId} のステータス同期に失敗:`, syncError);
+        // ステータス同期エラーは警告レベルとし、メイン処理は継続
+      }
+    }
 
     return {
       success: true,
@@ -696,6 +739,28 @@ export async function createDelivery(
 
       return delivery;
     });
+
+    // 作成された納品に関連する注文のステータスを同期
+    const affectedOrderIds = new Set<string>();
+    for (const allocation of allocations) {
+      const orderDetail = await prisma.orderDetail.findUnique({
+        where: { id: allocation.orderDetailId },
+        select: { orderId: true },
+      });
+      if (orderDetail) {
+        affectedOrderIds.add(orderDetail.orderId);
+      }
+    }
+
+    // 各注文のステータスを同期
+    for (const orderId of affectedOrderIds) {
+      try {
+        await syncOrderStatus(orderId);
+      } catch (syncError) {
+        console.error(`注文 ${orderId} のステータス同期に失敗:`, syncError);
+        // ステータス同期エラーは警告レベルとし、メイン処理は継続
+      }
+    }
 
     return {
       success: true,

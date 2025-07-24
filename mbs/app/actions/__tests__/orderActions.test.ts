@@ -482,13 +482,19 @@ describe('orderActions', () => {
       orderDate: '2025-01-01',
       customerId: 'C-00001',
       note: '更新されたメモ',
-      status: '完了',
       orderDetails: [
         {
+          id: 'O0000001-01', // 既存の明細ID
           productName: '更新された商品',
           unitPrice: 1500,
           quantity: 1,
           description: '更新された説明',
+        },
+        {
+          productName: '新規商品',
+          unitPrice: 2000,
+          quantity: 2,
+          description: '新規説明',
         },
       ],
     };
@@ -516,9 +522,64 @@ describe('orderActions', () => {
       });
     });
 
+    it('既存明細の削除を正しく処理する', async () => {
+      vi.mocked(getStoreIdFromCookie).mockResolvedValue('store-1');
+      vi.mocked(prisma.customer.findFirst).mockResolvedValue({
+        id: 'C-00001',
+        name: '顧客1',
+        storeId: 'store-1',
+        isDeleted: false,
+      });
+      vi.mocked(prisma.order.findFirst).mockResolvedValue({ 
+        id: 'O0000001',
+        orderDetails: [
+          { id: 'O0000001-01', isDeleted: false },
+          { id: 'O0000001-02', isDeleted: false } // これは削除される
+        ]
+      });
+
+      const updateMock = vi.fn().mockResolvedValue({ id: 'O0000001' });
+      const updateDetailMock = vi.fn().mockResolvedValue({ id: 'O0000001-01' });
+      const updateManyMock = vi.fn().mockResolvedValue({ count: 1 });
+      const createMock = vi.fn().mockResolvedValue({ id: 'O0000001-03' });
+
+      vi.mocked(prisma.$transaction).mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
+        const tx = {
+          order: {
+            update: updateMock,
+          },
+          orderDetail: {
+            update: updateDetailMock,
+            updateMany: updateManyMock,
+            create: createMock,
+          },
+        };
+        return await fn(tx);
+      });
+
+      const result = await updateOrder('O0000001', mockUpdateData);
+
+      expect(result.success).toBe(true);
+      // O0000001-02が削除される
+      expect(updateManyMock).toHaveBeenCalledWith({
+        where: {
+          id: {
+            in: ['O0000001-02'],
+          },
+        },
+        data: {
+          isDeleted: true,
+          deletedAt: expect.any(Date),
+        },
+      });
+    });
+
     it('顧客が見つからない場合、失敗を返す', async () => {
       vi.mocked(getStoreIdFromCookie).mockResolvedValue('store-1');
-      vi.mocked(prisma.order.findFirst).mockResolvedValue({ id: 'O0000001' });
+      vi.mocked(prisma.order.findFirst).mockResolvedValue({ 
+        id: 'O0000001',
+        orderDetails: []
+      });
       vi.mocked(prisma.customer.findFirst).mockResolvedValue(null);
 
       const result = await updateOrder('O0000001', mockUpdateData);
@@ -537,12 +598,17 @@ describe('orderActions', () => {
         storeId: 'store-1',
         isDeleted: false,
       });
-      vi.mocked(prisma.order.findFirst).mockResolvedValue({ id: 'O0000001' });
+      vi.mocked(prisma.order.findFirst).mockResolvedValue({ 
+        id: 'O0000001',
+        orderDetails: [
+          { id: 'O0000001-01', isDeleted: false }
+        ]
+      });
 
       const updateMock = vi.fn().mockResolvedValue({ id: 'O0000001' });
-      const updateManyMock = vi.fn().mockResolvedValue({ count: 1 });
+      const updateDetailMock = vi.fn().mockResolvedValue({ id: 'O0000001-01' });
+      const updateManyMock = vi.fn().mockResolvedValue({ count: 0 });
       const createMock = vi.fn().mockResolvedValue({ id: 'O0000001-02' });
-      const findManyMock = vi.fn().mockResolvedValue([{ id: 'O0000001-01' }]);
 
       vi.mocked(prisma.$transaction).mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
         const tx = {
@@ -550,9 +616,9 @@ describe('orderActions', () => {
             update: updateMock,
           },
           orderDetail: {
+            update: updateDetailMock,
             updateMany: updateManyMock,
             create: createMock,
-            findMany: findManyMock,
           },
         };
         return await fn(tx);
@@ -572,15 +638,28 @@ describe('orderActions', () => {
           // status フィールドは自動管理のため削除されている
         },
       });
-      expect(updateManyMock).toHaveBeenCalledWith({
+      // 既存の明細は更新される
+      expect(updateDetailMock).toHaveBeenCalledWith({
         where: {
-          orderId: 'O0000001',
-          isDeleted: false,
+          id: 'O0000001-01',
         },
         data: {
-          isDeleted: true,
-          deletedAt: expect.any(Date),
+          productName: '更新された商品',
+          unitPrice: 1500,
+          quantity: 1,
+          description: '更新された説明',
         },
+      });
+      // 新規明細が作成される
+      expect(createMock).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          orderId: 'O0000001',
+          productName: '新規商品',
+          unitPrice: 2000,
+          quantity: 2,
+          description: '新規説明',
+          isDeleted: false,
+        }),
       });
     });
 

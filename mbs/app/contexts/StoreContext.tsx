@@ -29,15 +29,22 @@ export const useStore = (): StoreContextType => {
 
 interface StoreProviderProps {
   children: ReactNode;
+  initialStore?: Store | null;
 }
 
-export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
-  const [selectedStore, setSelectedStoreState] = useState<Store | null>(null);
+export const StoreProvider: React.FC<StoreProviderProps> = ({ children, initialStore = null }) => {
+  const [selectedStore, setSelectedStoreState] = useState<Store | null>(initialStore);
   const [stores, setStores] = useState<Store[]>([]);
   const [isLoading, setIsLoading] = useState(true); // 初期化中はtrue
 
   // クライアントサイドでcookieから店舗情報を読み取る
   useEffect(() => {
+    // initialStoreが指定されている場合はcookieの読み込みをスキップ
+    if (initialStore) {
+      setIsLoading(false);
+      return;
+    }
+
     const storeId = getCookie('selectedStoreId');
     const storeName = getCookie('selectedStoreName');
 
@@ -49,7 +56,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     }
     
     setIsLoading(false); // 初期化完了
-  }, []);
+  }, [initialStore]);
 
   // シンプルなCookieとの同期関数
   const setSelectedStore = (store: Store | null) => {

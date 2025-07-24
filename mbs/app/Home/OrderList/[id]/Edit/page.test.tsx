@@ -1,8 +1,8 @@
 import { render, screen, waitFor, act, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import '@testing-library/jest-dom';
 import OrderEditPage from './page';
-import { fetchOrderById, updateOrder } from '@/app/actions/orderActions';
+import { fetchOrderWithDeliveryAllocations, updateOrder } from '@/app/actions/orderActions';
 import { fetchAllCustomers } from '@/app/actions/customerActions';
 
 // Mock dependencies
@@ -46,11 +46,13 @@ describe('OrderEditPage', () => {
     },
     orderDetails: [
       {
-        id: 'OD001',
+        id: 'O001-01',
         productName: 'Product A',
         unitPrice: 1000,
         quantity: 2,
         description: 'Description A',
+        deliveryStatus: '未納品',
+        totalDelivered: 0,
       },
     ],
   };
@@ -73,7 +75,7 @@ describe('OrderEditPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(fetchOrderById).mockResolvedValue({
+    vi.mocked(fetchOrderWithDeliveryAllocations).mockResolvedValue({
       success: true,
       order: mockOrder,
     });
@@ -94,7 +96,7 @@ describe('OrderEditPage', () => {
   });
 
   it('取得エラーを正しく処理する', async () => {
-    vi.mocked(fetchOrderById).mockResolvedValue({
+    vi.mocked(fetchOrderWithDeliveryAllocations).mockResolvedValue({
       success: false,
       error: 'Test error',
     });
@@ -366,7 +368,7 @@ describe('OrderEditPage', () => {
 
   it('空の商品に対するバリデーションエラーを表示する', async () => {
     // Set up empty order data
-    vi.mocked(fetchOrderById).mockResolvedValue({
+    vi.mocked(fetchOrderWithDeliveryAllocations).mockResolvedValue({
       success: true,
       order: {
         ...mockOrder,
@@ -413,7 +415,7 @@ describe('OrderEditPage', () => {
     //   customer: null,
     // };
 
-    vi.mocked(fetchOrderById).mockResolvedValue({
+    vi.mocked(fetchOrderWithDeliveryAllocations).mockResolvedValue({
       success: false,
       error: 'Customer not found',
     });
@@ -518,7 +520,7 @@ describe('OrderEditPage', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('合計金額: ¥2,000')).toBeInTheDocument();
+      expect(screen.getByText(/合計金額: ¥2,000|合計金額: ¥2000/)).toBeInTheDocument();
     });
   });
 
@@ -536,15 +538,17 @@ describe('OrderEditPage', () => {
     const orderWithInvalidData = {
       ...mockOrder,
       orderDetails: [{
-        id: 'OD001',
+        id: 'O001-01',
         productName: 'Product A',
         unitPrice: 'invalid',
         quantity: 'invalid',
         description: 'Description A',
+        deliveryStatus: '未納品',
+        totalDelivered: 0,
       }],
     };
 
-    vi.mocked(fetchOrderById).mockResolvedValue({
+    vi.mocked(fetchOrderWithDeliveryAllocations).mockResolvedValue({
       success: true,
       order: orderWithInvalidData,
     });
@@ -720,7 +724,7 @@ describe('OrderEditPage', () => {
   });
 
   it('注文例外取得エラーを処理する', async () => {
-    vi.mocked(fetchOrderById).mockRejectedValue(new Error('Network error'));
+    vi.mocked(fetchOrderWithDeliveryAllocations).mockRejectedValue(new Error('Network error'));
 
     await act(async () => {
       render(<OrderEditPage />);

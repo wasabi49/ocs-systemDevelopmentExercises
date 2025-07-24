@@ -8,6 +8,7 @@ import { StoreProvider, useStore, Store } from '../StoreContext';
 vi.mock('cookies-next', () => ({
   setCookie: vi.fn(),
   deleteCookie: vi.fn(),
+  getCookie: vi.fn(),
 }));
 
 describe('StoreContext', () => {

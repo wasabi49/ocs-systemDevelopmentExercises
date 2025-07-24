@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useTransition, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import type { Customer, Prisma } from '@/app/generated/prisma';
-import { fetchOrderById, updateOrder } from '@/app/actions/orderActions';
+import { fetchOrderWithDeliveryAllocations, updateOrder } from '@/app/actions/orderActions';
 import { fetchAllCustomers } from '@/app/actions/customerActions';
 import { logger } from '@/lib/logger';
 
@@ -21,6 +21,7 @@ interface OrderUpdateRequest {
   customerId: string;
   note: string | null;
   orderDetails: Array<{
+    id?: string; // 既存の明細IDを追加
     productName: string;
     unitPrice: number;
     quantity: number;
@@ -66,21 +67,17 @@ const generateTempOrderDetailId = (index: number): string => {
   return `TEMP-${String(index + 1).padStart(2, '0')}`;
 };
 
-// 納品情報を取得する関数
-const getDeliveryInfo = (orderDetailId: string) => {
-  if (orderDetailId.startsWith('TEMP-')) {
+// 納品情報を取得する関数（実際のデータベースから取得）
+const getDeliveryInfo = (orderDetail: { id: string; deliveryStatus?: string; totalDelivered?: number } | null) => {
+  if (!orderDetail || orderDetail.id.startsWith('TEMP-')) {
     return { deliveryStatus: '' };
   }
 
-  const seed = parseInt(orderDetailId.slice(-1)) || 0;
-
-  if (seed % 4 === 0) {
-    return { deliveryStatus: '未納品' };
-  } else if (seed % 4 === 1) {
-    return { deliveryStatus: '一部納品' };
-  }
-
-  return { deliveryStatus: '完了' };
+  // fetchOrderWithDeliveryAllocationsから取得した実際のデータを使用
+  return { 
+    deliveryStatus: orderDetail.deliveryStatus || '未納品',
+    totalDelivered: orderDetail.totalDelivered || 0
+  };
 };
 
 // バリデーション関数
@@ -359,7 +356,7 @@ const OrderEditPage: React.FC = () => {
 
       try {
         const [orderResult, customersResult] = await Promise.all([
-          fetchOrderById(orderId),
+          fetchOrderWithDeliveryAllocations(orderId),
           fetchAllCustomers()
         ]);
 
@@ -372,14 +369,17 @@ const OrderEditPage: React.FC = () => {
           setCustomerSearchTerm(order.customer.name);
           setNote(order.note || '');
           
-          const editableDetails: OrderDetailEdit[] = order.orderDetails.map(detail => ({
-            id: detail.id,
-            productName: detail.productName,
-            unitPrice: detail.unitPrice,
-            quantity: detail.quantity,
-            description: detail.description || '',
-            deliveryStatus: getDeliveryInfo(detail.id).deliveryStatus
-          }));
+          const editableDetails: OrderDetailEdit[] = order.orderDetails.map(detail => {
+            const deliveryInfo = getDeliveryInfo(detail);
+            return {
+              id: detail.id,
+              productName: detail.productName,
+              unitPrice: detail.unitPrice,
+              quantity: detail.quantity,
+              description: detail.description || '',
+              deliveryStatus: deliveryInfo.deliveryStatus
+            };
+          });
           setOrderDetails(editableDetails);
         } else {
           setErrorModal({
@@ -439,8 +439,10 @@ const OrderEditPage: React.FC = () => {
       return;
     }
 
+    // 既存のTEMP IDの数を数えて、次の番号を決定
+    const tempCount = orderDetails.filter(detail => detail.id.startsWith('TEMP-')).length;
     const newDetail: OrderDetailEdit = {
-      id: generateTempOrderDetailId(orderDetails.length),
+      id: generateTempOrderDetailId(tempCount),
       productName: '',
       unitPrice: 0,
       quantity: 1,
@@ -448,7 +450,7 @@ const OrderEditPage: React.FC = () => {
       deliveryStatus: ''
     };
     setOrderDetails(prev => [...prev, newDetail]);
-  }, [orderDetails.length]);
+  }, [orderDetails]);
 
   // 注文詳細行の削除
   const handleRemoveOrderDetail = useCallback((index: number) => {
@@ -490,8 +492,7 @@ const OrderEditPage: React.FC = () => {
     
     const allCompleted = orderDetails.every(detail => {
       if (detail.id.startsWith('TEMP-')) return false;
-      const deliveryInfo = getDeliveryInfo(detail.id);
-      return deliveryInfo.deliveryStatus === '完了';
+      return detail.deliveryStatus === '完了';
     });
     
     return allCompleted ? '完了' : '未完了';
@@ -520,6 +521,7 @@ const OrderEditPage: React.FC = () => {
           customerId: selectedCustomerId,
           note: note || null,
           orderDetails: orderDetails.map(detail => ({
+            id: detail.id, // 既存の明細IDを含める
             productName: detail.productName,
             unitPrice: typeof detail.unitPrice === 'number' ? detail.unitPrice : parseJPYString(String(detail.unitPrice)),
             quantity: typeof detail.quantity === 'number' ? detail.quantity : 1,

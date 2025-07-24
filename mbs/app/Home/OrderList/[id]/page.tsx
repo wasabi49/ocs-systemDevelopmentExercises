@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useTransition } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import type { OrderDetail, Prisma } from '@/app/generated/prisma';
-import { fetchOrderById, deleteOrder } from '@/app/actions/orderActions';
+import { fetchOrderWithDeliveryAllocations, deleteOrder } from '@/app/actions/orderActions';
 import { generateOrderPDF } from '@/app/components/OrderPDF';
 import { logger } from '@/lib/logger';
 
@@ -257,7 +257,7 @@ const OrderDetailPage: React.FC = () => {
       }
 
       try {
-        const result = await fetchOrderById(orderId);
+        const result = await fetchOrderWithDeliveryAllocations(orderId);
 
         if (result.success && result.order) {
           // @ts-expect-error - 型エラー回避のための一時的な対応
@@ -286,16 +286,13 @@ const OrderDetailPage: React.FC = () => {
 
   // 注文詳細を表示用データに変換（納品状況の詳細計算）
   const displayOrderDetails: OrderDetailWithDelivery[] = orderData?.orderDetails.map(detail => {
-    // 実際のデータベースから納品状況を取得して判定
-    // 注文のステータスが「完了」の場合は「完了」、そうでなければ「未納品」
-    const totalDelivered = orderData.status === '完了' ? detail.quantity : 0;
-    const deliveryStatus = orderData.status === '完了' ? '完了' : '未納品';
-
+    // fetchOrderWithDeliveryAllocationsから取得したデータをそのまま使用
+    const detailWithDelivery = detail as OrderDetailWithDelivery;
     return {
       ...detail,
-      deliveryAllocations: [], // 将来的にここに納品データが入る
-      totalDelivered,
-      deliveryStatus
+      deliveryAllocations: detailWithDelivery.deliveryAllocations || [],
+      totalDelivered: detailWithDelivery.totalDelivered || 0,
+      deliveryStatus: detailWithDelivery.deliveryStatus || '未納品'
     };
   }) || [];
 
