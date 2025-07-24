@@ -309,7 +309,7 @@ describe('StatisticsListClient Direct Function Tests', () => {
           `CSV ファイル「${filename}」をダウンロードしました。\n出力件数: ${sortedForExport.length}件`,
         );
         return true;
-      } catch (error) {
+      } catch {
         // console.error('CSV出力エラー:', error);
         global.alert('CSV出力中にエラーが発生しました。もう一度お試しください。');
         return false;
@@ -409,7 +409,7 @@ describe('StatisticsListClient Direct Function Tests', () => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const blob = new global.Blob(['test'], { type: 'text/csv' });
         return true;
-      } catch (error) {
+      } catch {
         // console.error('CSV出力エラー:', error);
         global.alert('CSV出力中にエラーが発生しました。もう一度お試しください。');
         return false;

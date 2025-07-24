@@ -22,6 +22,10 @@ vi.mock('@/lib/prisma', () => ({
       create: vi.fn(),
       update: vi.fn(),
     },
+    order: {
+      findFirst: vi.fn(),
+      update: vi.fn(),
+    },
     orderDetail: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
@@ -51,6 +55,11 @@ vi.mock('@/lib/prisma', () => ({
 // Mock store utils
 vi.mock('@/app/utils/storeUtils', () => ({
   getStoreIdFromCookie: vi.fn(),
+}));
+
+// Mock orderActions
+vi.mock('../orderActions', () => ({
+  syncOrderStatus: vi.fn(),
 }));
 
 describe('deliveryActions', () => {
