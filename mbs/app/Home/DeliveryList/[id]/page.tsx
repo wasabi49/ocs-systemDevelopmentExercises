@@ -223,7 +223,7 @@ const DeliveryDetailPage: React.FC = () => {
 
       setDeliveryData(result.delivery as DeliveryData);
     } catch (err) {
-      console.error('納品データの取得エラー:', err);
+      // console.error('納品データの取得エラー:', err);
       setError('納品データの取得中にエラーが発生しました');
     } finally {
       setLoading(false);
