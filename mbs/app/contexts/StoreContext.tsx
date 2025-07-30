@@ -67,14 +67,14 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children, initialS
       setCookie('selectedStoreId', store.id, {
         maxAge: 30 * 24 * 60 * 60, // 30日
         sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
+        secure: false,
         path: '/',
       });
       // フォールバック用に店舗名も保存
       setCookie('selectedStoreName', store.name, {
         maxAge: 30 * 24 * 60 * 60, // 30日
         sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
+        secure: false,
         path: '/',
       });
     } else {
