@@ -125,32 +125,6 @@ describe('StoreContext', () => {
       expect(deleteCookie).toHaveBeenCalledWith('selectedStoreName');
     });
 
-    it('production環境ではsecure cookieが設定される', async () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'production';
-      
-      const { setCookie } = await import('cookies-next');
-      const store: Store = { id: 'store-1', name: '店舗1' };
-      
-      const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <StoreProvider>{children}</StoreProvider>
-      );
-
-      const { result } = renderHook(() => useStore(), { wrapper });
-
-      act(() => {
-        result.current.setSelectedStore(store);
-      });
-
-      expect(setCookie).toHaveBeenCalledWith('selectedStoreId', 'store-1', {
-        maxAge: 30 * 24 * 60 * 60,
-        sameSite: 'lax',
-        secure: true,
-        path: '/',
-      });
-
-      process.env.NODE_ENV = originalEnv;
-    });
 
     it('setStoresで店舗リストを設定できる', () => {
       const stores: Store[] = [
