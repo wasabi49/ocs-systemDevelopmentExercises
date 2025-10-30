@@ -1,0 +1,39 @@
+name: vitest-ci
+on:
+  pull_request:
+    branches:
+      - main
+      - dev
+      - kimura
+      - manato
+  # 手動実行用
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./mbs
+    steps:
+      # リポジトリをチェックアウト
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Node.js をセットアップ
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: "./mbs/package-lock.json"
+
+      # 依存関係をインストール
+      - name: Install dependencies
+        run: npm ci
+
+      # Vitest テストを実行
+      - name: Run Vitest tests
+        id: vitest
+        run: |
+          npm run test:ci
